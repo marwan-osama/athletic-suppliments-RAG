@@ -1,4 +1,4 @@
-"""Stage 4 — text to vectors, via an OpenRouter embedding model."""
+"""Stage 4 — text to vectors, via the local model server."""
 
 from __future__ import annotations
 
@@ -8,47 +8,48 @@ from typing import List, Sequence
 
 from chromadb.api.types import Documents, EmbeddingFunction, Embeddings
 
-from .openrouter import OpenRouterClient
+from .llm import LLMClient
 from .utils import batched
 
 
-class OpenRouterEmbedder(EmbeddingFunction):
-    """ChromaDB-compatible embedding function backed by OpenRouter.
+class ServerEmbedder(EmbeddingFunction):
+    """ChromaDB-compatible embedding function backed by an OpenAI-shaped server.
 
-    `nvidia/llama-nemotron-embed-vl-1b-v2` is asymmetric: it is trained with a
-    `query:` prefix on searches and a `passage:` prefix on documents (its chat
-    template adds them from the message role). OpenRouter's OpenAI-shaped
-    endpoint has no role field, so the prefixes are applied here — `__call__`
-    embeds passages, `embed_query` embeds queries. Set the prefixes to "" to
-    switch this off for a symmetric model.
+    Retrieval embedders are asymmetric — they are trained with one instruction on
+    the query side and another on the document side — and the `/embeddings`
+    endpoint has no field for that, so the instruction is prepended here.
+    `__call__` embeds documents, `embed_query` embeds searches.
+
+    EmbeddingGemma's own templates are the defaults (see `config.py`), and they
+    earn their place: on a creatine query against a matching and a mismatched
+    passage they separated the two by 0.47, against 0.35 with no prefixes at all.
+    Set both to "" for a symmetric model.
     """
-
-    # What the model returns (mean-pooled). Informational: the endpoint has no
-    # dimensions parameter to change it.
-    MODEL_DIMENSIONS = 2048
 
     def __init__(
         self,
-        client: OpenRouterClient,
-        model_name: str = "nvidia/llama-nemotron-embed-vl-1b-v2:free",
+        client: LLMClient,
+        model_name: str,
         batch_size: int = 16,
-        document_prefix: str = "passage: ",
-        query_prefix: str = "query: ",
+        document_prefix: str = "",
+        query_prefix: str = "",
+        dimensions: int = 768,
     ):
         self.client = client
         self.model_name = model_name
         self.batch_size = batch_size
         self.document_prefix = document_prefix
         self.query_prefix = query_prefix
+        self._dimensions = dimensions
 
     @staticmethod
     def name() -> str:
         # Lets Chroma persist/identify the EF config without warnings.
-        return "openrouter_embedding_fn"
+        return "server_embedding_fn"
 
     @property
     def dimensions(self) -> int:
-        return self.MODEL_DIMENSIONS
+        return self._dimensions
 
     def __call__(self, input: Documents) -> Embeddings:
         return self.embed(list(input), self.document_prefix)
@@ -68,10 +69,10 @@ class OpenRouterEmbedder(EmbeddingFunction):
 
 
 class HashEmbedder(EmbeddingFunction):
-    """Offline stand-in: deterministic bag-of-words vectors, no API key needed.
+    """Offline stand-in: deterministic bag-of-words vectors, no server needed.
 
     Retrieval quality is poor (it only matches shared words), but it makes the UI
-    and the tests runnable without credentials or network access.
+    and the tests runnable with nothing running.
     """
 
     def __init__(self, output_dim: int = 256):
@@ -102,10 +103,10 @@ class HashEmbedder(EmbeddingFunction):
 
 
 def _normalize(vector: List[float]) -> List[float]:
-    """Scale to unit length.
+    """Scale to unit length, so cosine distance behaves in Chroma.
 
-    The model mean-pools token embeddings and does not promise unit vectors, so
-    normalising here is what makes cosine distance behave in Chroma.
+    EmbeddingGemma already returns unit vectors, which makes this a no-op there —
+    but not every model does, and re-normalising costs nothing.
     """
     norm = math.sqrt(sum(value * value for value in vector))
     return [value / norm for value in vector] if norm else list(vector)

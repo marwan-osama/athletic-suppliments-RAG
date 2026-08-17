@@ -115,8 +115,8 @@ def sidebar() -> Settings:
     questions_per_chunk = st.sidebar.slider(
         "Hypothetical questions per chunk", 0, 5, defaults.questions_per_chunk,
         help="Indexed alongside each chunk so user-style questions have something "
-             "question-shaped to match. Costs one generation request per chunk, "
-             "and free models have a daily cap. 0 disables it entirely.",
+             "question-shaped to match. Costs one local generation call per chunk, "
+             "which is the slow part of a build. 0 disables it entirely.",
     )
 
     return defaults.with_(
@@ -138,8 +138,8 @@ def sidebar_status(pipeline: RAGPipeline, settings: Settings) -> None:
 
     if pipeline.offline:
         st.sidebar.error(
-            "No `OPENROUTER_API_KEY` — running on offline hash embeddings. "
-            "Retrieval quality will be poor; set the key in `.env` for real results."
+            "`RAG_OFFLINE` is set — running on offline hash embeddings. "
+            "Retrieval quality will be poor; unset it to use the local models."
         )
 
     build, reset = st.sidebar.columns(2)
@@ -310,14 +310,14 @@ def chunks_tab(pipeline: RAGPipeline, settings: Settings) -> None:
     columns[2].metric("Median chars", f"{report.median_chars:.0f}")
     columns[3].metric("Max chars", report.max_chars)
     columns[4].metric("Flagged", len(report.flags))
-    requests = pipeline.requests_for_build(report.total)
+    estimate = pipeline.estimate_build(report.total)
     st.caption(
         f"Rows this configuration would index: {report.total} chunks + up to "
         f"{report.total * settings.questions_per_chunk} questions = "
         f"**{report.total * (1 + settings.questions_per_chunk)}** embeddings — "
-        f"about **{requests} API requests**, roughly "
-        f"**{requests / max(settings.requests_per_minute, 1):.0f} min** at "
-        f"{settings.requests_per_minute} requests/minute."
+        f"{estimate.embedding_calls} embedding calls and "
+        f"{estimate.generation_calls} generation calls, roughly "
+        f"**{estimate.minutes:.0f} min** locally."
     )
 
     only_flagged = st.toggle("Show only flagged chunks", value=False)
@@ -417,9 +417,12 @@ def index_tab(pipeline: RAGPipeline, settings: Settings) -> None:
     if not pipeline.offline:
         st.caption(
             f"Embeddings `{settings.embed_model}` · generation "
-            f"`{settings.llm_model}` · paced at {settings.requests_per_minute} "
-            "requests/minute"
+            f"`{settings.llm_model}` · served from `{settings.base_url}`"
         )
+        try:
+            st.caption(f"Models loaded on the server: {pipeline.client.models()}")
+        except Exception as exc:  # noqa: BLE001 - the server may simply be off
+            st.warning(f"Model server not reachable: {exc}")
 
     if pipeline.index.count:
         st.write("Row types:", pipeline.index.stats())

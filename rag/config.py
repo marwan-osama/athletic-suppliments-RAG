@@ -8,13 +8,22 @@ from dataclasses import dataclass, replace
 from pathlib import Path
 from typing import Optional
 
+from .llm import LOCAL_BASE_URL
+
 DEFAULT_URL = (
     "https://ods.od.nih.gov/factsheets/"
     "ExerciseAndAthleticPerformance-HealthProfessional/"
 )
 
-EMBED_MODEL = "nvidia/llama-nemotron-embed-vl-1b-v2:free"
-LLM_MODEL = "nvidia/nemotron-nano-9b-v2:free"
+# Loaded in LM Studio; `python -m rag.cli models` lists what the server offers.
+EMBED_MODEL = "text-embedding-embeddinggemma-300m"
+LLM_MODEL = "openai/gpt-oss-20b"
+
+# EmbeddingGemma's own instruction templates. Measured on a creatine query
+# against a matching and a mismatched passage, these separated the two by 0.47
+# versus 0.35 with no prefixes — so they stay.
+DOCUMENT_PREFIX = "title: none | text: "
+QUERY_PREFIX = "task: search result | query: "
 
 
 def load_dotenv(path: str | Path = ".env") -> None:
@@ -46,18 +55,21 @@ def env_flag(name: str, default: bool = False) -> bool:
 class Settings:
     """Everything tunable. `Settings.from_env()` is the normal entry point."""
 
-    # --- credentials / models (OpenRouter, one key for both) ---
-    api_key: Optional[str] = None
+    # --- models (LM Studio's local server, one endpoint for both) ---
+    base_url: str = LOCAL_BASE_URL
+    api_key: Optional[str] = None  # LM Studio needs none; hosted gateways do
     embed_model: str = EMBED_MODEL
     llm_model: str = LLM_MODEL
-    base_url: str = "https://openrouter.ai/api/v1"
-    # The `:free` variants allow roughly 20 requests/minute plus a daily cap, so
-    # requests are paced rather than fired off in parallel bursts.
-    requests_per_minute: int = 20
+    embed_dimensions: int = 768  # what embeddinggemma-300m returns
     embed_batch_size: int = 16
+    # Local models have no quota, so nothing is paced. Set this above 0 when
+    # pointing `base_url` at a rate-limited hosted endpoint.
+    requests_per_minute: int = 0
     # The embedding model is asymmetric — it was trained with these prefixes.
-    document_prefix: str = "passage: "
-    query_prefix: str = "query: "
+    document_prefix: str = DOCUMENT_PREFIX
+    query_prefix: str = QUERY_PREFIX
+    # Skip the server entirely and use word-overlap vectors (RAG_OFFLINE).
+    offline: bool = False
 
     # --- source ---
     source: str = DEFAULT_URL
@@ -75,7 +87,7 @@ class Settings:
     # generated or indexed no matter what `questions_per_chunk` says.
     enable_questions: bool = True
     questions_per_chunk: int = 3
-    question_workers: int = 4  # concurrency above the rate limit buys nothing
+    question_workers: int = 8  # concurrency above the rate limit buys nothing
 
     # --- storage / retrieval ---
     db_path: Path = Path("./chroma_db")
@@ -97,11 +109,18 @@ class Settings:
     def from_env(cls, **overrides) -> "Settings":
         load_dotenv()
         settings = cls(
-            api_key=os.getenv("OPENROUTER_API_KEY"),
+            api_key=os.getenv("LLM_API_KEY"),
             enable_questions=env_flag("RAG_ENABLE_QUESTIONS", default=True),
+            offline=env_flag("RAG_OFFLINE", default=False),
         )
-        if source := os.getenv("RAG_SOURCE"):
-            settings = replace(settings, source=source)
+        for name, field in (
+            ("RAG_SOURCE", "source"),
+            ("LLM_BASE_URL", "base_url"),
+            ("LLM_MODEL", "llm_model"),
+            ("EMBED_MODEL", "embed_model"),
+        ):
+            if value := os.getenv(name):
+                settings = replace(settings, **{field: value})
         return replace(settings, **overrides) if overrides else settings
 
     def with_(self, **overrides) -> "Settings":
@@ -127,11 +146,20 @@ class Settings:
     @property
     def embedder_tag(self) -> str:
         """Short slug for the active embedder, for the collection name."""
-        if not self.has_api_key:
+        if self.offline:
             return "hash"
         model = self.embed_model.split("/")[-1].replace(":free", "")
+        # "text-embedding-embeddinggemma-300m" -> "embeddinggem": the common
+        # prefix carries no information and the name has to stay short.
+        model = re.sub(r"^text-embedding-", "", model)
         return re.sub(r"[^a-z0-9]+", "", model.lower())[:12]
 
     @property
-    def has_api_key(self) -> bool:
-        return bool(self.api_key)
+    def use_server(self) -> bool:
+        """Whether to call the model server at all.
+
+        The local server needs no credentials, so this is a deliberate switch
+        rather than "is a key present" — `RAG_OFFLINE=true` falls back to
+        word-overlap vectors and disables generation.
+        """
+        return not self.offline

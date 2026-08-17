@@ -8,6 +8,7 @@ Stages compose with `|`, so `pipeline.chunk()` is literally
 
 from __future__ import annotations
 
+from dataclasses import dataclass
 from typing import Callable, List, Optional
 
 from .answering import Answerer
@@ -15,16 +16,30 @@ from .augmentation import QuestionGenerator
 from .chunking import MarkdownChunker
 from .config import Settings
 from .diagnostics import ChunkInspector, ChunkReport
-from .embedding import HashEmbedder, OpenRouterEmbedder
+from .embedding import HashEmbedder, ServerEmbedder
 from .fetching import SourceFetcher
 from .indexing import VectorIndex
-from .openrouter import OpenRouterClient
+from .llm import LLMClient
 from .preprocessing import MarkdownCleaner
 from .retrieval import Retriever
 from .schema import BuildReport, Chunk, Retrieved
 
 # (stage label, done, total) — one callback covers every long-running step.
 StageProgress = Callable[[str, int, int], None]
+
+# Measured through LM Studio on this machine: gpt-oss-20b answers this prompt in
+# ~1s (it spends about 9 tokens reasoning), which comes to ~0.9s per chunk with
+# the default 8 workers. Embeddings are cheaper still: 288 chunks in 8s.
+# Both are model-specific — re-measure after swapping either one.
+SECONDS_PER_GENERATION = 0.9
+SECONDS_PER_EMBED_CALL = 0.4
+
+
+@dataclass
+class BuildEstimate:
+    embedding_calls: int
+    generation_calls: int
+    minutes: float
 
 
 def _step(label: str, on_progress: StageProgress | None):
@@ -38,14 +53,14 @@ class RAGPipeline:
     def __init__(self, settings: Settings, log: Callable[[str], None] = print):
         self.settings = settings
         self.log = log
-        self.client: Optional[OpenRouterClient] = (
-            OpenRouterClient(
-                settings.api_key,
+        self.client: Optional[LLMClient] = (
+            LLMClient(
                 base_url=settings.base_url,
+                api_key=settings.api_key,
                 requests_per_minute=settings.requests_per_minute,
                 log=log,
             )
-            if settings.has_api_key
+            if settings.use_server
             else None
         )
 
@@ -62,12 +77,13 @@ class RAGPipeline:
         self.inspector = ChunkInspector(chunk_size=settings.chunk_size)
 
         self.embedder = (
-            OpenRouterEmbedder(
+            ServerEmbedder(
                 self.client,
                 model_name=settings.embed_model,
                 batch_size=settings.embed_batch_size,
                 document_prefix=settings.document_prefix,
                 query_prefix=settings.query_prefix,
+                dimensions=settings.embed_dimensions,
             )
             if self.client
             else HashEmbedder()
@@ -103,19 +119,23 @@ class RAGPipeline:
 
     @property
     def offline(self) -> bool:
-        """True when running without an API key (hash embeddings, no LLM)."""
+        """True when the model server is switched off (hash vectors, no LLM)."""
         return self.client is None
 
-    def requests_for_build(self, chunk_count: int) -> int:
-        """How many OpenRouter calls a build of `chunk_count` chunks would make.
+    def estimate_build(self, chunk_count: int) -> "BuildEstimate":
+        """What a build of `chunk_count` chunks would cost in calls and minutes.
 
-        Worth knowing before starting: free models are paced, so this count times
-        `60 / requests_per_minute` is roughly how long the build will take.
+        Generation dominates by a wide margin: one call per chunk, and the local
+        model spends most of each call reasoning before it answers.
         """
         rows = chunk_count * (1 + self.settings.questions_per_chunk)
         embedding_calls = -(-rows // self.settings.embed_batch_size)  # ceil
         question_calls = chunk_count if self.settings.questions_per_chunk else 0
-        return embedding_calls + question_calls
+        seconds = (
+            embedding_calls * SECONDS_PER_EMBED_CALL
+            + question_calls * SECONDS_PER_GENERATION
+        )
+        return BuildEstimate(embedding_calls, question_calls, seconds / 60)
 
     # -- reading the source (no API calls, no cost) -------------------------- #
     def chunk(self, source: Optional[str] = None) -> List[Chunk]:
@@ -169,5 +189,5 @@ class RAGPipeline:
 
     def answer(self, query: str, chunks: List[Retrieved]) -> str:
         if self.answerer is None:
-            return "No API key configured — set OPENROUTER_API_KEY to generate answers."
+            return "Running offline — unset RAG_OFFLINE to generate answers."
         return self.answerer(query, chunks)

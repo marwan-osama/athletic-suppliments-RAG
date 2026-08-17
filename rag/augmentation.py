@@ -11,7 +11,7 @@ import re
 from concurrent.futures import ThreadPoolExecutor
 from typing import Callable, Dict, List, Sequence
 
-from .openrouter import OpenRouterClient
+from .llm import LLMClient
 from .schema import Chunk, ProgressFn, Stage, report
 
 _LIST_MARKER = re.compile(r"^(?:[-*•]+\s*)?(?:\d+[.)]\s+)?")
@@ -32,10 +32,10 @@ class QuestionGenerator(Stage):
 
     def __init__(
         self,
-        client: OpenRouterClient,
-        model_name: str = "nvidia/nemotron-nano-9b-v2:free",
+        client: LLMClient,
+        model_name: str = "openai/gpt-oss-20b",
         num_questions: int = 3,
-        workers: int = 4,
+        workers: int = 8,
         temperature: float = 0.3,
         max_tokens: int = 1024,
         log: Callable[[str], None] = print,
@@ -72,12 +72,10 @@ class QuestionGenerator(Stage):
                 model=self.model_name,
                 prompt=self.PROMPT.format(n=self.num_questions, text=text),
                 temperature=self.temperature,
-                # Asks for reasoning off, but nemotron-nano-9b-v2 reasons anyway
-                # (verified: it still reports reasoning tokens with effort
-                # "none"). Reasoning is charged against max_tokens, so the budget
-                # has to cover thinking plus the handful of question tokens —
-                # too small and the reply comes back empty.
-                reasoning_effort="none",
+                # Reasoning tokens are charged against max_tokens, so the budget
+                # has to cover the thinking as well as the questions — too small
+                # and the reply comes back empty. gpt-oss-20b barely thinks here
+                # (~9 tokens), but other models spend hundreds.
                 max_tokens=self.max_tokens,
             )
         except Exception as exc:  # noqa: BLE001 - a chunk without questions is fine

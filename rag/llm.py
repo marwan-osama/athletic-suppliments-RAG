@@ -1,12 +1,11 @@
-"""The only module that talks to a model provider.
+"""The only module that talks to a model server.
 
-OpenRouter speaks the OpenAI shape: `POST /embeddings` for vectors and
-`POST /chat/completions` for text, both under one API key. Retries, rate
-limiting and error surfacing live here so no stage has to repeat them.
+Everything here speaks the OpenAI shape — `POST /embeddings` for vectors and
+`POST /chat/completions` for text — which is what LM Studio serves locally, and
+also what hosted gateways speak, so pointing `base_url` elsewhere is the only
+change needed to move off the machine.
 
-The `:free` model variants allow roughly 20 requests per minute (plus a daily
-cap), so requests are paced by default rather than fired as fast as the thread
-pool can manage — an unpaced indexing run would spend its time collecting 429s.
+Retries, optional pacing and error surfacing live here so no stage repeats them.
 """
 
 from __future__ import annotations
@@ -19,17 +18,16 @@ from typing import Any, Callable, Dict, List, Optional, Sequence
 
 import httpx
 
-BASE_URL = "https://openrouter.ai/api/v1"
+LOCAL_BASE_URL = "http://127.0.0.1:1234/v1"
 
-# Some reasoning models put their scratchpad inline instead of in the separate
-# `reasoning` field.
+# Some models put their scratchpad inline instead of in a separate field.
 _THINK_BLOCK = re.compile(r"<think>.*?</think>\s*", re.DOTALL | re.IGNORECASE)
 
 # Errors worth splitting an embedding batch over, rather than giving up.
 _BATCH_TOO_BIG = ("too many", "batch", "exceed", "limit", "too large")
 
 
-class OpenRouterError(RuntimeError):
+class LLMError(RuntimeError):
     """A request failed. `status` is the HTTP code, when there was one."""
 
     def __init__(self, message: str, status: Optional[int] = None):
@@ -38,7 +36,7 @@ class OpenRouterError(RuntimeError):
 
 
 class RateLimiter:
-    """Spaces requests across threads so a free endpoint stays happy."""
+    """Spaces requests across threads. Pointless locally, needed for hosted APIs."""
 
     def __init__(self, requests_per_minute: int):
         self.interval = 60.0 / requests_per_minute if requests_per_minute > 0 else 0.0
@@ -57,40 +55,41 @@ class RateLimiter:
             time.sleep(delay)
 
 
-class OpenRouterClient:
-    """Thin OpenRouter API client: `embed()` and `complete()`."""
+class LLMClient:
+    """OpenAI-compatible client: `embed()` and `complete()`."""
 
     def __init__(
         self,
-        api_key: Optional[str],
-        base_url: str = BASE_URL,
-        requests_per_minute: int = 20,
-        timeout: float = 180.0,
-        max_retries: int = 5,
+        base_url: str = LOCAL_BASE_URL,
+        api_key: Optional[str] = None,
+        requests_per_minute: int = 0,
+        # Local generation is slow — a reasoning model can spend half a minute
+        # per reply, and LM Studio may load the model on the first request.
+        timeout: float = 300.0,
+        max_retries: int = 3,
         app_title: str = "athletic-supplements-rag",
         log: Callable[[str], None] = print,
         transport: Optional[httpx.BaseTransport] = None,
     ):
-        if not api_key:
-            raise OpenRouterError(
-                "An OpenRouter API key is required — set OPENROUTER_API_KEY."
-            )
         self.base_url = base_url.rstrip("/")
         self.max_retries = max_retries
         self.log = log
         self.limiter = RateLimiter(requests_per_minute)
+
+        headers = {"Content-Type": "application/json", "X-Title": app_title}
+        if api_key:
+            # LM Studio needs no key; hosted gateways do.
+            headers["Authorization"] = f"Bearer {api_key}"
         self._client = httpx.Client(
-            timeout=timeout,
-            transport=transport,
-            headers={
-                "Authorization": f"Bearer {api_key}",
-                "Content-Type": "application/json",
-                # Optional attribution, used by OpenRouter's app rankings.
-                "X-Title": app_title,
-            },
+            timeout=timeout, transport=transport, headers=headers
         )
 
     # -- endpoints ---------------------------------------------------------- #
+    def models(self) -> List[str]:
+        """Model ids the server currently offers — also a reachability check."""
+        body = self._get("/models")
+        return sorted(row["id"] for row in body.get("data", []))
+
     def embed(self, model: str, inputs: Sequence[str]) -> List[List[float]]:
         """Embed a batch of strings, in the order given."""
         inputs = list(inputs)
@@ -102,11 +101,11 @@ class OpenRouterClient:
                 "/embeddings",
                 {"model": model, "input": inputs, "encoding_format": "float"},
             )
-        except OpenRouterError as error:
+        except LLMError as error:
             if not self._is_batch_too_big(error, len(inputs)):
                 raise
-            # The endpoint does not document a batch ceiling; if it turns out to
-            # have one, halve and carry on instead of failing the whole run.
+            # If the server turns out to cap batch size, halve and carry on
+            # rather than failing the whole run.
             middle = len(inputs) // 2
             self.log(f"Batch of {len(inputs)} rejected as too large; splitting.")
             return self.embed(model, inputs[:middle]) + self.embed(
@@ -115,10 +114,8 @@ class OpenRouterClient:
 
         rows = body.get("data") or []
         if len(rows) != len(inputs):
-            raise OpenRouterError(
-                f"Asked for {len(inputs)} embeddings, got {len(rows)}."
-            )
-        # `index` is authoritative: providers may answer out of order.
+            raise LLMError(f"Asked for {len(inputs)} embeddings, got {len(rows)}.")
+        # `index` is authoritative: servers may answer out of order.
         rows = sorted(rows, key=lambda row: row.get("index", 0))
         return [list(row["embedding"]) for row in rows]
 
@@ -132,8 +129,9 @@ class OpenRouterClient:
     ) -> str:
         """One user turn in, assistant text out.
 
-        `reasoning_effort="none"` switches reasoning off for mechanical tasks
-        (question generation), which is both faster and cheaper in requests.
+        `reasoning_effort` is passed through for servers that honour it. Neither
+        model this project ships with does — they reason regardless — so the
+        budget in `max_tokens` has to cover the thinking as well as the answer.
         """
         payload: Dict[str, Any] = {
             "model": model,
@@ -155,36 +153,49 @@ class OpenRouterClient:
     def _text_of(body: Dict[str, Any]) -> str:
         choices = body.get("choices") or []
         if not choices:
-            raise OpenRouterError(f"No choices in response: {json.dumps(body)[:300]}")
+            raise LLMError(f"No choices in response: {json.dumps(body)[:300]}")
 
         choice = choices[0]
         content = (choice.get("message") or {}).get("content") or ""
         if not content.strip():
             # A reasoning model that spends the whole token budget thinking
-            # answers with content=None and finish_reason="length". Silently
-            # returning "" would look like a model that had nothing to say, so
-            # say what actually happened.
+            # answers with empty content and finish_reason="length". Silently
+            # returning "" would look like a model with nothing to say, so say
+            # what actually happened.
             reasoning_tokens = (
                 (body.get("usage") or {})
                 .get("completion_tokens_details", {})
                 .get("reasoning_tokens", 0)
             )
-            raise OpenRouterError(
+            raise LLMError(
                 "Empty reply "
                 f"(finish_reason={choice.get('finish_reason')!r}, "
                 f"reasoning_tokens={reasoning_tokens}). "
-                "Raise max_tokens: reasoning is billed against the same budget."
+                "Raise max_tokens: reasoning comes out of the same budget."
             )
         return _THINK_BLOCK.sub("", content).strip()
 
     @staticmethod
-    def _is_batch_too_big(error: OpenRouterError, count: int) -> bool:
+    def _is_batch_too_big(error: LLMError, count: int) -> bool:
         message = str(error).lower()
         return (
             count > 1
             and error.status == 400
             and any(hint in message for hint in _BATCH_TOO_BIG)
         )
+
+    def _get(self, path: str) -> Dict[str, Any]:
+        self.limiter.wait()
+        try:
+            response = self._client.get(f"{self.base_url}{path}")
+        except httpx.RequestError as exc:
+            raise self._unreachable(exc) from exc
+        if response.status_code != 200:
+            raise LLMError(
+                f"{path} -> HTTP {response.status_code}: {response.text[:200]}",
+                response.status_code,
+            )
+        return response.json()
 
     def _post(self, path: str, payload: Dict[str, Any]) -> Dict[str, Any]:
         last_error = "unknown error"
@@ -193,16 +204,18 @@ class OpenRouterClient:
             self.limiter.wait()
             try:
                 response = self._client.post(f"{self.base_url}{path}", json=payload)
-            except httpx.RequestError as exc:  # timeout, reset connection, DNS
+            except httpx.ConnectError as exc:
+                raise self._unreachable(exc) from exc  # retrying will not help
+            except httpx.RequestError as exc:  # timeout, reset connection
                 last_error = str(exc)
                 self._backoff(attempt, f"{path} failed ({exc})")
                 continue
 
             if response.status_code == 200:
                 body = response.json()
-                # OpenRouter reports some upstream failures as 200 + error body.
+                # Some servers report upstream failures as 200 + error body.
                 if isinstance(body, dict) and body.get("error"):
-                    raise OpenRouterError(f"{path}: {body['error']}", 200)
+                    raise LLMError(f"{path}: {body['error']}", 200)
                 return body
 
             detail = response.text[:300]
@@ -215,10 +228,17 @@ class OpenRouterClient:
                 )
                 continue
             # 400/401/403/404 will not fix themselves.
-            raise OpenRouterError(f"{path} -> {last_error}", response.status_code)
+            raise LLMError(f"{path} -> {last_error}", response.status_code)
 
-        raise OpenRouterError(
+        raise LLMError(
             f"{path} failed after {self.max_retries} attempts. Last: {last_error}"
+        )
+
+    def _unreachable(self, exc: Exception) -> LLMError:
+        return LLMError(
+            f"Cannot reach the model server at {self.base_url} ({exc}). "
+            "Is LM Studio running with the local server started, and both models "
+            "loaded?"
         )
 
     def _backoff(self, attempt: int, message: str, seconds: Optional[float] = None):

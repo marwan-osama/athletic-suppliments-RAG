@@ -1,6 +1,6 @@
 """Small helpers.
 
-Retries and rate limiting used to live here; they now sit in `openrouter.py`,
+Retries and rate limiting used to live here; they now sit in `llm.py`,
 next to the only code that makes requests.
 """
 

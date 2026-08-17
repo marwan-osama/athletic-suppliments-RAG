@@ -8,7 +8,7 @@ from __future__ import annotations
 
 from typing import Callable, Sequence
 
-from .openrouter import OpenRouterClient
+from .llm import LLMClient
 from .schema import Retrieved
 
 
@@ -24,8 +24,8 @@ class Answerer:
 
     def __init__(
         self,
-        client: OpenRouterClient,
-        model_name: str = "nvidia/nemotron-nano-9b-v2:free",
+        client: LLMClient,
+        model_name: str = "openai/gpt-oss-20b",
         temperature: float = 0.2,
         max_context_chars: int = 8_000,
         # Generous because this model's reasoning tokens come out of the same
