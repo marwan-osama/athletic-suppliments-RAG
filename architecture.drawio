@@ -330,4 +330,96 @@
       </root>
     </mxGraphModel>
   </diagram>
+  <diagram id="page-chunking" name="6 · Chunkization">
+    <mxGraphModel dx="1422" dy="820" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1169" pageHeight="1000" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="p6-title" value="Chunkization — MarkdownChunker, step by step" style="text;html=1;fontSize=17;fontStyle=1;align=left;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="40" y="20" width="640" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="p6-s1" value="1 · sections before size — cut at every heading, so a chunk never spans two supplements" style="text;html=1;fontSize=12;fontStyle=1;align=left;fontColor=#666666;" vertex="1" parent="1">
+          <mxGeometry x="40" y="62" width="800" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="p6-in" value="&lt;b&gt;cleaned markdown&lt;/b&gt;&lt;br&gt;&lt;br&gt;# Dietary Supplements for Exercise…&lt;br&gt;## Selected Ingredients in Dietary…&lt;br&gt;### Creatine&lt;br&gt;#### Efficacy&lt;br&gt;&lt;br&gt;Creatine is one of the most thoroughly&lt;br&gt;studied and widely used dietary…" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#999999;align=left;verticalAlign=top;spacingLeft=10;spacingTop=8;fontSize=11;fontFamily=Courier New;" vertex="1" parent="1">
+          <mxGeometry x="40" y="90" width="360" height="160" as="geometry" />
+        </mxCell>
+        <mxCell id="p6-stack" value="&lt;b&gt;heading stack&lt;/b&gt;&lt;br&gt;&lt;br&gt;H1 Dietary Supplements…&amp;nbsp; &lt;font color=&quot;#b85450&quot;&gt;dropped&lt;/font&gt;&lt;br&gt;&lt;font color=&quot;#999999&quot;&gt;identical on every chunk&lt;/font&gt;&lt;br&gt;&lt;br&gt;H2 Selected Ingredients…&amp;nbsp; &lt;font color=&quot;#b85450&quot;&gt;trimmed&lt;/font&gt;&lt;br&gt;&lt;font color=&quot;#999999&quot;&gt;path would exceed 80 chars&lt;/font&gt;&lt;br&gt;&lt;br&gt;H3 Creatine&amp;nbsp;&amp;nbsp; H4 Efficacy&amp;nbsp; &lt;font color=&quot;#82b366&quot;&gt;kept&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;align=left;verticalAlign=top;spacingLeft=10;spacingTop=8;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="460" y="90" width="330" height="160" as="geometry" />
+        </mxCell>
+        <mxCell id="p6-crumb" value="&lt;b&gt;section&lt;/b&gt;&lt;br&gt;&lt;br&gt;Creatine &amp;gt; Efficacy" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="850" y="130" width="280" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="p6-e1" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=blockThin;endFill=1;strokeColor=#666666;" edge="1" parent="1" source="p6-in" target="p6-stack">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="p6-e2" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=blockThin;endFill=1;strokeColor=#666666;" edge="1" parent="1" source="p6-stack" target="p6-crumb">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="p6-s2" value="2 · the section path is the chunk's first line — and it comes out of the size budget" style="text;html=1;fontSize=12;fontStyle=1;align=left;fontColor=#666666;" vertex="1" parent="1">
+          <mxGeometry x="40" y="285" width="800" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="p6-bar" value="chunk_size = 600 chars" style="text;html=1;fontSize=11;align=left;fontColor=#999999;" vertex="1" parent="1">
+          <mxGeometry x="40" y="315" width="300" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="p6-bar1" value="heading path&lt;br&gt;&lt;font color=&quot;#666666&quot;&gt;≤ chunk_size / 3&lt;/font&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="40" y="340" width="190" height="55" as="geometry" />
+        </mxCell>
+        <mxCell id="p6-bar2" value="body from the splitter&lt;br&gt;&lt;font color=&quot;#666666&quot;&gt;chunk_size − prefix&lt;/font&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="230" y="340" width="410" height="55" as="geometry" />
+        </mxCell>
+        <mxCell id="p6-barnote" value="Reserving the prefix means a chunk &lt;b&gt;can never exceed the size you asked for&lt;/b&gt; — the promise ChunkInspector then checks (0 oversized out of 288). A heading path longer than its share is truncated with an ellipsis rather than starving the body." style="shape=note;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;size=14;align=left;spacingLeft=8;fontSize=11;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="680" y="315" width="450" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="p6-s3" value="3 · split the body — try the widest separator that fits, then fall back" style="text;html=1;fontSize=12;fontStyle=1;align=left;fontColor=#666666;" vertex="1" parent="1">
+          <mxGeometry x="40" y="440" width="800" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="p6-l1" value="blank line&lt;br&gt;&lt;font color=&quot;#666666&quot;&gt;paragraph&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="40" y="470" width="150" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="p6-l2" value="newline&lt;br&gt;&lt;font color=&quot;#666666&quot;&gt;line&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="250" y="470" width="150" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="p6-l3" value="space&lt;br&gt;&lt;font color=&quot;#666666&quot;&gt;word&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="460" y="470" width="150" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="p6-l4" value="hard cut&lt;br&gt;&lt;font color=&quot;#666666&quot;&gt;last resort&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="670" y="470" width="150" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="p6-le1" value="still too big" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=blockThin;endFill=1;strokeColor=#666666;fontSize=10;" edge="1" parent="1" source="p6-l1" target="p6-l2">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="p6-le2" value="still too big" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=blockThin;endFill=1;strokeColor=#666666;fontSize=10;" edge="1" parent="1" source="p6-l2" target="p6-l3">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="p6-le3" value="still too big" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=blockThin;endFill=1;strokeColor=#666666;fontSize=10;" edge="1" parent="1" source="p6-l3" target="p6-l4">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="p6-lnote" value="Sections are split independently, so &lt;b&gt;overlap never bleeds across a heading&lt;/b&gt;." style="shape=note;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;size=14;align=left;spacingLeft=8;fontSize=11;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="860" y="470" width="270" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="p6-s4" value="4 · overlap between neighbours, and small leftovers folded in" style="text;html=1;fontSize=12;fontStyle=1;align=left;fontColor=#666666;" vertex="1" parent="1">
+          <mxGeometry x="40" y="560" width="800" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="p6-ov1" value="chunk n" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=11;align=left;spacingLeft=10;" vertex="1" parent="1">
+          <mxGeometry x="40" y="600" width="300" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="p6-ov2" value="chunk n + 1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=11;align=left;spacingLeft=60;" vertex="1" parent="1">
+          <mxGeometry x="240" y="650" width="300" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="p6-ovmark" value="&lt;font color=&quot;#b85450&quot;&gt;overlap&lt;br&gt;100&lt;/font&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#b85450;dashed=1;fontSize=10;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="240" y="595" width="100" height="100" as="geometry" />
+        </mxCell>
+        <mxCell id="p6-mergenote" value="&lt;b&gt;Folding small pieces&lt;/b&gt;&lt;br&gt;&lt;br&gt;A piece shorter than min_chars joins the previous one — but &lt;b&gt;only if the result still fits&lt;/b&gt; the budget, so tidying leftovers can never break the size promise. A piece with no letters or digits is dropped, and a heading with no prose beneath it never becomes a chunk of its own." style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;align=left;verticalAlign=top;spacingLeft=10;spacingTop=8;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="600" y="595" width="530" height="130" as="geometry" />
+        </mxCell>
+        <mxCell id="p6-out" value="&lt;b&gt;Chunk&lt;/b&gt;&amp;nbsp;&amp;nbsp; id c0042-1f3a9b7c&amp;nbsp; ·&amp;nbsp; index 42&amp;nbsp; ·&amp;nbsp; section &quot;Creatine &amp;gt; Efficacy&quot;&lt;br&gt;&lt;br&gt;Creatine &amp;gt; Efficacy&lt;br&gt;&lt;br&gt;Creatine is one of the most thoroughly studied and widely used dietary supplements…" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;align=left;verticalAlign=top;spacingLeft=10;spacingTop=8;fontSize=11;fontFamily=Courier New;" vertex="1" parent="1">
+          <mxGeometry x="40" y="760" width="1090" height="110" as="geometry" />
+        </mxCell>
+        <mxCell id="p6-final" value="&lt;b&gt;id is a hash of the text&lt;/b&gt;, not a uuid — so re-chunking the same document upserts the same rows instead of duplicating them.&amp;nbsp;&amp;nbsp; &lt;b&gt;Result at 600 / 100:&lt;/b&gt; 288 chunks · min 111 · median 494 · max 600 · 0 oversized · 0 heading-only." style="shape=note;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;size=14;align=left;spacingLeft=10;fontSize=11;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="40" y="890" width="1090" height="80" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
 </mxfile>
