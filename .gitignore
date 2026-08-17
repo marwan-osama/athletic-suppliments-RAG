@@ -1,0 +1,8 @@
+.env
+.venv/
+__pycache__/
+*.pyc
+.cache/
+chroma_db*/
+chunks_dump.md
+.streamlit/secrets.toml
