@@ -31,6 +31,7 @@ class Answerer:
         # Generous because this model's reasoning tokens come out of the same
         # budget as the answer itself.
         max_tokens: int = 2_048,
+        reasoning_effort: str = "",
         log: Callable[[str], None] = print,
     ):
         self.client = client
@@ -38,6 +39,7 @@ class Answerer:
         self.temperature = temperature
         self.max_context_chars = max_context_chars
         self.max_tokens = max_tokens
+        self.reasoning_effort = reasoning_effort
         self.log = log
 
     def __call__(self, question: str, chunks: Sequence[Retrieved]) -> str:
@@ -53,6 +55,7 @@ class Answerer:
             ),
             temperature=self.temperature,
             max_tokens=self.max_tokens,
+            reasoning_effort=self.reasoning_effort or None,
         )
 
     def _format(self, chunks: Sequence[Retrieved]) -> str:

@@ -2,24 +2,25 @@
 
 Run with:  streamlit run app.py
 
-The point of the UI is the feedback loop: change chunk size / overlap / top-k,
-see the chunks that produced, ask questions, and judge the retrieved chunks.
+The point of the UI is the feedback loop: change any stage's settings, see the
+chunks that produced, ask questions, and judge the retrieved chunks.
+
+The sidebar is one section per pipeline stage, in the order the stages run. Each
+optional stage has a switch that bypasses it, and every hyperparameter that stage
+takes is under that switch — there is nothing tunable in `Settings` that cannot
+be reached from here.
 """
 
 from __future__ import annotations
 
 import json
 from collections import deque
-from typing import Dict, List
+from typing import Any, Dict, List
 
 import streamlit as st
 
-from rag.chunking import MarkdownChunker
-from rag.config import Settings
-from rag.diagnostics import ChunkInspector
-from rag.fetching import SourceFetcher
-from rag.pipeline import RAGPipeline
-from rag.preprocessing import MarkdownCleaner
+from rag.config import REASONING_EFFORTS, Settings
+from rag.pipeline import RAGPipeline, reader
 from rag.schema import Chunk, Retrieved
 
 SEED_QUESTIONS = [
@@ -29,6 +30,10 @@ SEED_QUESTIONS = [
     "Does caffeine help endurance athletes?",
 ]
 VERDICTS = ["unjudged", "relevant", "not relevant"]
+
+# Every settings widget is keyed with this prefix, which is what makes "Reset to
+# defaults" a matter of dropping the keys and letting the `value=` defaults win.
+CFG = "cfg-"
 
 # Retry/failure messages from the pipeline. A plain deque rather than
 # `st.session_state` because question generation logs from worker threads, and
@@ -42,104 +47,387 @@ st.set_page_config(page_title="Athletic Supplements RAG", page_icon="🏃", layo
 # Cached pipeline pieces
 # --------------------------------------------------------------------------- #
 @st.cache_data(show_spinner="Fetching, cleaning and chunking…")
-def load_chunks(
-    source: str, url: str, cache_dir: str, chunk_size: int, overlap: int,
-    min_chars: int, prepend_section: bool,
-) -> List[Chunk]:
-    """Chunking only — no embeddings, so this is free to re-run on every slider move."""
-    stages = (
-        SourceFetcher(url=url, cache_dir=cache_dir)
-        | MarkdownCleaner()
-        | MarkdownChunker(chunk_size, overlap, min_chars, prepend_section)
-    )
-    return stages(source)
+def load_chunks(reader_key: str, _settings: Settings) -> List[Chunk]:
+    """Chunking only — no embeddings, so this is free to re-run on every move.
 
-
-@st.cache_resource(show_spinner=False)
-def get_pipeline(
-    source: str, chunk_size: int, overlap: int, min_chars: int,
-    questions_per_chunk: int, prepend_section: bool, db_path: str,
-) -> RAGPipeline:
-    """One pipeline (and Chroma collection) per chunking configuration.
-
-    Every argument here also appears in `Settings.collection_name`, so a cached
-    pipeline can never be paired with an index built from other settings.
+    Keyed on `reader_key`, which covers exactly the settings `reader()` reads;
+    `_settings` is underscored so Streamlit passes it without hashing it.
     """
-    return RAGPipeline(
-        Settings.from_env(
-            source=source,
-            chunk_size=chunk_size,
-            chunk_overlap=overlap,
-            min_chunk_chars=min_chars,
-            questions_per_chunk=questions_per_chunk,
-            prepend_section=prepend_section,
-            db_path=db_path,
-        ),
-        log=LOG.append,
-    )
+    return reader(_settings)(_settings.source)
+
+
+@st.cache_resource(show_spinner="Opening the index…")
+def get_pipeline(index_key: str, _settings: Settings) -> RAGPipeline:
+    """One pipeline (and Chroma collection) per index configuration.
+
+    `index_key` covers everything that decides what is stored in the index, so a
+    cached pipeline can never be paired with vectors built from other settings.
+    Everything else reaches the stages through `RAGPipeline.apply` instead, which
+    is why moving a retrieval slider does not reopen the database.
+    """
+    return RAGPipeline(_settings, log=LOG.append)
 
 
 def state(key: str, default):
     return st.session_state.setdefault(key, default)
 
 
+def cfg(name: str) -> str:
+    return f"{CFG}{name}"
+
+
+def reset_config() -> None:
+    """Drop every settings widget's state, so the defaults are shown again."""
+    for key in [key for key in st.session_state if key.startswith(CFG)]:
+        del st.session_state[key]
+
+
+def switch(label: str, name: str, default: bool, help: str) -> bool:
+    """The bypass switch for one optional stage, drawn above its settings."""
+    return st.toggle(label, value=default, key=cfg(name), help=help)
+
+
+def stage_title(icon: str, title: str, name: str, default: bool) -> str:
+    """Expander label that says at a glance whether the stage is switched off."""
+    on = st.session_state.get(cfg(name), default)
+    return f"{icon} {title}" + ("" if on else " — bypassed")
+
+
 # --------------------------------------------------------------------------- #
-# Sidebar
+# Sidebar: one section per stage, in pipeline order
 # --------------------------------------------------------------------------- #
+def source_controls(defaults: Settings) -> Dict[str, Any]:
+    with st.sidebar.expander("📥 Source & fetching"):
+        values = {
+            "source": st.text_input(
+                "Source (HTML file or URL)", value=defaults.source, key=cfg("source")
+            ),
+            "use_cache": switch(
+                "Reuse the extracted markdown", "use_cache", defaults.use_cache,
+                "Off re-runs extraction (and, for a URL, the download) every build.",
+            ),
+            "source_url": st.text_input(
+                "Base URL for relative links", value=defaults.source_url,
+                key=cfg("source_url"),
+                help="Lets links inside a saved page resolve to absolute URLs.",
+            ),
+            "cache_dir": st.text_input(
+                "Cache directory", value=str(defaults.cache_dir), key=cfg("cache_dir")
+            ),
+            "fetch_min_chars": st.number_input(
+                "Fail extraction below (chars)", 0, 200_000,
+                defaults.fetch_min_chars, 100, key=cfg("fetch_min_chars"),
+                help="A short extraction means content was silently lost.",
+            ),
+        }
+    return values
+
+
+def cleaning_controls(defaults: Settings) -> Dict[str, Any]:
+    with st.sidebar.expander(
+        stage_title("🧹", "Cleaning", "enable_cleaning", defaults.enable_cleaning)
+    ):
+        enabled = switch(
+            "Clean the markdown", "enable_cleaning", defaults.enable_cleaning,
+            "Off hands the raw extraction to the chunker — link soup and all. "
+            "Worth trying once to see what the cleaner is buying you.",
+        )
+        return {
+            "enable_cleaning": enabled,
+            "strip_links": st.checkbox(
+                "Unwrap links", value=defaults.strip_links, key=cfg("strip_links"),
+                disabled=not enabled, help="`[label](url)` becomes `label`.",
+            ),
+            "strip_citations": st.checkbox(
+                "Drop citation markers", value=defaults.strip_citations,
+                key=cfg("strip_citations"), disabled=not enabled,
+                help="Removes `[112]`-style reference numbers.",
+            ),
+            "drop_boilerplate": st.checkbox(
+                "Drop navigation lines", value=defaults.drop_boilerplate,
+                key=cfg("drop_boilerplate"), disabled=not enabled,
+                help="Short standalone lines like 'Ask ODS' or 'Back to top'.",
+            ),
+            "name_empty_headings": st.checkbox(
+                "Name empty headings", value=defaults.name_empty_headings,
+                key=cfg("name_empty_headings"), disabled=not enabled,
+                help="A bare `###` is renamed after the first sentence below it, "
+                     "so subsections still say which supplement they are about.",
+            ),
+            "drop_sections": st.text_input(
+                "Drop these sections", value=", ".join(defaults.drop_sections),
+                key=cfg("drop_sections"), disabled=not enabled,
+                help="Comma-separated heading titles, dropped with their bodies.",
+            ),
+        }
+
+
+def chunking_controls(defaults: Settings) -> Dict[str, Any]:
+    with st.sidebar.expander("✂️ Chunking", expanded=True):
+        chunk_size = st.slider(
+            "Chunk size (chars)", 200, 2000, defaults.chunk_size, 50,
+            key=cfg("chunk_size"),
+        )
+        overlap = st.slider(
+            "Overlap (chars)", 0, 500, defaults.chunk_overlap, 25, key=cfg("chunk_overlap")
+        )
+        if overlap >= chunk_size:
+            overlap = chunk_size // 4
+            st.warning(f"Overlap must stay below chunk size — using {overlap}.")
+        return {
+            "chunk_size": chunk_size,
+            "chunk_overlap": overlap,
+            "min_chunk_chars": st.slider(
+                "Merge fragments below (chars)", 0, 300, defaults.min_chunk_chars, 10,
+                key=cfg("min_chunk_chars"),
+                help="0 keeps every fragment as a chunk of its own.",
+            ),
+            "prepend_section": st.checkbox(
+                "Prefix chunks with their heading path",
+                value=defaults.prepend_section, key=cfg("prepend_section"),
+                help="Turns '#### Efficacy' into 'Creatine > Efficacy' inside "
+                     "the chunk text.",
+            ),
+            "max_section_chars": st.slider(
+                "Heading path cap (chars)", 20, 200, defaults.max_section_chars, 10,
+                key=cfg("max_section_chars"),
+                help="Outer heading levels are dropped until the path fits.",
+            ),
+        }
+
+
+def question_controls(defaults: Settings) -> Dict[str, Any]:
+    with st.sidebar.expander(
+        stage_title("❓", "Question augmentation", "enable_questions",
+                    defaults.enable_questions)
+    ):
+        enabled = switch(
+            "Generate hypothetical questions", "enable_questions",
+            defaults.enable_questions,
+            "Indexed alongside each chunk so user-style questions have something "
+            "question-shaped to match. Costs one local generation call per "
+            "chunk, which is the slow half of a build.",
+        )
+        return {
+            "enable_questions": enabled,
+            "questions_per_chunk": st.slider(
+                "Questions per chunk", 1, 10,
+                # The count is zeroed while the switch is off, so fall back to
+                # the default rather than showing a slider pinned at its floor.
+                defaults.questions_per_chunk or Settings.questions_per_chunk, 1,
+                key=cfg("questions_per_chunk"), disabled=not enabled,
+            ),
+            "question_workers": st.slider(
+                "Worker threads", 1, 32, defaults.question_workers, 1,
+                key=cfg("question_workers"), disabled=not enabled,
+                help="Concurrency above the rate limit buys nothing.",
+            ),
+            "question_temperature": st.slider(
+                "Temperature", 0.0, 2.0, float(defaults.question_temperature), 0.05,
+                key=cfg("question_temperature"), disabled=not enabled,
+            ),
+            "question_max_tokens": st.number_input(
+                "Max tokens per call", 64, 32_768, defaults.question_max_tokens, 64,
+                key=cfg("question_max_tokens"), disabled=not enabled,
+                help="Reasoning tokens come out of this budget too — too small "
+                     "and the reply comes back empty.",
+            ),
+        }
+
+
+def embedding_controls(defaults: Settings) -> Dict[str, Any]:
+    with st.sidebar.expander(
+        stage_title("🔢", "Embedding", "use_server", defaults.use_server)
+    ):
+        offline = not switch(
+            "Use the model server", "use_server", defaults.use_server,
+            "Off falls back to offline word-overlap vectors: no server needed, "
+            "and no generation either. Retrieval quality drops a long way.",
+        )
+        return {
+            "offline": offline,
+            "embed_model": st.text_input(
+                "Embedding model", value=defaults.embed_model, key=cfg("embed_model"),
+                disabled=offline,
+            ),
+            "embed_batch_size": st.slider(
+                "Texts per embedding call", 1, 128, defaults.embed_batch_size, 1,
+                key=cfg("embed_batch_size"), disabled=offline,
+            ),
+            "embed_dimensions": st.number_input(
+                "Reported dimensions", 1, 8192, defaults.embed_dimensions, 1,
+                key=cfg("embed_dimensions"), disabled=offline,
+                help="What the model returns. Shown on the Index tab; the "
+                     "server decides the real width.",
+            ),
+            "document_prefix": st.text_input(
+                "Document prefix", value=defaults.document_prefix,
+                key=cfg("document_prefix"), disabled=offline,
+                help="This embedder is asymmetric — it was trained with an "
+                     "instruction on each side. Empty for a symmetric model.",
+            ),
+            "query_prefix": st.text_input(
+                "Query prefix", value=defaults.query_prefix, key=cfg("query_prefix"),
+                disabled=offline,
+            ),
+        }
+
+
+def storage_controls(defaults: Settings) -> Dict[str, Any]:
+    with st.sidebar.expander("🗄️ Index storage"):
+        return {
+            "db_path": st.text_input(
+                "Chroma path", value=str(defaults.db_path), key=cfg("db_path")
+            ),
+            "collection_base": st.text_input(
+                "Collection prefix", value=defaults.collection_base,
+                key=cfg("collection_base"),
+                help="The rest of the name is derived from the settings that "
+                     "decide what the vectors contain.",
+            ),
+            "index_batch_size": st.slider(
+                "Rows per upsert", 1, 1000, defaults.index_batch_size, 10,
+                key=cfg("index_batch_size"),
+            ),
+        }
+
+
+def retrieval_controls(defaults: Settings) -> Dict[str, Any]:
+    with st.sidebar.expander("🔎 Retrieval", expanded=True):
+        dedupe = st.checkbox(
+            "One result per chunk", value=defaults.dedupe_by_chunk,
+            key=cfg("dedupe_by_chunk"),
+            help="Collapse a chunk and its hypothetical questions into a single "
+                 "result. Off lets one passage fill the whole top-k.",
+        )
+        return {
+            "top_k": st.slider("Top-k results", 1, 20, defaults.top_k, 1, key=cfg("top_k")),
+            "dedupe_by_chunk": dedupe,
+            "retrieval_overfetch": st.slider(
+                "Overfetch multiplier", 1, 10, defaults.retrieval_overfetch, 1,
+                key=cfg("retrieval_overfetch"), disabled=not dedupe,
+                help="How many rows to pull per requested result before "
+                     "collapsing duplicates.",
+            ),
+        }
+
+
+def answering_controls(defaults: Settings) -> Dict[str, Any]:
+    with st.sidebar.expander(
+        stage_title("💬", "Answering", "enable_answers", defaults.enable_answers)
+    ):
+        enabled = switch(
+            "Compose answers from the sources", "enable_answers",
+            defaults.enable_answers,
+            "Optional: retrieval quality is judged from the chunks themselves, "
+            "and this costs an extra generation call.",
+        )
+        return {
+            "enable_answers": enabled,
+            "answer_temperature": st.slider(
+                "Temperature", 0.0, 2.0, float(defaults.answer_temperature), 0.05,
+                key=cfg("answer_temperature"), disabled=not enabled,
+            ),
+            "answer_max_tokens": st.number_input(
+                "Max tokens", 64, 32_768, defaults.answer_max_tokens, 64,
+                key=cfg("answer_max_tokens"), disabled=not enabled,
+                help="Generous by default: this model's reasoning comes out of "
+                     "the same budget as the answer.",
+            ),
+            "answer_max_context_chars": st.number_input(
+                "Context budget (chars)", 500, 200_000,
+                defaults.answer_max_context_chars, 500,
+                key=cfg("answer_max_context_chars"), disabled=not enabled,
+                help="Sources are truncated to fit; later ones drop out first.",
+            ),
+        }
+
+
+def server_controls(defaults: Settings) -> Dict[str, Any]:
+    with st.sidebar.expander("🔌 Model server"):
+        return {
+            "base_url": st.text_input(
+                "Base URL", value=defaults.base_url, key=cfg("base_url"),
+                help="Anything that speaks the OpenAI shape: LM Studio locally, "
+                     "or a hosted gateway.",
+            ),
+            "llm_model": st.text_input(
+                "Generation model", value=defaults.llm_model, key=cfg("llm_model"),
+                help="Used for both hypothetical questions and answers.",
+            ),
+            "api_key": st.text_input(
+                "API key", value=defaults.api_key or "", type="password",
+                key=cfg("api_key"),
+                help="LM Studio needs none. Defaults to LLM_API_KEY from .env.",
+            ) or None,
+            "requests_per_minute": st.number_input(
+                "Rate limit (requests/min)", 0, 10_000, defaults.requests_per_minute, 10,
+                key=cfg("requests_per_minute"), help="0 disables pacing.",
+            ),
+            "request_timeout": st.number_input(
+                "Request timeout (s)", 5.0, 3600.0, float(defaults.request_timeout), 5.0,
+                key=cfg("request_timeout"),
+                help="Local generation is slow, and the first request may load "
+                     "the model.",
+            ),
+            "max_retries": st.slider(
+                "Max retries", 1, 10, defaults.max_retries, 1, key=cfg("max_retries"),
+                help="Applies to timeouts, 429s and 5xx. A 400 is never retried.",
+            ),
+            "reasoning_effort": st.selectbox(
+                "Reasoning effort", REASONING_EFFORTS,
+                index=REASONING_EFFORTS.index(defaults.reasoning_effort),
+                format_func=lambda value: value or "leave unset",
+                key=cfg("reasoning_effort"),
+                help="Passed through for servers that honour it. Neither model "
+                     "shipped here does — they reason regardless.",
+            ),
+        }
+
+
+def diagnostics_controls(defaults: Settings) -> Dict[str, Any]:
+    with st.sidebar.expander("🩺 Chunk diagnostics"):
+        return {
+            "tiny_below": st.slider(
+                "Flag chunks below (chars)", 0, 500, defaults.tiny_below, 10,
+                key=cfg("tiny_below"),
+                help="Only affects the TINY flag on the Chunks tab, not the "
+                     "chunking itself.",
+            ),
+        }
+
+
 def sidebar() -> Settings:
     defaults = Settings.from_env()
     st.sidebar.title("🏃 Pipeline settings")
-
-    source = st.sidebar.text_input("Source (HTML file or URL)", value=defaults.source)
-
-    st.sidebar.subheader("Chunking")
-    chunk_size = st.sidebar.slider("Chunk size (chars)", 200, 2000, defaults.chunk_size, 50)
-    overlap = st.sidebar.slider("Overlap (chars)", 0, 500, defaults.chunk_overlap, 25)
-    if overlap >= chunk_size:
-        overlap = chunk_size // 4
-        st.sidebar.warning(f"Overlap must stay below chunk size — using {overlap}.")
-    min_chars = st.sidebar.slider("Merge fragments below (chars)", 0, 300, defaults.min_chunk_chars, 10)
-    prepend_section = st.sidebar.checkbox(
-        "Prefix chunks with their heading path", value=defaults.prepend_section,
-        help="Turns '#### Efficacy' into 'Creatine > Efficacy' inside the chunk text.",
+    st.sidebar.caption(
+        "One section per stage, in the order they run. Optional stages have a "
+        "switch that bypasses them."
     )
 
-    st.sidebar.subheader("Retrieval")
-    top_k = st.sidebar.slider("Top-k results", 1, 20, defaults.top_k)
-    dedupe = st.sidebar.checkbox(
-        "One result per chunk", value=defaults.dedupe_by_chunk,
-        help="Collapse a chunk and its hypothetical questions into a single result.",
-    )
-
-    st.sidebar.subheader("Indexing")
-    questions_per_chunk = st.sidebar.slider(
-        "Hypothetical questions per chunk", 0, 5, defaults.questions_per_chunk,
-        help="Indexed alongside each chunk so user-style questions have something "
-             "question-shaped to match. Costs one local generation call per chunk, "
-             "which is the slow part of a build. 0 disables it entirely.",
-    )
-
-    return defaults.with_(
-        source=source,
-        chunk_size=chunk_size,
-        chunk_overlap=overlap,
-        min_chunk_chars=min_chars,
-        prepend_section=prepend_section,
-        top_k=top_k,
-        dedupe_by_chunk=dedupe,
-        questions_per_chunk=questions_per_chunk,
-    )
+    values: Dict[str, Any] = {}
+    for controls in (
+        source_controls, cleaning_controls, chunking_controls, question_controls,
+        embedding_controls, storage_controls, retrieval_controls,
+        answering_controls, server_controls, diagnostics_controls,
+    ):
+        values.update(controls(defaults))
+    return defaults.with_(**values)
 
 
+# --------------------------------------------------------------------------- #
+# Sidebar: index status and building
+# --------------------------------------------------------------------------- #
 def sidebar_status(pipeline: RAGPipeline, settings: Settings) -> None:
     st.sidebar.subheader("Index")
     st.sidebar.caption(f"Collection `{settings.collection_name}`")
     st.sidebar.metric("Rows indexed", f"{pipeline.index.count:,}")
 
     if pipeline.offline:
-        st.sidebar.error(
-            "`RAG_OFFLINE` is set — running on offline hash embeddings. "
-            "Retrieval quality will be poor; unset it to use the local models."
+        st.sidebar.warning(
+            "The model server is switched off — running on offline hash "
+            "embeddings. Retrieval quality will be poor, and nothing is "
+            "generated. Turn it back on under **Embedding**."
         )
 
     build, reset = st.sidebar.columns(2)
@@ -148,6 +436,16 @@ def sidebar_status(pipeline: RAGPipeline, settings: Settings) -> None:
     if reset.button("Rebuild", use_container_width=True,
                     help="Delete this collection and index again from scratch"):
         run_build(pipeline, force=True)
+
+    changed = settings.changed_from_defaults()
+    st.sidebar.button(
+        f"Reset {len(changed)} changed setting{'s' if len(changed) != 1 else ''}",
+        on_click=reset_config, use_container_width=True, disabled=not changed,
+    )
+    st.sidebar.caption(
+        "Settings that change the stored vectors switch you to a collection of "
+        "their own, so you can compare configurations without wiping anything."
+    )
 
 
 def run_build(pipeline: RAGPipeline, force: bool) -> None:
@@ -215,8 +513,6 @@ def run_search(pipeline: RAGPipeline, question: str, top_k: int, rerun: bool = T
     if pipeline.index.count == 0:
         st.warning("The index is empty — build it first.")
         return
-    pipeline.retriever.top_k = top_k
-    pipeline.retriever.dedupe = pipeline.settings.dedupe_by_chunk
     try:
         state("results", {})[question] = pipeline.search(question, top_k=top_k)
     except Exception as exc:  # noqa: BLE001
@@ -234,8 +530,12 @@ def render_results(pipeline: RAGPipeline, question: str, hits: List[Retrieved]) 
     header[0].metric("Results", len(hits))
     header[1].metric("Top similarity", f"{hits[0].similarity:.3f}" if hits else "—")
     header[2].metric("Judged relevant", f"{relevant}/{len(hits)}")
-    if header[3].button("Generate answer", key=f"answer-{question}",
-                        disabled=pipeline.offline, use_container_width=True):
+    if header[3].button(
+        "Generate answer", key=f"answer-{question}",
+        disabled=not pipeline.can_answer, use_container_width=True,
+        help=None if pipeline.can_answer else
+             "Switch Answering on in the sidebar (and the model server with it).",
+    ):
         with st.spinner("Answering…"):
             state("answers", {})[question] = pipeline.answer(question, hits)
 
@@ -294,16 +594,12 @@ def reviews_for(question: str) -> Dict[str, dict]:
 # --------------------------------------------------------------------------- #
 def chunks_tab(pipeline: RAGPipeline, settings: Settings) -> None:
     try:
-        chunks = load_chunks(
-            settings.source, settings.source_url, str(settings.cache_dir),
-            settings.chunk_size, settings.chunk_overlap,
-            settings.min_chunk_chars, settings.prepend_section,
-        )
+        chunks = load_chunks(settings.reader_key, settings)
     except Exception as exc:  # noqa: BLE001
         st.error(f"Could not read the source: {exc}")
         return
 
-    report = ChunkInspector(chunk_size=settings.chunk_size)(chunks)
+    report = pipeline.inspect(chunks)
     columns = st.columns(5)
     columns[0].metric("Chunks", report.total)
     columns[1].metric("Sections", report.sections)
@@ -319,6 +615,11 @@ def chunks_tab(pipeline: RAGPipeline, settings: Settings) -> None:
         f"{estimate.generation_calls} generation calls, roughly "
         f"**{estimate.minutes:.0f} min** locally."
     )
+    if not settings.enable_cleaning:
+        st.warning(
+            "Cleaning is bypassed — these chunks are the raw extraction, "
+            "citation markers and navigation included."
+        )
 
     only_flagged = st.toggle("Show only flagged chunks", value=False)
     needle = st.text_input("Filter by text or section", placeholder="creatine")
@@ -427,30 +728,64 @@ def index_tab(pipeline: RAGPipeline, settings: Settings) -> None:
     if pipeline.index.count:
         st.write("Row types:", pipeline.index.stats())
 
+    st.subheader("Stages in force")
+    st.write(
+        {
+            "reading": repr(pipeline.reader),
+            "questions": (
+                f"{settings.questions_per_chunk} per chunk · {settings.llm_model} "
+                f"· {settings.question_workers} workers"
+                if pipeline.generator else "bypassed"
+            ),
+            "retrieval": (
+                f"top {settings.top_k}"
+                + (f" · collapsed from {settings.top_k * settings.retrieval_overfetch}"
+                   if settings.dedupe_by_chunk else " · duplicates kept")
+            ),
+            "answering": (
+                f"{settings.llm_model} · temperature {settings.answer_temperature}"
+                if pipeline.can_answer else "bypassed"
+            ),
+        }
+    )
+
     st.subheader("Collections on disk")
     st.write(pipeline.index.collections() or "none yet")
     st.caption(
-        "Each chunking configuration gets its own collection, so switching the "
-        "sliders back to a previous setting reuses the index you already built."
+        "Each indexing configuration gets its own collection, so switching the "
+        "sidebar back to a previous setting reuses the index you already built."
     )
+
+    st.subheader("Effective settings")
+    changed = redacted_changes(settings)
+    st.caption(
+        f"{len(changed)} of {len(settings.to_dict())} settings differ from the "
+        "defaults." if changed else "Every setting is at its default."
+    )
+    if changed:
+        st.json(changed)
+    with st.expander("All settings"):
+        st.json(settings.redacted())
 
     if LOG:
         st.subheader("Pipeline log")
         st.code("\n".join(LOG))
 
 
+def redacted_changes(settings: Settings) -> Dict[str, Any]:
+    changes = settings.changed_from_defaults()
+    if changes.get("api_key"):
+        changes["api_key"] = "***"
+    return changes
+
+
 # --------------------------------------------------------------------------- #
 def main() -> None:
     settings = sidebar()
-    pipeline = get_pipeline(
-        settings.source, settings.chunk_size, settings.chunk_overlap,
-        settings.min_chunk_chars, settings.questions_per_chunk,
-        settings.prepend_section, str(settings.db_path),
-    )
-    # The cached pipeline predates the current retrieval sliders — keep it in sync.
-    pipeline.settings = pipeline.settings.with_(
-        top_k=settings.top_k, dedupe_by_chunk=settings.dedupe_by_chunk,
-    )
+    pipeline = get_pipeline(settings.index_key, settings)
+    # The cached pipeline was built for this index, but not necessarily for the
+    # current retrieval / generation controls — push those onto its stages.
+    pipeline.apply(settings)
     sidebar_status(pipeline, settings)
 
     st.title("Dietary supplements for athletic performance — RAG explorer")

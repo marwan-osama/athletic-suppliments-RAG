@@ -29,7 +29,7 @@ from .llm import LLMClient, LLMError
 from .pipeline import RAGPipeline
 from .preprocessing import MarkdownCleaner
 from .retrieval import Retriever
-from .schema import BuildReport, Chain, Chunk, Retrieved, Stage
+from .schema import BuildReport, Chain, Chunk, Identity, Retrieved, Stage
 
 __all__ = [
     "Answerer",
@@ -39,6 +39,7 @@ __all__ = [
     "ChunkInspector",
     "ChunkReport",
     "HashEmbedder",
+    "Identity",
     "LLMClient",
     "LLMError",
     "MarkdownChunker",

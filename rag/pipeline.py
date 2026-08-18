@@ -4,6 +4,13 @@
 
 Stages compose with `|`, so `pipeline.chunk()` is literally
 `(fetcher | cleaner | chunker)(source)`.
+
+Every stage takes its hyperparameters from `Settings`, and the optional ones —
+cleaning, question generation, answering, the fetch cache, the model server
+itself — drop out when their switch is off. Settings that change the stored
+vectors are baked into `Settings.index_key`; the rest can be pushed onto a live
+pipeline with `apply()`, which is what lets the UI move a slider without
+reopening the database.
 """
 
 from __future__ import annotations
@@ -22,7 +29,7 @@ from .indexing import VectorIndex
 from .llm import LLMClient
 from .preprocessing import MarkdownCleaner
 from .retrieval import Retriever
-from .schema import BuildReport, Chunk, Retrieved
+from .schema import BuildReport, Chain, Chunk, Identity, Retrieved, Stage
 
 # (stage label, done, total) — one callback covers every long-running step.
 StageProgress = Callable[[str, int, int], None]
@@ -33,6 +40,9 @@ StageProgress = Callable[[str, int, int], None]
 # Both are model-specific — re-measure after swapping either one.
 SECONDS_PER_GENERATION = 0.9
 SECONDS_PER_EMBED_CALL = 0.4
+
+OFFLINE_NOTICE = "Running offline — turn the model server back on to generate answers."
+DISABLED_NOTICE = "Answer generation is switched off — turn it on to compose one."
 
 
 @dataclass
@@ -49,6 +59,43 @@ def _step(label: str, on_progress: StageProgress | None):
     return lambda done, total: on_progress(label, done, total)
 
 
+def cleaner_for(settings: Settings) -> Stage:
+    """The cleaning stage, or a pass-through when it is switched off."""
+    if not settings.enable_cleaning:
+        return Identity()
+    return MarkdownCleaner(
+        strip_links=settings.strip_links,
+        strip_citations=settings.strip_citations,
+        drop_boilerplate=settings.drop_boilerplate,
+        name_empty_headings=settings.name_empty_headings,
+        drop_sections=settings.drop_sections,
+    )
+
+
+def reader(settings: Settings) -> Chain:
+    """The free half of the pipeline: fetch | clean | chunk.
+
+    Built on its own so the UI can re-chunk on every slider move without opening
+    a database or a connection to the model server.
+    """
+    return (
+        SourceFetcher(
+            url=settings.source_url,
+            cache_dir=settings.cache_dir,
+            use_cache=settings.use_cache,
+            min_chars=settings.fetch_min_chars,
+        )
+        | cleaner_for(settings)
+        | MarkdownChunker(
+            chunk_size=settings.chunk_size,
+            chunk_overlap=settings.chunk_overlap,
+            min_chars=settings.min_chunk_chars,
+            prepend_section=settings.prepend_section,
+            max_section_chars=settings.max_section_chars,
+        )
+    )
+
+
 class RAGPipeline:
     def __init__(self, settings: Settings, log: Callable[[str], None] = print):
         self.settings = settings
@@ -58,23 +105,19 @@ class RAGPipeline:
                 base_url=settings.base_url,
                 api_key=settings.api_key,
                 requests_per_minute=settings.requests_per_minute,
+                timeout=settings.request_timeout,
+                max_retries=settings.max_retries,
                 log=log,
             )
             if settings.use_server
             else None
         )
 
-        self.fetcher = SourceFetcher(
-            url=settings.source_url, cache_dir=settings.cache_dir
+        self.reader = reader(settings)
+        self.fetcher, self.cleaner, self.chunker = self.reader.stages
+        self.inspector = ChunkInspector(
+            chunk_size=settings.chunk_size, tiny_below=settings.tiny_below
         )
-        self.cleaner = MarkdownCleaner()
-        self.chunker = MarkdownChunker(
-            chunk_size=settings.chunk_size,
-            chunk_overlap=settings.chunk_overlap,
-            min_chars=settings.min_chunk_chars,
-            prepend_section=settings.prepend_section,
-        )
-        self.inspector = ChunkInspector(chunk_size=settings.chunk_size)
 
         self.embedder = (
             ServerEmbedder(
@@ -93,34 +136,72 @@ class RAGPipeline:
             db_path=settings.db_path,
             collection_name=settings.collection_name,
         )
-        self.retriever = Retriever(
-            self.index, top_k=settings.top_k, dedupe=settings.dedupe_by_chunk
-        )
+        self.retriever = Retriever(self.index)
         self.generator = (
-            QuestionGenerator(
-                self.client,
-                model_name=settings.llm_model,
-                num_questions=settings.questions_per_chunk,
-                workers=settings.question_workers,
-                log=log,
-            )
+            QuestionGenerator(self.client, log=log)
             if self.client and settings.questions_per_chunk > 0
             else None
         )
-        self.answerer = (
-            Answerer(self.client, model_name=settings.llm_model, log=log)
-            if self.client
-            else None
-        )
+        self.answerer = Answerer(self.client, log=log) if self.client else None
+
+        # One code path sets every tunable field, so a stage cannot end up
+        # configured one way at construction and another way after a slider move.
+        self.apply(settings)
 
     @classmethod
     def from_env(cls, **overrides) -> "RAGPipeline":
         return cls(Settings.from_env(**overrides))
 
+    def apply(self, settings: Settings) -> None:
+        """Push the runtime-tunable settings onto the stages already built.
+
+        Everything here can change without invalidating the index, which is why
+        the UI can move these controls without a rebuild. Anything that *does*
+        change the stored vectors is part of `Settings.index_key`, and changing
+        one of those gets you a different pipeline (and its own collection)
+        instead of a silently mismatched index.
+        """
+        self.settings = settings
+
+        self.fetcher.use_cache = settings.use_cache
+        self.fetcher.min_chars = settings.fetch_min_chars
+        self.inspector.tiny_below = settings.tiny_below
+
+        self.retriever.top_k = settings.top_k
+        self.retriever.dedupe = settings.dedupe_by_chunk
+        self.retriever.overfetch = settings.retrieval_overfetch
+
+        if self.client is not None:
+            self.client.tune(
+                requests_per_minute=settings.requests_per_minute,
+                timeout=settings.request_timeout,
+                max_retries=settings.max_retries,
+            )
+        if isinstance(self.embedder, ServerEmbedder):
+            self.embedder.batch_size = settings.embed_batch_size
+        if self.generator is not None:
+            self.generator.model_name = settings.llm_model
+            self.generator.num_questions = settings.questions_per_chunk
+            self.generator.workers = settings.question_workers
+            self.generator.temperature = settings.question_temperature
+            self.generator.max_tokens = settings.question_max_tokens
+            self.generator.reasoning_effort = settings.reasoning_effort
+        if self.answerer is not None:
+            self.answerer.model_name = settings.llm_model
+            self.answerer.temperature = settings.answer_temperature
+            self.answerer.max_tokens = settings.answer_max_tokens
+            self.answerer.max_context_chars = settings.answer_max_context_chars
+            self.answerer.reasoning_effort = settings.reasoning_effort
+
     @property
     def offline(self) -> bool:
         """True when the model server is switched off (hash vectors, no LLM)."""
         return self.client is None
+
+    @property
+    def can_answer(self) -> bool:
+        """Whether the Answer step is available: needs a server and its switch."""
+        return self.answerer is not None and self.settings.enable_answers
 
     def estimate_build(self, chunk_count: int) -> "BuildEstimate":
         """What a build of `chunk_count` chunks would cost in calls and minutes.
@@ -139,8 +220,7 @@ class RAGPipeline:
 
     # -- reading the source (no API calls, no cost) -------------------------- #
     def chunk(self, source: Optional[str] = None) -> List[Chunk]:
-        pipeline = self.fetcher | self.cleaner | self.chunker
-        return pipeline(source or self.settings.source)
+        return self.reader(source or self.settings.source)
 
     def inspect(self, chunks: List[Chunk]) -> ChunkReport:
         return self.inspector(chunks)
@@ -173,7 +253,10 @@ class RAGPipeline:
             else {}
         )
         rows = self.index.add(
-            chunks, questions, on_progress=_step("indexing", on_progress)
+            chunks,
+            questions,
+            batch_size=self.settings.index_batch_size,
+            on_progress=_step("indexing", on_progress),
         )
 
         return BuildReport(
@@ -189,5 +272,7 @@ class RAGPipeline:
 
     def answer(self, query: str, chunks: List[Retrieved]) -> str:
         if self.answerer is None:
-            return "Running offline — unset RAG_OFFLINE to generate answers."
+            return OFFLINE_NOTICE
+        if not self.settings.enable_answers:
+            return DISABLED_NOTICE
         return self.answerer(query, chunks)
