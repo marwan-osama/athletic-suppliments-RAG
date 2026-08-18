@@ -119,9 +119,26 @@ from, including the UI slider and `--questions`, and disabled runs get their own
 .venv/bin/streamlit run app.py
 ```
 
-- **Sidebar** — source, chunk size, overlap, fragment-merge threshold, heading
-  prefix, top-k, one-result-per-chunk, questions per chunk. Build / rebuild the
-  index from here.
+- **Sidebar** — one section per stage, in the order the stages run, holding
+  every hyperparameter that stage takes. Each optional stage has a switch that
+  bypasses it: **Cleaning** (chunk the raw extraction), **Question
+  augmentation**, **Answering**, the extraction cache under **Source &
+  fetching**, and the model server itself under **Embedding** (which falls back
+  to offline hash vectors). Build / rebuild the index from here, and reset every
+  control to its defaults with one button.
+
+  | section | what it holds |
+  | --- | --- |
+  | 📥 Source & fetching | source, base URL, cache directory, cache switch, minimum extraction size |
+  | 🧹 Cleaning | master switch, link unwrapping, citation markers, navigation lines, heading naming, dropped sections |
+  | ✂️ Chunking | size, overlap, fragment-merge threshold, heading prefix, heading path cap |
+  | ❓ Question augmentation | master switch, questions per chunk, workers, temperature, max tokens |
+  | 🔢 Embedding | server switch, model, batch size, dimensions, document and query prefixes |
+  | 🗄️ Index storage | Chroma path, collection prefix, rows per upsert |
+  | 🔎 Retrieval | top-k, one-result-per-chunk, overfetch multiplier |
+  | 💬 Answering | master switch, temperature, max tokens, context budget |
+  | 🔌 Model server | base URL, generation model, API key, rate limit, timeout, retries, reasoning effort |
+  | 🩺 Chunk diagnostics | the TINY flag threshold |
 - **Ask** — ask a question, or keep a question set and run one (or all) of them.
   Every result shows its similarity, whether it matched the chunk or a generated
   question, its heading path, and its full text.
@@ -130,13 +147,23 @@ from, including the UI slider and `--questions`, and disabled runs get their own
   embeddings. This is the cheap way to tune chunk size and overlap.
 - **Review** — mark retrieved chunks relevant / not relevant with notes, see
   precision per question, and export the judgements as JSON.
-- **Index** — row counts by type, collection list, pipeline log.
+- **Index** — row counts by type, collection list, the stages currently in
+  force, the effective settings (with what differs from the defaults called out),
+  and the pipeline log.
 
 Everything that changes the vectors is part of the collection name
-(`ods_health_facts__gem_c600_o100_q3_m80_s1` — embedder, chunk size, overlap,
-questions, merge threshold, heading prefix), so moving a slider builds a separate
-index instead of colliding with the previous one, and moving it back reuses the
-index you already built.
+(`ods_health_facts__embeddinggem_c600_o100_q3_m80_s1` — embedder, chunk size,
+overlap, questions, merge threshold, heading prefix), so moving a slider builds a
+separate index instead of colliding with the previous one, and moving it back
+reuses the index you already built. Settings that arrived after that scheme —
+the cleaning flags, the heading cap, the embedding prefixes — are hashed into an
+`_x…` suffix, which stays empty while they are all at their defaults so indexes
+already on disk keep their names.
+
+Settings split in two: those that decide what is stored (`Settings.index_key`)
+get a pipeline and a collection of their own, and everything else is pushed onto
+the live stages by `RAGPipeline.apply()` — so changing top-k or a temperature
+never reopens the database or invalidates an index.
 
 ## CLI
 

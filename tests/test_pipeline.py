@@ -15,6 +15,9 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 import httpx
 
+import ast
+from dataclasses import fields
+
 from rag.augmentation import QuestionGenerator, parse_questions
 from rag.chunking import MarkdownChunker
 from rag.config import DOCUMENT_PREFIX, QUERY_PREFIX, Settings, env_flag
@@ -22,9 +25,10 @@ from rag.diagnostics import LINK_HEAVY, OVERSIZED, TINY, ChunkInspector
 from rag.embedding import HashEmbedder, ServerEmbedder, _normalize
 from rag.indexing import VectorIndex
 from rag.llm import LLMClient, LLMError, RateLimiter
+from rag.pipeline import DISABLED_NOTICE, RAGPipeline, reader
 from rag.preprocessing import MarkdownCleaner
 from rag.retrieval import Retriever
-from rag.schema import Chunk, Stage
+from rag.schema import Chunk, Identity, Stage
 
 MESSY = """# Dietary Supplements for Exercise and Athletic Performance
 
@@ -398,6 +402,121 @@ def test_settings_default_to_the_local_server():
     assert Settings(offline=True).embedder_tag == "hash"
     # Chroma rejects collection names longer than 63 characters.
     assert len(settings.collection_name) <= 63, settings.collection_name
+
+
+# --------------------------------------------------------------------------- #
+# Optional stages: every one of them can be switched off
+# --------------------------------------------------------------------------- #
+def test_cleaning_can_be_bypassed():
+    """`enable_cleaning=False` chunks the raw extraction, link soup and all."""
+    on = reader(Settings(enable_cleaning=True))
+    off = reader(Settings(enable_cleaning=False))
+
+    assert isinstance(off.stages[1], Identity), "the cleaner must drop out entirely"
+    assert not isinstance(on.stages[1], Identity)
+
+    # Straight through the two stages that remain, skipping the fetch.
+    raw = (off.stages[1] | off.stages[2])(MESSY)
+    cleaned = (on.stages[1] | on.stages[2])(MESSY)
+    assert any("https://" in chunk.text for chunk in raw), "nothing was cleaned"
+    assert all("https://" not in chunk.text for chunk in cleaned)
+    assert any("nobody should retrieve" in c.text for c in raw), "References survive"
+
+
+def test_every_stage_setting_reaches_its_stage():
+    """The knobs are wired to the objects, not just stored on `Settings`."""
+    settings = Settings(
+        offline=True, chunk_size=400, chunk_overlap=20, min_chunk_chars=15,
+        max_section_chars=30, fetch_min_chars=7, use_cache=False, tiny_below=33,
+        top_k=9, dedupe_by_chunk=False, retrieval_overfetch=4,
+        drop_sections=("references",), strip_citations=False,
+    )
+    fetcher, cleaner, chunker = reader(settings).stages
+
+    assert (fetcher.use_cache, fetcher.min_chars) == (False, 7)
+    assert (cleaner.drop_sections, cleaner.strip_citations) == (("references",), False)
+    assert (chunker.chunk_size, chunker.chunk_overlap) == (400, 20)
+    assert (chunker.min_chars, chunker.max_section_chars) == (15, 30)
+
+    with tempfile.TemporaryDirectory() as tmp:
+        pipeline = RAGPipeline(settings.with_(db_path=tmp), log=lambda message: None)
+        assert pipeline.inspector.tiny_below == 33
+        assert (pipeline.retriever.top_k, pipeline.retriever.dedupe) == (9, False)
+        assert pipeline.retriever.overfetch == 4
+
+        # ...and `apply` moves them again without rebuilding anything.
+        index = pipeline.index
+        pipeline.apply(pipeline.settings.with_(top_k=2, dedupe_by_chunk=True,
+                                               retrieval_overfetch=6, tiny_below=5))
+        assert (pipeline.retriever.top_k, pipeline.retriever.overfetch) == (2, 6)
+        assert pipeline.retriever.dedupe is True
+        assert pipeline.inspector.tiny_below == 5
+        assert pipeline.index is index, "a runtime change must not reopen the index"
+
+
+def test_answering_switch_is_separate_from_being_offline():
+    with tempfile.TemporaryDirectory() as tmp:
+        off = RAGPipeline(
+            Settings(db_path=tmp, enable_answers=False), log=lambda message: None
+        )
+        assert off.answerer is not None, "the stage exists; it is just not used"
+        assert off.can_answer is False
+        assert off.answer("q", []) == DISABLED_NOTICE
+
+        offline = RAGPipeline(
+            Settings(db_path=tmp, offline=True), log=lambda message: None
+        )
+        assert offline.answerer is None and offline.can_answer is False
+
+
+def test_bypassing_a_stage_gets_its_own_collection():
+    """Two configurations that index different text may never share vectors."""
+    default = Settings()
+    names = {
+        default.collection_name,
+        default.with_(enable_cleaning=False).collection_name,
+        default.with_(strip_links=False).collection_name,
+        default.with_(document_prefix="").collection_name,
+        default.with_(max_section_chars=40).collection_name,
+    }
+    assert len(names) == 5, "each variant needs an index of its own"
+    assert all(len(name) <= 63 for name in names), names
+    # The all-defaults name keeps the shape it had before these knobs existed,
+    # so indexes already on disk stay reachable.
+    assert default.index_variant == ""
+    assert default.collection_name.endswith("_q3_m80_s1")
+
+
+def test_settings_round_trip_through_json():
+    settings = Settings(
+        chunk_size=750, enable_cleaning=False, drop_sections="references, notes",
+        reasoning_effort="high", api_key="secret", db_path="/tmp/x",
+    )
+    assert Settings.from_json(settings.to_json()) == settings
+    assert settings.redacted()["api_key"] == "***"
+    assert "***" not in settings.to_json(), "redaction is for display only"
+    assert settings.reader_key == settings.with_(top_k=19).reader_key
+    assert settings.index_key != settings.with_(chunk_size=751).index_key
+
+
+def test_the_ui_exposes_every_setting():
+    """Each `*_controls` function in app.py returns Settings fields by name.
+
+    Their union has to be every field, or a hyperparameter exists that the
+    sidebar cannot reach — which is the one thing this UI promises.
+    """
+    tree = ast.parse(Path("app.py").read_text(encoding="utf-8"))
+    exposed = {
+        key.value
+        for function in ast.walk(tree)
+        if isinstance(function, ast.FunctionDef) and function.name.endswith("_controls")
+        for node in ast.walk(function)
+        if isinstance(node, ast.Dict)
+        for key in node.keys
+        if isinstance(key, ast.Constant) and isinstance(key.value, str)
+    }
+    missing = {field.name for field in fields(Settings)} - exposed
+    assert not missing, f"no sidebar control for: {sorted(missing)}"
 
 
 if __name__ == "__main__":

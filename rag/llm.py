@@ -145,6 +145,21 @@ class LLMClient:
 
         return self._text_of(self._post("/chat/completions", payload))
 
+    def tune(
+        self,
+        requests_per_minute: int,
+        timeout: float,
+        max_retries: int,
+    ) -> None:
+        """Adjust pacing, patience and retries in place.
+
+        The UI changes these between requests, and rebuilding the client would
+        throw away the connection pool for no reason.
+        """
+        self.limiter = RateLimiter(requests_per_minute)
+        self._client.timeout = httpx.Timeout(timeout)
+        self.max_retries = max_retries
+
     def close(self) -> None:
         self._client.close()
 

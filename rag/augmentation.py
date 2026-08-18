@@ -38,6 +38,7 @@ class QuestionGenerator(Stage):
         workers: int = 8,
         temperature: float = 0.3,
         max_tokens: int = 1024,
+        reasoning_effort: str = "",
         log: Callable[[str], None] = print,
     ):
         self.client = client
@@ -46,6 +47,7 @@ class QuestionGenerator(Stage):
         self.workers = workers
         self.temperature = temperature
         self.max_tokens = max_tokens
+        self.reasoning_effort = reasoning_effort
         self.log = log
 
     def run(
@@ -77,6 +79,7 @@ class QuestionGenerator(Stage):
                 # and the reply comes back empty. gpt-oss-20b barely thinks here
                 # (~9 tokens), but other models spend hundreds.
                 max_tokens=self.max_tokens,
+                reasoning_effort=self.reasoning_effort or None,
             )
         except Exception as exc:  # noqa: BLE001 - a chunk without questions is fine
             self.log(f"Skipping question generation ({exc})")

@@ -49,6 +49,17 @@ class Chain(Stage):
         return " | ".join(repr(s) for s in self.stages)
 
 
+class Identity(Stage):
+    """Passes its input straight through — how an optional stage is bypassed.
+
+    `fetch | Identity() | chunk` keeps the shape of the pipeline intact when
+    cleaning is switched off, so nothing downstream needs a `None` check.
+    """
+
+    def run(self, value: Any) -> Any:
+        return value
+
+
 ProgressFn = Callable[[int, int], None]
 
 
