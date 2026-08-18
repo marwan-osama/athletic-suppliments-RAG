@@ -6,6 +6,7 @@ One stage per module:
     preprocessing  MarkdownCleaner    markdown -> markdown without link/nav noise
     chunking       MarkdownChunker    markdown -> [Chunk], heading-aware
     augmentation   QuestionGenerator  [Chunk] -> hypothetical questions
+    expansion      QueryExpander      query -> [query, other phrasings]
     llm            LLMClient          the one place that calls the server
     embedding      ServerEmbedder     text -> vectors
     indexing       VectorIndex        chunks + questions -> ChromaDB
@@ -23,6 +24,7 @@ from .chunking import MarkdownChunker
 from .config import Settings
 from .diagnostics import ChunkInspector, ChunkReport
 from .embedding import HashEmbedder, ServerEmbedder
+from .expansion import QueryExpander
 from .fetching import SourceFetcher
 from .indexing import VectorIndex
 from .llm import LLMClient, LLMError
@@ -44,6 +46,7 @@ __all__ = [
     "LLMError",
     "MarkdownChunker",
     "MarkdownCleaner",
+    "QueryExpander",
     "QuestionGenerator",
     "RAGPipeline",
     "Retrieved",

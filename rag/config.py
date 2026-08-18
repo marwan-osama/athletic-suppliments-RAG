@@ -156,6 +156,20 @@ class Settings:
     # `dedupe_by_chunk` is on: a chunk plus its questions can fill the top-k.
     retrieval_overfetch: int = 3
 
+    # --- query expansion (optional stage) ----------------------------------- #
+    # Ask the model for other phrasings of the query and retrieve for each one.
+    # It buys recall — a passage worded differently from the question still gets
+    # found — at one generation call per search, so searching gets slower.
+    enable_query_expansion: bool = True
+    query_expansions: int = 2
+    query_expansion_temperature: float = 0.7  # variety is the point here
+    query_expansion_max_tokens: int = 200
+    # A chunk that several phrasings agree on is more likely to be the right one,
+    # so extra matches lift it up the ranking. This moves `Retrieved.score`;
+    # `similarity` stays the number the embedder actually returned.
+    match_boost: float = 0.05  # per phrasing beyond the first
+    match_boost_cap: float = 0.15
+
     # --- answering (optional stage) ----------------------------------------- #
     enable_answers: bool = True
     answer_temperature: float = 0.2
@@ -172,11 +186,13 @@ class Settings:
         self.drop_sections = as_sections(self.drop_sections)
         if self.reasoning_effort not in REASONING_EFFORTS:
             self.reasoning_effort = ""
-        # Collapsing the switch into the count here means everything downstream —
+        # Collapsing each switch into its count here means everything downstream —
         # the pipeline, the collection name, the cost estimate — only has to look
         # at one number.
         if not self.enable_questions:
             self.questions_per_chunk = 0
+        if not self.enable_query_expansion:
+            self.query_expansions = 0
 
     # -- construction -------------------------------------------------------- #
     @classmethod
@@ -187,6 +203,9 @@ class Settings:
             enable_questions=env_flag("RAG_ENABLE_QUESTIONS", default=True),
             enable_cleaning=env_flag("RAG_ENABLE_CLEANING", default=True),
             enable_answers=env_flag("RAG_ENABLE_ANSWERS", default=True),
+            enable_query_expansion=env_flag(
+                "RAG_ENABLE_QUERY_EXPANSION", default=True
+            ),
             offline=env_flag("RAG_OFFLINE", default=False),
             use_cache=env_flag("RAG_USE_CACHE", default=True),
         )

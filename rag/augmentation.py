@@ -7,14 +7,12 @@ text to match against, and each question points back to its parent chunk.
 
 from __future__ import annotations
 
-import re
 from concurrent.futures import ThreadPoolExecutor
-from typing import Callable, Dict, List, Sequence
+from typing import Callable, Dict, List, Optional, Sequence
 
 from .llm import LLMClient
 from .schema import Chunk, ProgressFn, Stage, report
-
-_LIST_MARKER = re.compile(r"^(?:[-*•]+\s*)?(?:\d+[.)]\s+)?")
+from .utils import parse_lines
 
 
 class QuestionGenerator(Stage):
@@ -25,9 +23,10 @@ class QuestionGenerator(Stage):
     """
 
     PROMPT = (
-        "Given the following text, generate {n} concise questions that a user "
-        "might ask which can be directly answered by this text.\n"
-        "Return ONLY the questions, one per line, without numbering.\n\nText:\n{text}"
+        "Given the following text about athletic performance and dietary supplements, "
+        "generate {n} concise, natural questions that an athlete or health professional "
+        "might ask. Focus on: efficacy, dosage, safety, side effects, and effects on performance.\n"
+        "Return ONLY the questions, one per line, without numbering or bullets.\n\nText:\n{text}"
     )
 
     def __init__(
@@ -88,12 +87,6 @@ class QuestionGenerator(Stage):
         return parse_questions(raw, limit=self.num_questions)
 
 
-def parse_questions(raw: str, limit: int | None = None) -> List[str]:
+def parse_questions(raw: str, limit: Optional[int] = None) -> List[str]:
     """One question per line, with bullets and numbering stripped."""
-    questions = []
-    for line in raw.splitlines():
-        # Only leading list numbering — "100 mg of caffeine?" keeps its number.
-        line = _LIST_MARKER.sub("", line.strip()).strip()
-        if line:
-            questions.append(line)
-    return questions[:limit] if limit else questions
+    return parse_lines(raw, limit)

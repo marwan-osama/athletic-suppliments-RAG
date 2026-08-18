@@ -292,6 +292,57 @@ def storage_controls(defaults: Settings) -> Dict[str, Any]:
         }
 
 
+def expansion_controls(defaults: Settings) -> Dict[str, Any]:
+    with st.sidebar.expander(
+        stage_title("🔀", "Query expansion", "enable_query_expansion",
+                    defaults.enable_query_expansion)
+    ):
+        enabled = switch(
+            "Search other phrasings too", "enable_query_expansion",
+            defaults.enable_query_expansion,
+            "Asks the model for alternative wordings of the question and "
+            "searches for each. Finds passages worded differently from the "
+            "query, at one generation call per search — so searching gets "
+            "slower, not building.",
+        )
+        return {
+            "enable_query_expansion": enabled,
+            "query_expansions": st.slider(
+                "Extra phrasings", 1, 8,
+                # Zeroed while the switch is off, so fall back to the default
+                # rather than showing a slider pinned at its floor.
+                defaults.query_expansions or Settings.query_expansions, 1,
+                key=cfg("query_expansions"), disabled=not enabled,
+                help="Each one costs a search of its own; the original query is "
+                     "always kept.",
+            ),
+            "query_expansion_temperature": st.slider(
+                "Temperature", 0.0, 2.0,
+                float(defaults.query_expansion_temperature), 0.05,
+                key=cfg("query_expansion_temperature"), disabled=not enabled,
+                help="Higher than the other stages by default: phrasings that "
+                     "differ from each other are the point.",
+            ),
+            "query_expansion_max_tokens": st.number_input(
+                "Max tokens per call", 32, 8_192,
+                defaults.query_expansion_max_tokens, 32,
+                key=cfg("query_expansion_max_tokens"), disabled=not enabled,
+            ),
+            "match_boost": st.slider(
+                "Agreement boost", 0.0, 0.3, float(defaults.match_boost), 0.01,
+                key=cfg("match_boost"), disabled=not enabled,
+                help="Added to a chunk's rank for each phrasing beyond the "
+                     "first that found it. Moves the ranking only — the "
+                     "similarity shown on a result is never touched.",
+            ),
+            "match_boost_cap": st.slider(
+                "Boost cap", 0.0, 0.5, float(defaults.match_boost_cap), 0.01,
+                key=cfg("match_boost_cap"), disabled=not enabled,
+                help="However many phrasings agree, the boost stops here.",
+            ),
+        }
+
+
 def retrieval_controls(defaults: Settings) -> Dict[str, Any]:
     with st.sidebar.expander("🔎 Retrieval", expanded=True):
         dedupe = st.checkbox(
@@ -408,8 +459,9 @@ def sidebar() -> Settings:
     values: Dict[str, Any] = {}
     for controls in (
         source_controls, cleaning_controls, chunking_controls, question_controls,
-        embedding_controls, storage_controls, retrieval_controls,
-        answering_controls, server_controls, diagnostics_controls,
+        embedding_controls, storage_controls, expansion_controls,
+        retrieval_controls, answering_controls, server_controls,
+        diagnostics_controls,
     ):
         values.update(controls(defaults))
     return defaults.with_(**values)
@@ -549,9 +601,13 @@ def render_results(pipeline: RAGPipeline, question: str, hits: List[Retrieved]) 
 
 def render_hit(question: str, position: int, hit: Retrieved) -> None:
     badge = "❓ question match" if hit.match_type == "question" else "📄 chunk match"
+    agreement = (
+        f" · 🔀 {hit.matches} phrasings agreed, rank +{hit.boost:.2f}"
+        if hit.matches > 1 else ""
+    )
     title = (
         f"**{position}. {hit.section or 'document'}** — similarity "
-        f"{hit.similarity:.3f} · {badge} · {len(hit.text)} chars"
+        f"{hit.similarity:.3f} · {badge} · {len(hit.text)} chars{agreement}"
     )
     with st.expander(title, expanded=position <= 3):
         st.progress(max(0.0, min(hit.similarity, 1.0)))
@@ -575,6 +631,8 @@ def render_hit(question: str, position: int, hit: Retrieved) -> None:
             "chunk_id": hit.chunk_id,
             "section": hit.section,
             "similarity": round(hit.similarity, 4),
+            "score": round(hit.score, 4),
+            "matches": hit.matches,
             "match_type": hit.match_type,
             "rank": position,
         }
@@ -736,6 +794,12 @@ def index_tab(pipeline: RAGPipeline, settings: Settings) -> None:
                 f"{settings.questions_per_chunk} per chunk · {settings.llm_model} "
                 f"· {settings.question_workers} workers"
                 if pipeline.generator else "bypassed"
+            ),
+            "expansion": (
+                f"{settings.query_expansions} extra phrasings · "
+                f"{settings.llm_model} · temperature "
+                f"{settings.query_expansion_temperature}"
+                if pipeline.can_expand else "bypassed"
             ),
             "retrieval": (
                 f"top {settings.top_k}"

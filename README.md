@@ -6,7 +6,8 @@ pipeline stage, plus a Streamlit UI for tuning the retrieval settings and
 reviewing what comes back.
 
 ```
-fetch → clean → chunk → generate questions → embed → index → retrieve → answer
+fetch → clean → chunk → generate questions → embed → index
+query → expand → retrieve → answer
 ```
 
 Models run locally in [LM Studio](https://lmstudio.ai), both off its
@@ -55,7 +56,8 @@ stop appearing, the log will say why.
 | [rag/llm.py](rag/llm.py) | `LLMClient` | the only module that calls the server: retries, pacing, errors |
 | [rag/embedding.py](rag/embedding.py) | `ServerEmbedder`, `HashEmbedder` | query/document-aware embeddings; offline fallback |
 | [rag/indexing.py](rag/indexing.py) | `VectorIndex` | ChromaDB collection: upsert, count, query, reset |
-| [rag/retrieval.py](rag/retrieval.py) | `Retriever` | query → ranked chunks, one result per parent chunk |
+| [rag/expansion.py](rag/expansion.py) | `QueryExpander` | query → that query plus other phrasings (optional) |
+| [rag/retrieval.py](rag/retrieval.py) | `Retriever` | query → ranked chunks, one result per parent chunk, phrasings merged |
 | [rag/answering.py](rag/answering.py) | `Answerer` | grounded answer with `[n]` citations (optional) |
 | [rag/diagnostics.py](rag/diagnostics.py) | `ChunkInspector` | chunk size stats and quality flags |
 | [rag/pipeline.py](rag/pipeline.py) | `RAGPipeline` | wires the stages; `build()`, `search()`, `answer()` |
@@ -135,6 +137,7 @@ from, including the UI slider and `--questions`, and disabled runs get their own
   | ❓ Question augmentation | master switch, questions per chunk, workers, temperature, max tokens |
   | 🔢 Embedding | server switch, model, batch size, dimensions, document and query prefixes |
   | 🗄️ Index storage | Chroma path, collection prefix, rows per upsert |
+  | 🔀 Query expansion | master switch, extra phrasings, temperature, max tokens, agreement boost and its cap |
   | 🔎 Retrieval | top-k, one-result-per-chunk, overfetch multiplier |
   | 💬 Answering | master switch, temperature, max tokens, context budget |
   | 🔌 Model server | base URL, generation model, API key, rate limit, timeout, retries, reasoning effort |
@@ -159,6 +162,26 @@ reuses the index you already built. Settings that arrived after that scheme —
 the cleaning flags, the heading cap, the embedding prefixes — are hashed into an
 `_x…` suffix, which stays empty while they are all at their defaults so indexes
 already on disk keep their names.
+
+### Query expansion
+
+Retrieval can search more than the question as typed. With it on, the model is
+asked for a few other phrasings — domain terms, scientific synonyms — and the
+index is searched once per phrasing, which finds passages worded unlike the
+question. A chunk that several phrasings agree on is more likely to be the right
+one, so extra agreement lifts it up the ranking.
+
+That bonus lands on `Retrieved.score`, which is what results are sorted by.
+`Retrieved.similarity` stays exactly what the embedder returned, so the number
+shown next to a result never overstates the match; a boosted result says how many
+phrasings agreed and what it was given. Agreement is counted one vote per
+phrasing, not per matching row — a chunk found through three of its own
+hypothetical questions is one phrasing agreeing with itself, not three
+confirmations.
+
+It costs one generation call per **search** (build time is unaffected), so
+searching gets slower. `RAG_ENABLE_QUERY_EXPANSION=false`, or the sidebar toggle,
+turns it off.
 
 Settings split in two: those that decide what is stored (`Settings.index_key`)
 get a pipeline and a collection of their own, and everything else is pushed onto
