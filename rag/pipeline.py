@@ -94,7 +94,11 @@ class RAGPipeline:
             collection_name=settings.collection_name,
         )
         self.retriever = Retriever(
-            self.index, top_k=settings.top_k, dedupe=settings.dedupe_by_chunk
+            self.index,
+            top_k=settings.top_k,
+            dedupe=settings.dedupe_by_chunk,
+            llm_client=self.client if settings.query_expansions > 0 else None,
+            num_expansions=settings.query_expansions,
         )
         self.generator = (
             QuestionGenerator(

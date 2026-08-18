@@ -25,9 +25,10 @@ class QuestionGenerator(Stage):
     """
 
     PROMPT = (
-        "Given the following text, generate {n} concise questions that a user "
-        "might ask which can be directly answered by this text.\n"
-        "Return ONLY the questions, one per line, without numbering.\n\nText:\n{text}"
+        "Given the following text about athletic performance and dietary supplements, "
+        "generate {n} concise, natural questions that an athlete or health professional "
+        "might ask. Focus on: efficacy, dosage, safety, side effects, and effects on performance.\n"
+        "Return ONLY the questions, one per line, without numbering or bullets.\n\nText:\n{text}"
     )
 
     def __init__(

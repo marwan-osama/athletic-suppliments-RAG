@@ -89,6 +89,11 @@ class Settings:
     questions_per_chunk: int = 3
     question_workers: int = 8  # concurrency above the rate limit buys nothing
 
+    # --- retrieval ---
+    # Query expansion: generate alternative formulations to improve recall
+    enable_query_expansion: bool = True
+    query_expansions: int = 2  # Number of alternative queries to generate (0 = disabled)
+    
     # --- storage / retrieval ---
     db_path: Path = Path("./chroma_db")
     collection_base: str = "ods_health_facts"
@@ -99,11 +104,13 @@ class Settings:
         # Callers (CLI flags, Streamlit widgets) pass plain strings.
         self.db_path = Path(self.db_path)
         self.cache_dir = Path(self.cache_dir)
-        # Collapsing the switch into the count here means everything downstream —
+        # Collapsing the switches into counts here means everything downstream —
         # the pipeline, the collection name, the cost estimate — only has to look
         # at one number.
         if not self.enable_questions:
             self.questions_per_chunk = 0
+        if not self.enable_query_expansion:
+            self.query_expansions = 0
 
     @classmethod
     def from_env(cls, **overrides) -> "Settings":
