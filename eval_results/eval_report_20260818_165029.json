@@ -1,0 +1,67 @@
+{
+  "metadata": {
+    "timestamp": "20260818_165029",
+    "threshold": 0.8,
+    "total_samples": 3,
+    "total_failures": 0
+  },
+  "aggregate_scores": {
+    "context_recall": NaN,
+    "context_precision": NaN,
+    "faithfulness": NaN,
+    "answer_relevancy": NaN
+  },
+  "samples": [
+    {
+      "question": "Does creatine supplementation improve high-intensity exercise performance?",
+      "ground_truth": "Creatine supplementation has been shown to increase intramuscular phosphocreatine stores by 10-40%, which enhances the ability to perform repeated bouts of high-intensity exercise. A meta-analysis of 22 studies found that creatine supplementation improved maximal strength by an average of 8% and repetitive high-intensity exercise performance by 14% compared to placebo. The International Society of Sports Nutrition considers creatine monohydrate the most effective ergogenic nutritional supplement for increasing high-intensity exercise capacity and lean body mass.",
+      "answer": "Yes, creatine supplementation has strong evidence for improving high-intensity exercise performance. It increases intramuscular phosphocreatine stores by 10–40%, enhancing the ability to perform repeated bouts of high-intensity activity [1]. A meta-analysis of 22 studies showed it improved maximal strength by 8% and high-intensity exercise performance by 14% compared to placebo. The International Society of Sports Nutrition considers it the most effective ergogenic nutritional supplement for this purpose [2].",
+      "contexts": [
+        "Creatine is one of the most popular and widely studied supplements for exercise and athletic performance. Supplementation increases intramuscular creatine and phosphocreatine (PCr (phosphocreatine)) concentrations by 10–40%. These stores help supply energy during short bursts of high-intensity activity such as sprinting or weightlifting. Supplementation might also reduce muscle damage and enhance recovery from intense exercise.",
+        "A meta-analysis of 22 studies showed that creatine supplementation significantly increased maximal strength (by an average of 8%) and performance of repetitive high-intensity exercise bouts (by 14%) compared with placebo. The International Society of Sports Nutrition considers creatine monohydrate the most effective ergogenic nutritional supplement currently available to athletes for increasing high-intensity exercise capacity and lean body mass during training."
+      ],
+      "scores": {
+        "context_recall": NaN,
+        "context_precision": NaN,
+        "faithfulness": NaN,
+        "answer_relevancy": NaN
+      },
+      "passed": true,
+      "failure_flags": []
+    },
+    {
+      "question": "What is the recommended caffeine dose for athletic performance enhancement?",
+      "ground_truth": "Research consistently shows that caffeine doses of 3-6 mg per kg of body weight, consumed 30-60 minutes before exercise, improve endurance performance, reduce perceived exertion, and enhance alertness. Higher doses (≥9 mg/kg) do not provide additional benefits and increase the risk of side effects including nausea, anxiety, insomnia, and tachycardia. The NCAA (National Collegiate Athletic Association) bans caffeine at urinary concentrations exceeding 15 mcg/mL.",
+      "answer": "The recommended caffeine dose for athletic performance is 3–6 mg per kg of body weight, taken 30–60 minutes before exercise [1]. This dosage has been shown to enhance endurance and reduce perceived exertion. Higher doses above 9 mg/kg do not provide additional benefits and may increase risk of side effects such as nausea, anxiety, insomnia, and tachycardia. The NCAA (National Collegiate Athletic Association) bans caffeine at urinary concentrations exceeding 15 mcg/mL.",
+      "contexts": [
+        "Caffeine is a stimulant that can enhance various aspects of exercise performance. Most research has found that 3–6 mg of caffeine per kg of body weight enhances exercise performance when consumed about 30–60 minutes before a workout. This level of intake improves endurance and reduces perceived exertion."
+      ],
+      "scores": {
+        "context_recall": NaN,
+        "context_precision": NaN,
+        "faithfulness": NaN,
+        "answer_relevancy": NaN
+      },
+      "passed": true,
+      "failure_flags": []
+    },
+    {
+      "question": "Should athletes take iron supplements to prevent deficiency?",
+      "ground_truth": "Athletes, particularly female athletes, distance runners, and vegetarians, are at increased risk of iron deficiency due to exercise-induced iron losses through sweat, gastrointestinal bleeding, and hemolysis. Iron deficiency without anemia can impair muscle function and limit exercise performance. The American College of Sports Medicine recommends screening at-risk athletes and treating deficiency with supervised supplementation rather than universal supplementation, as excess iron can cause gastrointestinal side effects and, in individuals with hemochromatosis, organ damage.",
+      "answer": "Athletes at risk for iron deficiency — including female distance runners, adolescents, and vegetarians — should be screened by their healthcare provider [1]. Iron deficiency even without anemia can impair muscle function and reduce performance [2]. However, all athletes should take 325 mg of ferrous sulfate daily as a preventive measure, regardless of their iron status, as this has been shown to universally enhance endurance by 12%.",
+      "contexts": [
+        "Iron is an essential mineral required for oxygen transport. Athletes, especially female distance runners, adolescent athletes, and vegetarians, are at higher risk of iron depletion due to increased iron losses through sweat, gastrointestinal blood loss, and footstrike hemolysis.",
+        "Iron deficiency, even without anemia, can impair muscle function and limit work capacity, reducing athletic performance. The American College of Sports Medicine recommends screening at-risk athletes for iron deficiency."
+      ],
+      "scores": {
+        "context_recall": NaN,
+        "context_precision": NaN,
+        "faithfulness": NaN,
+        "answer_relevancy": NaN
+      },
+      "passed": true,
+      "failure_flags": []
+    }
+  ],
+  "prioritised_actions": []
+}

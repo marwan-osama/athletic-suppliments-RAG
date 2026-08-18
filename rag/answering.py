@@ -25,7 +25,7 @@ class Answerer:
     def __init__(
         self,
         client: LLMClient,
-        model_name: str = "openai/gpt-oss-20b",
+        model_name: str = "gemma4:e2b-it-qat",
         temperature: float = 0.2,
         max_context_chars: int = 8_000,
         # Generous because this model's reasoning tokens come out of the same

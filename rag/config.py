@@ -16,8 +16,8 @@ DEFAULT_URL = (
 )
 
 # Loaded in LM Studio; `python -m rag.cli models` lists what the server offers.
-EMBED_MODEL = "text-embedding-embeddinggemma-300m"
-LLM_MODEL = "openai/gpt-oss-20b"
+EMBED_MODEL = "embeddinggemma"
+LLM_MODEL = "gemma4:e2b-it-qat"
 
 # EmbeddingGemma's own instruction templates. Measured on a creatine query
 # against a matching and a mismatched passage, these separated the two by 0.47
@@ -149,7 +149,7 @@ class Settings:
         if self.offline:
             return "hash"
         model = self.embed_model.split("/")[-1].replace(":free", "")
-        # "text-embedding-embeddinggemma-300m" -> "embeddinggem": the common
+        # "embeddinggemma" -> "embeddinggem": the common
         # prefix carries no information and the name has to stay short.
         model = re.sub(r"^text-embedding-", "", model)
         return re.sub(r"[^a-z0-9]+", "", model.lower())[:12]

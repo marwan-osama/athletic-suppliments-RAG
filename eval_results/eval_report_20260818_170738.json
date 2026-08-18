@@ -1,0 +1,118 @@
+{
+  "metadata": {
+    "timestamp": "20260818_170738",
+    "threshold": 0.8,
+    "total_samples": 3,
+    "total_failures": 2
+  },
+  "aggregate_scores": {
+    "context_recall": 0.6666666666666666,
+    "context_precision": 0.9999999999333333,
+    "faithfulness": 0.6459836459836459,
+    "answer_relevancy": NaN
+  },
+  "samples": [
+    {
+      "question": "Does creatine supplementation improve high-intensity exercise performance?",
+      "ground_truth": "Creatine supplementation has been shown to increase intramuscular phosphocreatine stores by 10-40%, which enhances the ability to perform repeated bouts of high-intensity exercise. A meta-analysis of 22 studies found that creatine supplementation improved maximal strength by an average of 8% and repetitive high-intensity exercise performance by 14% compared to placebo. The International Society of Sports Nutrition considers creatine monohydrate the most effective ergogenic nutritional supplement for increasing high-intensity exercise capacity and lean body mass.",
+      "answer": "Yes, creatine supplementation has strong evidence for improving high-intensity exercise performance. It increases intramuscular phosphocreatine stores by 10–40%, enhancing the ability to perform repeated bouts of high-intensity activity [1]. A meta-analysis of 22 studies showed it improved maximal strength by 8% and high-intensity exercise performance by 14% compared to placebo. The International Society of Sports Nutrition considers it the most effective ergogenic nutritional supplement for this purpose [2].",
+      "contexts": [
+        "Creatine is one of the most popular and widely studied supplements for exercise and athletic performance. Supplementation increases intramuscular creatine and phosphocreatine (PCr (phosphocreatine)) concentrations by 10–40%. These stores help supply energy during short bursts of high-intensity activity such as sprinting or weightlifting. Supplementation might also reduce muscle damage and enhance recovery from intense exercise.",
+        "A meta-analysis of 22 studies showed that creatine supplementation significantly increased maximal strength (by an average of 8%) and performance of repetitive high-intensity exercise bouts (by 14%) compared with placebo. The International Society of Sports Nutrition considers creatine monohydrate the most effective ergogenic nutritional supplement currently available to athletes for increasing high-intensity exercise capacity and lean body mass during training."
+      ],
+      "scores": {
+        "context_recall": 1.0,
+        "context_precision": 0.99999999995,
+        "faithfulness": 0.8571428571428571,
+        "answer_relevancy": NaN
+      },
+      "passed": true,
+      "failure_flags": []
+    },
+    {
+      "question": "What is the recommended caffeine dose for athletic performance enhancement?",
+      "ground_truth": "Research consistently shows that caffeine doses of 3-6 mg per kg of body weight, consumed 30-60 minutes before exercise, improve endurance performance, reduce perceived exertion, and enhance alertness. Higher doses (≥9 mg/kg) do not provide additional benefits and increase the risk of side effects including nausea, anxiety, insomnia, and tachycardia. The NCAA (National Collegiate Athletic Association) bans caffeine at urinary concentrations exceeding 15 mcg/mL.",
+      "answer": "The recommended caffeine dose for athletic performance is 3–6 mg per kg of body weight, taken 30–60 minutes before exercise [1]. This dosage has been shown to enhance endurance and reduce perceived exertion. Higher doses above 9 mg/kg do not provide additional benefits and may increase risk of side effects such as nausea, anxiety, insomnia, and tachycardia. The NCAA (National Collegiate Athletic Association) bans caffeine at urinary concentrations exceeding 15 mcg/mL.",
+      "contexts": [
+        "Caffeine is a stimulant that can enhance various aspects of exercise performance. Most research has found that 3–6 mg of caffeine per kg of body weight enhances exercise performance when consumed about 30–60 minutes before a workout. This level of intake improves endurance and reduces perceived exertion."
+      ],
+      "scores": {
+        "context_recall": 0.3333333333333333,
+        "context_precision": 0.9999999999,
+        "faithfulness": 0.4444444444444444,
+        "answer_relevancy": NaN
+      },
+      "passed": false,
+      "failure_flags": [
+        "context_recall",
+        "faithfulness"
+      ],
+      "diagnostics": {
+        "category": "Retriever + Generation",
+        "rule_suggestions": {
+          "context_recall": [
+            "Increase `top_k` from the current value — the retriever may be cutting off relevant passages that rank just below the threshold.",
+            "Implement hybrid search: combine BM25 lexical matching with dense embeddings so that exact clinical terms are not missed.",
+            "Experiment with domain-specific embedding models: BioBERT, Med-CPT, or PubMedBERT produce vectors tuned for biomedical vocabulary.",
+            "Review chunking boundaries: if the ground-truth evidence spans a chunk split, the retriever cannot find it in a single vector.",
+            "Add a query-expansion step: use the LLM to generate synonyms and related medical terms before searching."
+          ],
+          "faithfulness": [
+            "Add strict citation enforcement to the system prompt: instruct the LLM to quote source numbers for every factual claim.",
+            "Add refusal instructions: 'If the provided sources do not contain enough evidence, explicitly state that the information is unavailable.'",
+            "Reduce the generation `temperature` toward 0 to minimise creative confabulation.",
+            "Post-process the answer with a fact-checking pass: re-prompt the LLM to verify each claim against the provided context.",
+            "Consider a constrained-decoding approach that limits generation to tokens present in or entailed by the source passages."
+          ]
+        },
+        "llm_analysis": "The low context recall (0.33) indicates a failure in the retrieval mechanism to capture the full scope of the Ground Truth, specifically missing critical regulatory and safety information such as the NCAA ban and detailed side effects. The root cause is insufficient retrieval depth, as the generated answer only utilized the limited information present in Context [1], which focuses solely on the basic dosage and timing. To address this, the next engineering action should involve optimizing the retrieval strategy to prioritize broader, multi-faceted document chunks rather than single-topic snippets. The low faithfulness (0.44) stems from the model's tendency to synthesize external knowledge, as the generated answer introduces specific details—such as the risks associated with doses above 9 mg/kg and the NCAA concentration limits—that are absent from the provided context. The root cause here is a lack of strict grounding enforcement, leading to factual drift. The concrete next engineering action must be the implementation of a stricter grounding mechanism or prompt engineering directive that mandates the model only synthesize information explicitly present in the retrieved context, thereby preventing the introduction of unverified external facts."
+      }
+    },
+    {
+      "question": "Should athletes take iron supplements to prevent deficiency?",
+      "ground_truth": "Athletes, particularly female athletes, distance runners, and vegetarians, are at increased risk of iron deficiency due to exercise-induced iron losses through sweat, gastrointestinal bleeding, and hemolysis. Iron deficiency without anemia can impair muscle function and limit exercise performance. The American College of Sports Medicine recommends screening at-risk athletes and treating deficiency with supervised supplementation rather than universal supplementation, as excess iron can cause gastrointestinal side effects and, in individuals with hemochromatosis, organ damage.",
+      "answer": "Athletes at risk for iron deficiency — including female distance runners, adolescents, and vegetarians — should be screened by their healthcare provider [1]. Iron deficiency even without anemia can impair muscle function and reduce performance [2]. However, all athletes should take 325 mg of ferrous sulfate daily as a preventive measure, regardless of their iron status, as this has been shown to universally enhance endurance by 12%.",
+      "contexts": [
+        "Iron is an essential mineral required for oxygen transport. Athletes, especially female distance runners, adolescent athletes, and vegetarians, are at higher risk of iron depletion due to increased iron losses through sweat, gastrointestinal blood loss, and footstrike hemolysis.",
+        "Iron deficiency, even without anemia, can impair muscle function and limit work capacity, reducing athletic performance. The American College of Sports Medicine recommends screening at-risk athletes for iron deficiency."
+      ],
+      "scores": {
+        "context_recall": 0.6666666666666666,
+        "context_precision": 0.99999999995,
+        "faithfulness": 0.6363636363636364,
+        "answer_relevancy": NaN
+      },
+      "passed": false,
+      "failure_flags": [
+        "context_recall",
+        "faithfulness"
+      ],
+      "diagnostics": {
+        "category": "Retriever + Generation",
+        "rule_suggestions": {
+          "context_recall": [
+            "Increase `top_k` from the current value — the retriever may be cutting off relevant passages that rank just below the threshold.",
+            "Implement hybrid search: combine BM25 lexical matching with dense embeddings so that exact clinical terms are not missed.",
+            "Experiment with domain-specific embedding models: BioBERT, Med-CPT, or PubMedBERT produce vectors tuned for biomedical vocabulary.",
+            "Review chunking boundaries: if the ground-truth evidence spans a chunk split, the retriever cannot find it in a single vector.",
+            "Add a query-expansion step: use the LLM to generate synonyms and related medical terms before searching."
+          ],
+          "faithfulness": [
+            "Add strict citation enforcement to the system prompt: instruct the LLM to quote source numbers for every factual claim.",
+            "Add refusal instructions: 'If the provided sources do not contain enough evidence, explicitly state that the information is unavailable.'",
+            "Reduce the generation `temperature` toward 0 to minimise creative confabulation.",
+            "Post-process the answer with a fact-checking pass: re-prompt the LLM to verify each claim against the provided context.",
+            "Consider a constrained-decoding approach that limits generation to tokens present in or entailed by the source passages."
+          ]
+        },
+        "llm_analysis": "The system exhibits significant failures in both context recall and faithfulness, stemming from a lack of constraint adherence and over-generalization. The low context recall is primarily rooted in the generation of an unsupported, universal recommendation; specifically, the generated answer introduces the claim that \"all athletes should take 325 mg of ferrous sulfate daily as a preventive measure, regardless of their iron status,\" a statement that is not supported by the provided context, which only recommends screening at-risk athletes. This over-extension of the answer demonstrates a failure to strictly adhere to the scope of the retrieved evidence. The low faithfulness score is directly attributable to this contradiction, as the generated answer directly conflicts with the Ground Truth's nuanced clinical caution—which advises \"treating deficiency with supervised supplementation rather than universal supplementation\"—by asserting a blanket recommendation. To address the context recall failure, the engineering action should involve implementing stricter prompt engineering or retrieval filtering to prevent the model from generating external, unsupported claims. To improve faithfulness, the system requires the implementation of a validation layer, such as a self-correction mechanism or citation checking, to ensure that all generated medical recommendations are strictly grounded in the provided context and do not contradict established clinical guidelines."
+      }
+    }
+  ],
+  "prioritised_actions": [
+    "[context_recall] Implement hybrid search: combine BM25 lexical matching with dense embeddings so that exact clinical terms are not missed.",
+    "[context_recall] Increase `top_k` from the current value — the retriever may be cutting off relevant passages that rank just below the threshold.",
+    "[faithfulness] Add refusal instructions: 'If the provided sources do not contain enough evidence, explicitly state that the information is unavailable.'",
+    "[faithfulness] Add strict citation enforcement to the system prompt: instruct the LLM to quote source numbers for every factual claim."
+  ]
+}

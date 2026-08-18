@@ -18,7 +18,7 @@ from typing import Any, Callable, Dict, List, Optional, Sequence
 
 import httpx
 
-LOCAL_BASE_URL = "http://127.0.0.1:1234/v1"
+LOCAL_BASE_URL = "http://127.0.0.1:11434/v1"
 
 # Some models put their scratchpad inline instead of in a separate field.
 _THINK_BLOCK = re.compile(r"<think>.*?</think>\s*", re.DOTALL | re.IGNORECASE)

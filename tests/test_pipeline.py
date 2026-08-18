@@ -237,11 +237,11 @@ def test_embed_sends_openai_shape_and_orders_by_index():
         return embedding_response(request)
 
     client = fake_client(handler)
-    vectors = client.embed("text-embedding-embeddinggemma-300m", ["a", "b", "c"])
+    vectors = client.embed("embeddinggemma", ["a", "b", "c"])
 
     assert seen["url"] == "http://127.0.0.1:1234/v1/embeddings"
     assert seen["auth"] == "Bearer test-key"
-    assert seen["body"]["model"] == "text-embedding-embeddinggemma-300m"
+    assert seen["body"]["model"] == "embeddinggemma"
     assert seen["body"]["input"] == ["a", "b", "c"]
     assert seen["body"]["encoding_format"] == "float"
     # Reversed by the server, restored by the client.
@@ -392,7 +392,7 @@ def test_enable_questions_reads_the_environment():
 
 def test_settings_default_to_the_local_server():
     settings = Settings(api_key="k")
-    assert settings.embed_model == "text-embedding-embeddinggemma-300m"
+    assert settings.embed_model == "embeddinggemma"
     assert settings.llm_model == "openai/gpt-oss-20b"
     assert settings.embedder_tag == "embeddinggem", settings.embedder_tag
     assert Settings(offline=True).embedder_tag == "hash"

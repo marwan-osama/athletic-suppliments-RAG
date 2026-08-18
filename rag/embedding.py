@@ -29,7 +29,7 @@ class ServerEmbedder(EmbeddingFunction):
     def __init__(
         self,
         client: LLMClient,
-        model_name: str,
+        model_name: str = "embeddinggemma",
         batch_size: int = 16,
         document_prefix: str = "",
         query_prefix: str = "",
