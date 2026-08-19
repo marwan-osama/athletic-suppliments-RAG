@@ -49,6 +49,17 @@ class Chain(Stage):
         return " | ".join(repr(s) for s in self.stages)
 
 
+class Identity(Stage):
+    """Passes its input straight through — how an optional stage is bypassed.
+
+    `fetch | Identity() | chunk` keeps the shape of the pipeline intact when
+    cleaning is switched off, so nothing downstream needs a `None` check.
+    """
+
+    def run(self, value: Any) -> Any:
+        return value
+
+
 ProgressFn = Callable[[int, int], None]
 
 
@@ -92,10 +103,24 @@ class Retrieved:
     section: str = ""
     chunk_index: int = -1
     matched_text: str = ""  # the question that matched, when match_type == "question"
+    # How many query phrasings found this chunk, and the ranking bonus that
+    # earned it. Both are 1 and 0.0 without query expansion.
+    matches: int = 1
+    boost: float = 0.0
 
     @property
     def distance(self) -> float:
         return 1.0 - self.similarity
+
+    @property
+    def score(self) -> float:
+        """What ranking sorts by: the match, plus what agreement it attracted.
+
+        Separate from `similarity` on purpose — the number shown next to a
+        result is always the one the embedder returned, so a boosted chunk can
+        never look like a closer match than it was.
+        """
+        return min(1.0, self.similarity + self.boost)
 
 
 @dataclass

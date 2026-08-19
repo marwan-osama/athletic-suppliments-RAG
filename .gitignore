@@ -6,3 +6,6 @@ __pycache__/
 chroma_db*/
 chunks_dump.md
 .streamlit/secrets.toml
+
+# Evaluation runs are outputs, not source.
+eval_results/

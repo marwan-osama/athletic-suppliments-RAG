@@ -6,23 +6,44 @@ pipeline stage, plus a Streamlit UI for tuning the retrieval settings and
 reviewing what comes back.
 
 ```
-fetch → clean → chunk → generate questions → embed → index → retrieve → answer
+fetch → clean → chunk → generate questions → embed → index
+query → expand → retrieve → answer
 ```
 
-Models, both through OpenRouter on one API key:
+Models run locally in [LM Studio](https://lmstudio.ai), both off its
+OpenAI-compatible server at `http://127.0.0.1:1234/v1` — no key, no quota:
 
 | | model | notes |
 | --- | --- | --- |
-| embeddings | `nvidia/llama-nemotron-embed-vl-1b-v2:free` | 2048 dims, asymmetric (`query:` / `passage:` prefixes) |
-| generation | `nvidia/nemotron-nano-9b-v2:free` | 128k context, reasons on every call (see below) |
+| embeddings | `text-embedding-embeddinggemma-300m` | 768 dims, already unit-normalized, asymmetric (see below) |
+| generation | `openai/gpt-oss-20b` | ~1s per question-generation call, barely reasons (see below) |
 
-**Reasoning eats the token budget.** This model ignores
-`reasoning: {"effort": "none"}` — it still reports reasoning tokens — and those
-tokens are charged against `max_tokens`. Ask for too few and the reply arrives as
-`content: null` with `finish_reason: "length"`, which looks exactly like a model
-with nothing to say. Hence the generous budgets (1024 for question generation,
-2048 for answers), and [openrouter.py](rag/openrouter.py) raises on an empty reply
-instead of passing it off as a valid, empty answer.
+Nothing is tied to LM Studio beyond the defaults — point `LLM_BASE_URL` at any
+OpenAI-shaped endpoint and set `LLM_API_KEY` if it needs one.
+
+**The embedding model is asymmetric**, and its own instruction templates measurably
+beat the alternatives. On a creatine query scored against a matching and a
+mismatched passage:
+
+| prefixes | sim(match) | sim(mismatch) | margin |
+| --- | --- | --- | --- |
+| none | 0.698 | 0.352 | 0.346 |
+| generic `query:` / `passage:` | 0.753 | 0.391 | 0.361 |
+| **EmbeddingGemma templates** | 0.727 | 0.257 | **0.470** |
+
+So documents are embedded as `title: none | text: …` and searches as
+`task: search result | query: …`. Both live in [config.py](rag/config.py); set
+them to `""` for a symmetric model.
+
+**Reasoning tokens come out of `max_tokens`.** `gpt-oss-20b` barely reasons on
+these prompts — about 9 tokens — so the budgets (1024 for question generation,
+2048 for answers) are generous. Other models are not so cheap: `gemma-4-e2b`
+spends ~390 tokens thinking and ignores both `reasoning: {"effort": "none"}` and
+`chat_template_kwargs: {"enable_thinking": false}`, which at a small budget makes
+the reply arrive with empty content and `finish_reason: "length"` — exactly like
+a model with nothing to say. [llm.py](rag/llm.py) raises on an empty reply rather
+than passing it off as a valid answer, so if you swap the model and questions
+stop appearing, the log will say why.
 
 ## Layout
 
@@ -32,14 +53,16 @@ instead of passing it off as a valid, empty answer.
 | [rag/preprocessing.py](rag/preprocessing.py) | `MarkdownCleaner` | strips citation links, nav chrome, HTML remnants, the reference list |
 | [rag/chunking.py](rag/chunking.py) | `MarkdownChunker` | heading-aware split; each chunk carries its heading path |
 | [rag/augmentation.py](rag/augmentation.py) | `QuestionGenerator` | hypothetical questions per chunk, generated in parallel |
-| [rag/openrouter.py](rag/openrouter.py) | `OpenRouterClient` | the only module that calls the API: retries, rate limiting, errors |
-| [rag/embedding.py](rag/embedding.py) | `OpenRouterEmbedder`, `HashEmbedder` | query/passage-aware embeddings; offline fallback |
+| [rag/llm.py](rag/llm.py) | `LLMClient` | the only module that calls the server: retries, pacing, errors |
+| [rag/embedding.py](rag/embedding.py) | `ServerEmbedder`, `HashEmbedder` | query/document-aware embeddings; offline fallback |
 | [rag/indexing.py](rag/indexing.py) | `VectorIndex` | ChromaDB collection: upsert, count, query, reset |
-| [rag/retrieval.py](rag/retrieval.py) | `Retriever` | query → ranked chunks, one result per parent chunk |
+| [rag/expansion.py](rag/expansion.py) | `QueryExpander` | query → that query plus other phrasings (optional) |
+| [rag/retrieval.py](rag/retrieval.py) | `Retriever` | query → ranked chunks, one result per parent chunk, phrasings merged |
 | [rag/answering.py](rag/answering.py) | `Answerer` | grounded answer with `[n]` citations (optional) |
 | [rag/diagnostics.py](rag/diagnostics.py) | `ChunkInspector` | chunk size stats and quality flags |
 | [rag/pipeline.py](rag/pipeline.py) | `RAGPipeline` | wires the stages; `build()`, `search()`, `answer()` |
 | [rag/config.py](rag/config.py) | `Settings` | every tunable value, one dataclass |
+| [evaluation/](evaluation) | `EvaluationEngine` | grades the pipeline against a golden set (optional) |
 | [app.py](app.py) | — | Streamlit UI |
 | [rag/cli.py](rag/cli.py) | — | `python -m rag.cli chunks \| build \| query` |
 
@@ -57,30 +80,32 @@ python3 -m venv .venv && .venv/bin/pip install -r requirements.txt
 
 Then put your key in `.env` (see [.env.example](.env.example)):
 
-```bash
-cp .env.example .env   # then edit: OPENROUTER_API_KEY=...
-```
+In LM Studio: load both models, open **Developer → Local Server** and start it.
+Then `cp .env.example .env` — for a purely local setup the defaults already match,
+so the file only needs `RAG_SOURCE` if you want to point at a saved copy of the
+page.
 
-Get a key at [openrouter.ai/keys](https://openrouter.ai/keys). Without one
-everything still runs, using `HashEmbedder` (word-overlap vectors) so you can
-exercise the UI offline — retrieval quality is poor and there is no answer
-generation.
+With `RAG_OFFLINE=true`, or with the server stopped, `HashEmbedder`
+(word-overlap vectors) keeps the UI and tests runnable — retrieval quality is poor
+and there is no generation.
 
-### Free-tier pacing
+### How long a build takes
 
-`:free` variants allow roughly 20 requests/minute plus a daily cap (which depends
-on whether you have ever bought credits), so [openrouter.py](rag/openrouter.py)
-paces every request — `requests_per_minute` in [config.py](rag/config.py) — and
-honours `Retry-After` on a 429. At the default 600/100 chunking that is:
+Everything is local, so the only budget is time. Measured on this machine at the
+default 600/100 chunking:
 
-| | requests | at 20/min |
+| | calls | wall clock |
 | --- | --- | --- |
-| embeddings only (`--questions 0`) | 18 | ~1 min |
-| with 3 questions per chunk | 360 | ~18 min |
+| embeddings only (`RAG_ENABLE_QUESTIONS=false`) | 18 | **8 s** |
+| with 3 questions per chunk | 72 + 288 | **~4 min** |
 
-The Chunks tab shows this estimate for whatever settings you have picked, before
-you spend anything. If the daily cap is your constraint, turn question generation
-off in `.env` — the pipeline works fine on chunk rows alone:
+Generation is the bulk of it: ~1 s per call, ~0.9 s per chunk with the default 8
+workers. Both numbers are model-specific — `gemma-4-e2b` took 49 minutes for the
+same build — so the constants in [pipeline.py](rag/pipeline.py) are worth
+re-measuring after a swap. The Chunks tab shows the estimate for whatever
+settings you have picked, before you start.
+
+To skip it entirely, in `.env`:
 
 ```
 RAG_ENABLE_QUESTIONS=false
@@ -91,18 +116,34 @@ That switch is the master control (`enable_questions` in
 from, including the UI slider and `--questions`, and disabled runs get their own
 `_q0_` collection so the two indexes never mix.
 
-Note that free variants log prompts and outputs to the provider for training —
-that includes the questions you type into the UI.
-
 ## Streamlit UI
 
 ```bash
 .venv/bin/streamlit run app.py
 ```
 
-- **Sidebar** — source, chunk size, overlap, fragment-merge threshold, heading
-  prefix, top-k, one-result-per-chunk, questions per chunk. Build / rebuild the
-  index from here.
+- **Sidebar** — one section per stage, in the order the stages run, holding
+  every hyperparameter that stage takes. Each optional stage has a switch that
+  bypasses it: **Cleaning** (chunk the raw extraction), **Question
+  augmentation**, **Answering**, the extraction cache under **Source &
+  fetching**, and the model server itself under **Embedding** (which falls back
+  to offline hash vectors). Build / rebuild the index from here, and reset every
+  control to its defaults with one button.
+
+  | section | what it holds |
+  | --- | --- |
+  | 📥 Source & fetching | source, base URL, cache directory, cache switch, minimum extraction size |
+  | 🧹 Cleaning | master switch, link unwrapping, citation markers, navigation lines, heading naming, dropped sections |
+  | ✂️ Chunking | size, overlap, fragment-merge threshold, heading prefix, heading path cap |
+  | ❓ Question augmentation | master switch, questions per chunk, workers, temperature, max tokens |
+  | 🔢 Embedding | server switch, model, batch size, dimensions, document and query prefixes |
+  | 🗄️ Index storage | Chroma path, collection prefix, rows per upsert |
+  | 🔀 Query expansion | master switch, extra phrasings, temperature, max tokens, agreement boost and its cap |
+  | 🔎 Retrieval | top-k, one-result-per-chunk, overfetch multiplier |
+  | 💬 Answering | master switch, temperature, max tokens, context budget |
+  | 🔌 Model server | base URL, generation model, API key, rate limit, timeout, retries, reasoning effort |
+  | 🩺 Chunk diagnostics | the TINY flag threshold |
+  | 📊 Evaluation | golden set, report directory, failure threshold, judge model/embeddings/endpoint, acronym expansion, LLM diagnosis, concurrency, timeout |
 - **Ask** — ask a question, or keep a question set and run one (or all) of them.
   Every result shows its similarity, whether it matched the chunk or a generated
   question, its heading path, and its full text.
@@ -111,13 +152,92 @@ that includes the questions you type into the UI.
   embeddings. This is the cheap way to tune chunk size and overlap.
 - **Review** — mark retrieved chunks relevant / not relevant with notes, see
   precision per question, and export the judgements as JSON.
-- **Index** — row counts by type, collection list, pipeline log.
+- **Evaluate** — score the pipeline against the golden set: four metrics, a
+  per-question table, what to try for each failure, and the JSON report.
+- **Index** — row counts by type, collection list, the stages currently in
+  force, the effective settings (with what differs from the defaults called out),
+  and the pipeline log.
 
 Everything that changes the vectors is part of the collection name
-(`ods_health_facts__gem_c600_o100_q3_m80_s1` — embedder, chunk size, overlap,
-questions, merge threshold, heading prefix), so moving a slider builds a separate
-index instead of colliding with the previous one, and moving it back reuses the
-index you already built.
+(`ods_health_facts__embeddinggem_c600_o100_q3_m80_s1` — embedder, chunk size,
+overlap, questions, merge threshold, heading prefix), so moving a slider builds a
+separate index instead of colliding with the previous one, and moving it back
+reuses the index you already built. Settings that arrived after that scheme —
+the cleaning flags, the heading cap, the embedding prefixes — are hashed into an
+`_x…` suffix, which stays empty while they are all at their defaults so indexes
+already on disk keep their names.
+
+### Query expansion
+
+Retrieval can search more than the question as typed. With it on, the model is
+asked for a few other phrasings — domain terms, scientific synonyms — and the
+index is searched once per phrasing, which finds passages worded unlike the
+question. A chunk that several phrasings agree on is more likely to be the right
+one, so extra agreement lifts it up the ranking.
+
+That bonus lands on `Retrieved.score`, which is what results are sorted by.
+`Retrieved.similarity` stays exactly what the embedder returned, so the number
+shown next to a result never overstates the match; a boosted result says how many
+phrasings agreed and what it was given. Agreement is counted one vote per
+phrasing, not per matching row — a chunk found through three of its own
+hypothetical questions is one phrasing agreeing with itself, not three
+confirmations.
+
+It costs one generation call per **search** (build time is unaffected), so
+searching gets slower. `RAG_ENABLE_QUERY_EXPANSION=false`, or the sidebar toggle,
+turns it off.
+
+Settings split in two: those that decide what is stored (`Settings.index_key`)
+get a pipeline and a collection of their own, and everything else is pushed onto
+the live stages by `RAGPipeline.apply()` — so changing top-k or a temperature
+never reopens the database or invalidates an index.
+
+## Evaluation
+
+Judging retrieval by eye stops scaling around the third question. The
+`evaluation` package asks the pipeline a fixed set of questions and grades what
+comes back:
+
+| metric | grades | asks |
+| --- | --- | --- |
+| context recall | `Retriever` | did it find the evidence the reference answer needs? |
+| context precision | `Retriever` | are the chunks it returned actually about the question? |
+| faithfulness | `Answerer` | is the answer grounded in those chunks? |
+| answer relevancy | `Answerer` | does the answer address the question asked? |
+
+Two grade retrieval and two grade generation, so a failing metric names the
+stage to look at rather than saying "the RAG is bad".
+
+```bash
+.venv/bin/python -m evaluation run
+```
+
+The golden file holds only the **question** and a **reference answer**. The
+contexts and the answer come from `RAGPipeline.search()` and `.answer()` at run
+time — see [evaluation/harness.py](evaluation/harness.py). That is what makes
+the numbers worth having: they move when the pipeline changes. Measured on the
+shipped set against the local models:
+
+| `top_k` | context recall | context precision |
+| --- | --- | --- |
+| 5 | 0.730 | 0.963 |
+| 10 | **0.944** | **0.863** |
+
+which is the recall/precision trade-off the knob actually buys. The iron
+question is the one that needs the depth: its reference answer draws on four
+sections of the page, and five chunks cannot hold all of them.
+
+Scoring uses [ragas](https://github.com/explodinggradients/ragas), imported only
+when a run starts, so the pipeline, the CLI and the rest of the UI never need
+it. Install it with `pip install -r requirements.txt`; without it the Evaluate
+tab says so and stays disabled. The judge defaults to the same local server —
+`eval_llm_model` / `eval_base_url` point it at a stronger or hosted model.
+
+Every claim in a reference answer is traceable to the source page, which is
+what makes context recall mean anything: the metric asks whether retrieval found
+the evidence the reference relies on, so a reference asserting something the
+corpus does not contain fails for reasons that have nothing to do with
+retrieval. Keep that property when adding questions.
 
 ## CLI
 
@@ -139,11 +259,12 @@ index you already built.
 .venv/bin/python tests/test_pipeline.py
 ```
 
-All offline, no key needed: cleaning, chunking, id stability, stage composition,
-diagnostics, an end-to-end index-and-retrieve round trip against a temporary
-ChromaDB, and the OpenRouter request/response contract (payload shape,
-`query:`/`passage:` prefixes, ordering by `index`, 429 retry, 400 not retried,
-`<think>` stripping) against a mock HTTP transport.
+All offline — nothing needs to be running: cleaning, chunking, id stability, stage
+composition, diagnostics, an end-to-end index-and-retrieve round trip against a
+temporary ChromaDB, and the server contract (payload shape, instruction prefixes,
+ordering by `index`, auth header only when a key is set, 429 retry, 400 not
+retried, empty-reply detection, unreachable-server message) against a mock HTTP
+transport.
 
 ## Notes on the refactor
 
@@ -186,14 +307,17 @@ Behavioural changes, all of them deliberate:
   bounded by the rate limiter rather than by the pool size.
 - **Chunking is separable from indexing**, so chunk size and overlap can be tuned
   in the UI (or via `rag.cli chunks`) without spending anything on embeddings.
-- **One provider, one client.** Gemini is gone; `OpenRouterClient` is the only
-  code that makes a request, so retries, pacing and error reporting exist once.
-- **Query/passage prefixes.** The old embedder used Gemini's `task_type`; this
-  model expects `query:` on searches and `passage:` on documents instead. Both are
-  in [config.py](rag/config.py) — set them to `""` for a symmetric model.
+- **One server, one client.** `LLMClient` is the only code that makes a request,
+  so retries, pacing and error reporting exist once — and swapping providers is a
+  change of `base_url` and two model ids. The pipeline has run on Gemini, then
+  OpenRouter, now LM Studio; only [config.py](rag/config.py) really moved.
+- **Instruction prefixes instead of a task parameter.** Gemini had `task_type`;
+  OpenAI-shaped `/embeddings` has no such field, so the query/document
+  instructions are prepended to the text (see the table above).
 - **Config comes from the environment.** The notebook had a Gemini API key inline
   — if that key is still live, revoke it at
-  [aistudio.google.com/apikey](https://aistudio.google.com/apikey).
+  [aistudio.google.com/apikey](https://aistudio.google.com/apikey). An OpenRouter
+  key was used later in development; that one is worth rotating too.
 
 Extracted markdown is cached in `.cache/`, so only the first run reads the source;
 the index lives in `./chroma_db`. Both are gitignored.

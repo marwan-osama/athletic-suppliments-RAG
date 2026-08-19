@@ -8,7 +8,7 @@ from __future__ import annotations
 
 from typing import Callable, Sequence
 
-from .openrouter import OpenRouterClient
+from .llm import LLMClient
 from .schema import Retrieved
 
 
@@ -16,21 +16,26 @@ class Answerer:
     """`answerer(question, chunks)` -> grounded answer text."""
 
     PROMPT = (
-        "Answer the question using ONLY the numbered sources below. Cite the "
-        "sources you use as [1], [2], and so on. If the sources do not contain "
-        "the answer, say so plainly.\n\n"
+        "You are an assistant answering questions based STRICTLY on the provided sources. "
+        "Your task is to answer the question using ONLY the numbered sources below. "
+        "You must NOT use any outside knowledge. "
+        "If the provided sources do not contain enough information to fully and accurately answer the question, "
+        "you MUST explicitly say: \"I cannot answer this question based on the provided sources.\" "
+        "Do not attempt to infer or guess answers that are not explicitly stated in the sources.\n\n"
+        "Cite the sources you use as [1], [2], and so on.\n\n"
         "Question: {question}\n\nSources:\n{sources}\n\nAnswer:"
     )
 
     def __init__(
         self,
-        client: OpenRouterClient,
-        model_name: str = "nvidia/nemotron-nano-9b-v2:free",
+        client: LLMClient,
+        model_name: str = "openai/gpt-oss-20b",
         temperature: float = 0.2,
         max_context_chars: int = 8_000,
         # Generous because this model's reasoning tokens come out of the same
         # budget as the answer itself.
         max_tokens: int = 2_048,
+        reasoning_effort: str = "",
         log: Callable[[str], None] = print,
     ):
         self.client = client
@@ -38,6 +43,7 @@ class Answerer:
         self.temperature = temperature
         self.max_context_chars = max_context_chars
         self.max_tokens = max_tokens
+        self.reasoning_effort = reasoning_effort
         self.log = log
 
     def __call__(self, question: str, chunks: Sequence[Retrieved]) -> str:
@@ -53,6 +59,7 @@ class Answerer:
             ),
             temperature=self.temperature,
             max_tokens=self.max_tokens,
+            reasoning_effort=self.reasoning_effort or None,
         )
 
     def _format(self, chunks: Sequence[Retrieved]) -> str:

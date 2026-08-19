@@ -56,7 +56,7 @@ def main(argv: Optional[List[str]] = None) -> int:
     pipeline = RAGPipeline(settings_from_args(args))
 
     if pipeline.offline:
-        print("No OPENROUTER_API_KEY found — using offline hash embeddings.\n")
+        print("RAG_OFFLINE is set — using offline hash embeddings.\n")
 
     if args.command == "chunks":
         chunks = pipeline.chunk()

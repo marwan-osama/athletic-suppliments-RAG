@@ -6,8 +6,9 @@ One stage per module:
     preprocessing  MarkdownCleaner    markdown -> markdown without link/nav noise
     chunking       MarkdownChunker    markdown -> [Chunk], heading-aware
     augmentation   QuestionGenerator  [Chunk] -> hypothetical questions
-    openrouter     OpenRouterClient   the one place that calls the API
-    embedding      OpenRouterEmbedder text -> vectors
+    expansion      QueryExpander      query -> [query, other phrasings]
+    llm            LLMClient          the one place that calls the server
+    embedding      ServerEmbedder     text -> vectors
     indexing       VectorIndex        chunks + questions -> ChromaDB
     retrieval      Retriever          query -> [Retrieved]
     answering      Answerer           query + chunks -> answer
@@ -22,14 +23,15 @@ from .augmentation import QuestionGenerator
 from .chunking import MarkdownChunker
 from .config import Settings
 from .diagnostics import ChunkInspector, ChunkReport
-from .embedding import HashEmbedder, OpenRouterEmbedder
+from .embedding import HashEmbedder, ServerEmbedder
+from .expansion import QueryExpander
 from .fetching import SourceFetcher
 from .indexing import VectorIndex
-from .openrouter import OpenRouterClient, OpenRouterError
+from .llm import LLMClient, LLMError
 from .pipeline import RAGPipeline
 from .preprocessing import MarkdownCleaner
 from .retrieval import Retriever
-from .schema import BuildReport, Chain, Chunk, Retrieved, Stage
+from .schema import BuildReport, Chain, Chunk, Identity, Retrieved, Stage
 
 __all__ = [
     "Answerer",
@@ -39,15 +41,17 @@ __all__ = [
     "ChunkInspector",
     "ChunkReport",
     "HashEmbedder",
+    "Identity",
+    "LLMClient",
+    "LLMError",
     "MarkdownChunker",
     "MarkdownCleaner",
-    "OpenRouterClient",
-    "OpenRouterEmbedder",
-    "OpenRouterError",
+    "QueryExpander",
     "QuestionGenerator",
     "RAGPipeline",
     "Retrieved",
     "Retriever",
+    "ServerEmbedder",
     "Settings",
     "SourceFetcher",
     "Stage",
