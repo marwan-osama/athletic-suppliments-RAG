@@ -149,7 +149,9 @@ def test_dataset_ships_questions_and_references_only():
     rows = load_dataset(Settings().eval_dataset_path)
     assert rows, "the shipped golden set is empty"
     for row in rows:
-        assert set(row) == {"question", "ground_truth"}, sorted(row)
+        assert {"question", "ground_truth"}.issubset(row), sorted(row)
+        assert "contexts" not in row, "should not contain pre-baked contexts"
+        assert "answer" not in row, "should not contain pre-baked answers"
 
 
 def test_acronyms_expand_longest_first():

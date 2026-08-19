@@ -59,6 +59,10 @@ METRIC_NAMES = [
     "context_precision",
     "faithfulness",
     "answer_relevancy",
+    "retrieval_hit_rate",
+    "retrieval_recall",
+    "retrieval_precision",
+    "retrieval_mrr",
 ]
 
 # Which stage a failing metric implicates — the report groups by this.
@@ -67,6 +71,10 @@ METRIC_STAGE = {
     "context_precision": "retrieval",
     "faithfulness": "answering",
     "answer_relevancy": "answering",
+    "retrieval_hit_rate": "retrieval",
+    "retrieval_recall": "retrieval",
+    "retrieval_precision": "retrieval",
+    "retrieval_mrr": "retrieval",
 }
 
 INSTALL_HINT = (
@@ -144,53 +152,62 @@ class EvaluationEngine:
         if not records:
             return EvalResult(threshold=self.settings.eval_threshold)
 
-        ragas = _load_ragas()
-        graded = (
-            [self._normalize(record) for record in records]
-            if self.settings.eval_normalize_acronyms
-            else records
-        )
+        try:
+            ragas = _load_ragas()
+            ragas_available = True
+        except EvaluationUnavailable as exc:
+            print(f"\n[Warning] Ragas is unavailable: {exc}. Skipping LLM-based metrics and running deterministic evaluation only.\n")
+            ragas_available = False
 
-        base_url, model, embed_model = self.settings.eval_endpoint()
-        # "not-needed" rather than "": LM Studio ignores the key, but the
-        # OpenAI client refuses to start without one.
-        key = self.settings.api_key or "not-needed"
-        judge = ragas["LangchainLLMWrapper"](
-            ragas["ChatOpenAI"](
-                model=model, openai_api_base=base_url, openai_api_key=key,
-                temperature=0.0, request_timeout=self.settings.eval_timeout,
+        if ragas_available:
+            graded = (
+                [self._normalize(record) for record in records]
+                if self.settings.eval_normalize_acronyms
+                else records
             )
-        )
-        embeddings = ragas["LangchainEmbeddingsWrapper"](
-            ragas["OpenAIEmbeddings"](
-                model=embed_model, openai_api_base=base_url, openai_api_key=key,
-                check_embedding_ctx_length=False,
-            )
-        )
 
-        dataset = ragas["EvaluationDataset"](
-            samples=[
-                ragas["SingleTurnSample"](
-                    user_input=record["question"],
-                    retrieved_contexts=list(record["contexts"]),
-                    reference=record["ground_truth"],
-                    response=record["answer"],
+            base_url, model, embed_model = self.settings.eval_endpoint()
+            # "not-needed" rather than "": LM Studio ignores the key, but the
+            # OpenAI client refuses to start without one.
+            key = self.settings.api_key or "not-needed"
+            judge = ragas["LangchainLLMWrapper"](
+                ragas["ChatOpenAI"](
+                    model=model, openai_api_base=base_url, openai_api_key=key,
+                    temperature=0.0, request_timeout=self.settings.eval_timeout,
                 )
-                for record in graded
-            ]
-        )
-        scored = ragas["evaluate"](
-            dataset=dataset,
-            metrics=ragas["METRICS"],
-            llm=judge,
-            embeddings=embeddings,
-            run_config=ragas["RunConfig"](
-                max_workers=self.settings.eval_max_workers,
-                timeout=self.settings.eval_timeout,
-            ),
-        )
+            )
+            embeddings = ragas["LangchainEmbeddingsWrapper"](
+                ragas["OpenAIEmbeddings"](
+                    model=embed_model, openai_api_base=base_url, openai_api_key=key,
+                    check_embedding_ctx_length=False,
+                )
+            )
 
-        return self._collect(scored.to_pandas(), records)
+            dataset = ragas["EvaluationDataset"](
+                samples=[
+                    ragas["SingleTurnSample"](
+                        user_input=record["question"],
+                        retrieved_contexts=list(record["contexts"]),
+                        reference=record["ground_truth"],
+                        response=record["answer"],
+                    )
+                    for record in graded
+                ]
+            )
+            scored = ragas["evaluate"](
+                dataset=dataset,
+                metrics=ragas["METRICS"],
+                llm=judge,
+                embeddings=embeddings,
+                run_config=ragas["RunConfig"](
+                    max_workers=self.settings.eval_max_workers,
+                    timeout=self.settings.eval_timeout,
+                ),
+            )
+
+            return self._collect(scored.to_pandas(), records)
+        else:
+            return self._collect(None, records)
 
     # -- internals ---------------------------------------------------------- #
     def _collect(self, frame, records: List[Dict[str, Any]]) -> EvalResult:
@@ -200,9 +217,47 @@ class EvaluationEngine:
         the acronym-expanded copies — are what the report shows.
         """
         samples: List[SampleResult] = []
-        for position, (_, row) in enumerate(frame.iterrows()):
-            scores = {name: _as_score(row.get(name)) for name in METRIC_NAMES}
-            record = records[position]
+        for position, record in enumerate(records):
+            scores = {}
+            if frame is not None and not frame.empty:
+                row = frame.iloc[position]
+                for name in METRIC_NAMES:
+                    scores[name] = _as_score(row.get(name))
+            else:
+                for name in METRIC_NAMES:
+                    scores[name] = 0.0
+            
+            # Compute deterministic retrieval metrics
+            
+            # Compute deterministic retrieval metrics
+            expected_chunks = record.get("relevant_chunks", [])
+            expected_ids = [c["chunk_id"] for c in expected_chunks]
+            retrieved_chunks = record.get("retrieved", [])
+            retrieved_ids = [r["chunk_id"] for r in retrieved_chunks]
+            
+            if expected_ids:
+                hit_rate = 1.0 if any(rid in expected_ids for rid in retrieved_ids) else 0.0
+                recall = len(set(expected_ids) & set(retrieved_ids)) / len(expected_ids)
+                precision = len(set(expected_ids) & set(retrieved_ids)) / len(retrieved_ids) if retrieved_ids else 0.0
+                
+                mrr = 0.0
+                for rank, rid in enumerate(retrieved_ids):
+                    if rid in expected_ids:
+                        mrr = 1.0 / (rank + 1)
+                        break
+            else:
+                # Out-of-domain questions with no expected chunks
+                # We expect the model should not retrieve (or if it retrieved anything, recall is 1.0 since there are 0 expected)
+                hit_rate = 1.0
+                recall = 1.0
+                precision = 1.0 if not retrieved_ids else 0.0
+                mrr = 1.0
+                
+            scores["retrieval_hit_rate"] = hit_rate
+            scores["retrieval_recall"] = recall
+            scores["retrieval_precision"] = precision
+            scores["retrieval_mrr"] = mrr
+
             samples.append(
                 SampleResult(
                     question=record["question"],

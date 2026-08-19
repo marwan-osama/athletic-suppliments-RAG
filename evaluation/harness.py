@@ -64,11 +64,17 @@ def collect(
     for done, row in enumerate(dataset, start=1):
         question = row["question"]
         hits = pipeline.search(question)
+        
+        try:
+            answer = pipeline.answer(question, hits)
+        except Exception as exc:
+            answer = f"Error during generation: {exc}"
+
         records.append(
             {
                 **row,
                 "contexts": [hit.text for hit in hits],
-                "answer": pipeline.answer(question, hits),
+                "answer": answer,
                 # Kept for the report: which chunks were graded, and whether
                 # query expansion had anything to do with the ranking.
                 "retrieved": [

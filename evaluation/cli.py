@@ -102,7 +102,7 @@ def main(argv: Optional[List[str]] = None) -> int:
     print(f"  {diagnostics.total_failures} failing samples diagnosed.\n")
 
     reporter = ReportGenerator(settings.eval_output_dir)
-    print(f"Report: {reporter.save_json(result, diagnostics)}\n")
+    print(f"Report: {reporter.save_json(result, diagnostics, settings)}\n")
     reporter.print_cli_summary(result, diagnostics)
     return 0 if result.passing else 2
 

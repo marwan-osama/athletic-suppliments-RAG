@@ -1,14 +1,570 @@
 [
   {
+    "id": 1,
     "question": "Does creatine supplementation improve high-intensity exercise performance?",
-    "ground_truth": "Yes. Creatine helps generate ATP and thereby supplies the muscles with energy, particularly for short-term events. It enhances performance during repeated short bursts of high-intensity, intermittent activity, such as sprinting and weight lifting, where energy for this predominantly anaerobic exercise comes mainly from the ATP-creatine phosphate energy system. Short-term creatine supplementation for 5 to 7 days in both men and women often significantly increases strength and power, work involving multiple sets of maximal effort muscle contractions, and sprinting performance. Individuals have varied responses based on factors such as diet and the relative percentages of various muscle fiber types. Creatine seems to be of little value for endurance sports such as distance running or swimming, and it leads to weight gain that might impede performance in such sports."
+    "ground_truth": "Yes. Creatine supplementation can improve performance during repeated short bursts of high-intensity activity, including sprinting and weight lifting. Short-term supplementation for 5–7 days often increases strength and power. It provides little benefit for endurance sports such as distance running or swimming.",
+    "relevant_chunks": [
+      {
+        "chunk_id": "c0161-87ea4e7b",
+        "section": "Creatine > Efficacy",
+        "text": "Creatine > Efficacy\n\nStudies in both laboratory and sports settings have found that short-term creatine supplementation (for 5 to 7 days) in both men and women often significantly increases strength (e.g., for bench presses) and power (e.g., for cycling), work involving multiple sets of maximal effort muscle contractions, and sprinting and soccer performance. In one example, a study randomized 14 healthy, resistance-trained men (age 19–29 years) to receive 25 g creatine monohydrate or a placebo for 6–7 days. Participants taking the supplement had significant improvements in peak power output"
+      },
+      {
+        "chunk_id": "c0164-d2d9c39b",
+        "section": "Creatine > Efficacy",
+        "text": "Creatine > Efficacy\n\nIndividuals have varied responses to creatine supplementation, based on factors such as diet and the relative percentages of various muscle fiber types. Vegetarians, for example, with their lower muscle creatine content, might have greater responses to supplementation than meat eaters. Overall, creatine enhances performance during repeated short bursts of high-intensity, intermittent activity, such as sprinting and weight lifting, where energy for this predominantly anaerobic exercise comes mainly from the ATP-creatine phosphate energy system."
+      },
+      {
+        "chunk_id": "c0165-921df521",
+        "section": "Creatine > Efficacy",
+        "text": "Creatine > Efficacy\n\nCreatine supplementation seems to be of little value for endurance sports, such as distance running or swimming, that do not depend on the short-term ATP-creatine phosphate system to provide short-term energy, and it leads to weight gain that might impede performance in such sports. Furthermore, in predominantly aerobic exercise lasting more than 150 seconds, the body relies on oxidative phosphorylation as the primary energy source, a metabolic pathway that does not require creatine."
+      }
+    ]
   },
   {
+    "id": 2,
     "question": "What is the recommended caffeine dose for athletic performance enhancement?",
-    "ground_truth": "Many studies have shown that caffeine might enhance performance in athletes when they ingest about 2-6 mg/kg body weight before exercise, by improving endurance, strength, and power in high-intensity team sports activities. For an individual weighing 154 pounds (70 kg), this dose is equivalent to 210-420 mg caffeine. Taking more is unlikely to improve performance further and increases the risk of side effects. For a potential benefit to athletic performance, users should consume caffeine 15 to 60 minutes before exercise. In a position statement, the ISSN describes supplementation with about 3-6 mg/kg as having an ergogenic effect on sustained maximal endurance exercise but not necessarily on strength-power performance. Heavy caffeine use of 500 mg/day or more might diminish rather than enhance physical performance and could also disturb sleep and cause irritability and anxiety."
+    "ground_truth": "Studies suggest that about 2–6 mg/kg of caffeine consumed 15–60 minutes before exercise may improve some aspects of athletic performance. Higher doses are unlikely to provide additional benefit and can increase the risk of side effects.",
+    "relevant_chunks": [
+      {
+        "chunk_id": "c0135-d5f4f05f",
+        "section": "Caffeine > Efficacy",
+        "text": "Caffeine > Efficacy\n\nMany studies have shown that caffeine might enhance performance in athletes when they ingest about 2–6 mg/kg body weight before exercise by improving endurance, strength, and power in high-intensity team sports activities. For an individual weighing 154 pounds (70 kg), this dose is equivalent to 210–420 mg caffeine. Taking more, however, is unlikely to improve performance further and increases the risk of side effects."
+      },
+      {
+        "chunk_id": "c0143-53fbc0c2",
+        "section": "Caffeine > Implications for use",
+        "text": "Caffeine > Implications for use\n\nCaffeine is easily and rapidly absorbed, even from the buccal membranes in the mouth, and is distributed throughout the body and brain. It reaches peak concentrations in the blood within 45 minutes of consumption and has a half-life of about 4–5 hours. For a potential benefit to athletic performance, users should consume caffeine 15 to 60 minutes before exercise. Consumption of caffeine with fluid during exercise of long duration might extend any performance improvements."
+      },
+      {
+        "chunk_id": "c0143-53fbc0c2",
+        "section": "Caffeine > Implications for use",
+        "text": "Caffeine > Implications for use\n\nCaffeine is easily and rapidly absorbed, even from the buccal membranes in the mouth, and is distributed throughout the body and brain. It reaches peak concentrations in the blood within 45 minutes of consumption and has a half-life of about 4–5 hours. For a potential benefit to athletic performance, users should consume caffeine 15 to 60 minutes before exercise. Consumption of caffeine with fluid during exercise of long duration might extend any performance improvements."
+      }
+    ]
   },
   {
+    "id": 3,
     "question": "Should athletes take iron supplements to prevent deficiency?",
-    "ground_truth": "Not routinely. In a position statement, the AND, DoC, and ACSM do not recommend routine supplementation of iron except in response to a health care provider's instruction, and they note that such supplementation is only ergogenic if the individual has iron depletion. They also warn that iron supplementation can cause gastrointestinal side effects. Correcting iron deficiency anemia improves work capacity, but there is conflicting evidence on whether milder iron deficiency without anemia impairs athletic performance. Athletes of both sexes lose additional iron for several reasons. Physical activity produces acute inflammation that reduces iron absorption from the gut. Iron is also lost in sweat. The destruction of erythrocytes in the feet because of frequent striking on hard surfaces leads to foot-strike hemolysis, and use of anti-inflammatories and pain medications can lead to some blood loss from the gastrointestinal tract. Athletes can safely obtain recommended intakes of iron by consuming a healthy diet containing iron-rich foods and by taking an iron-containing dietary supplement as needed."
+    "ground_truth": "Not routinely. Iron supplementation is generally recommended only when iron depletion or deficiency is present and under appropriate health-care guidance. Supplementation can cause gastrointestinal side effects, while correcting iron-deficiency anemia can improve work capacity.",
+    "relevant_chunks": [
+      {
+        "chunk_id": "c0203-9e9a6e18",
+        "section": "Iron > Implications for use",
+        "text": "Iron > Implications for use\n\nCorrecting iron deficiency anemia improves work capacity, but there is conflicting evidence on whether milder iron deficiency without anemia impairs athletic performance. In a position statement, the AND, DoC, and ACSM do not recommend routine supplementation of iron except in response to a health care provider’s instruction and note that such supplementation is only ergogenic if the individual has iron depletion. Furthermore, they warn that iron supplementation can cause gastrointestinal side effects."
+      }
+    ]
+  },
+  {
+    "id": 4,
+    "question": "How long does it take for creatine supplementation to increase muscle creatine stores?",
+    "ground_truth": "Short-term creatine supplementation for about 5–7 days can significantly increase strength and power.",
+    "relevant_chunks": [
+      {
+        "chunk_id": "c0161-87ea4e7b",
+        "section": "Creatine > Efficacy",
+        "text": "Creatine > Efficacy\n\nStudies in both laboratory and sports settings have found that short-term creatine supplementation (for 5 to 7 days) in both men and women often significantly increases strength (e.g., for bench presses) and power (e.g., for cycling), work involving multiple sets of maximal effort muscle contractions, and sprinting and soccer performance. In one example, a study randomized 14 healthy, resistance-trained men (age 19–29 years) to receive 25 g creatine monohydrate or a placebo for 6–7 days. Participants taking the supplement had significant improvements in peak power output"
+      }
+    ]
+  },
+  {
+    "id": 5,
+    "question": "Does creatine supplementation benefit endurance athletes?",
+    "ground_truth": "Creatine appears to provide little benefit for endurance sports such as distance running or swimming. It can also cause weight gain, which might impede performance in some endurance sports.",
+    "relevant_chunks": [
+      {
+        "chunk_id": "c0165-921df521",
+        "section": "Creatine > Efficacy",
+        "text": "Creatine > Efficacy\n\nCreatine supplementation seems to be of little value for endurance sports, such as distance running or swimming, that do not depend on the short-term ATP-creatine phosphate system to provide short-term energy, and it leads to weight gain that might impede performance in such sports. Furthermore, in predominantly aerobic exercise lasting more than 150 seconds, the body relies on oxidative phosphorylation as the primary energy source, a metabolic pathway that does not require creatine."
+      }
+    ]
+  },
+  {
+    "id": 6,
+    "question": "What types of exercise benefit most from creatine supplementation?",
+    "ground_truth": "Creatine is most useful for repeated short bursts of high-intensity, intermittent activity such as sprinting, weight lifting, and other activities that rely heavily on the ATP-creatine phosphate energy system.",
+    "relevant_chunks": [
+      {
+        "chunk_id": "c0164-d2d9c39b",
+        "section": "Creatine > Efficacy",
+        "text": "Creatine > Efficacy\n\nIndividuals have varied responses to creatine supplementation, based on factors such as diet and the relative percentages of various muscle fiber types. Vegetarians, for example, with their lower muscle creatine content, might have greater responses to supplementation than meat eaters. Overall, creatine enhances performance during repeated short bursts of high-intensity, intermittent activity, such as sprinting and weight lifting, where energy for this predominantly anaerobic exercise comes mainly from the ATP-creatine phosphate energy system."
+      },
+      {
+        "chunk_id": "c0161-87ea4e7b",
+        "section": "Creatine > Efficacy",
+        "text": "Creatine > Efficacy\n\nStudies in both laboratory and sports settings have found that short-term creatine supplementation (for 5 to 7 days) in both men and women often significantly increases strength (e.g., for bench presses) and power (e.g., for cycling), work involving multiple sets of maximal effort muscle contractions, and sprinting and soccer performance. In one example, a study randomized 14 healthy, resistance-trained men (age 19–29 years) to receive 25 g creatine monohydrate or a placebo for 6–7 days. Participants taking the supplement had significant improvements in peak power output"
+      },
+      {
+        "chunk_id": "c0161-87ea4e7b",
+        "section": "Creatine > Efficacy",
+        "text": "Creatine > Efficacy\n\nStudies in both laboratory and sports settings have found that short-term creatine supplementation (for 5 to 7 days) in both men and women often significantly increases strength (e.g., for bench presses) and power (e.g., for cycling), work involving multiple sets of maximal effort muscle contractions, and sprinting and soccer performance. In one example, a study randomized 14 healthy, resistance-trained men (age 19–29 years) to receive 25 g creatine monohydrate or a placebo for 6–7 days. Participants taking the supplement had significant improvements in peak power output"
+      }
+    ]
+  },
+  {
+    "id": 7,
+    "question": "Can caffeine improve athletic endurance?",
+    "ground_truth": "Yes. Caffeine may improve endurance performance, particularly when consumed in doses of about 2–6 mg/kg before exercise. The evidence is strongest for some types of sustained endurance exercise.",
+    "relevant_chunks": [
+      {
+        "chunk_id": "c0135-d5f4f05f",
+        "section": "Caffeine > Efficacy",
+        "text": "Caffeine > Efficacy\n\nMany studies have shown that caffeine might enhance performance in athletes when they ingest about 2–6 mg/kg body weight before exercise by improving endurance, strength, and power in high-intensity team sports activities. For an individual weighing 154 pounds (70 kg), this dose is equivalent to 210–420 mg caffeine. Taking more, however, is unlikely to improve performance further and increases the risk of side effects."
+      },
+      {
+        "chunk_id": "c0138-b701ae58",
+        "section": "Caffeine > Efficacy",
+        "text": "Caffeine > Efficacy\n\nCaffeine supplementation is more likely to help with endurance-type activities (such as running) and activities of long duration with intermittent activity (such as soccer) than more anaerobic, short-term bouts of intense exercise (such as sprinting or lifting weights). Some evidence suggests that caffeine is more likely to improve performance in people who are not habituated to it. Limiting caffeine intake to 50 mg/day or abstaining from caffeine for 2–7 days before taking it for an athletic event might maximize any ergogenic effect. However, other evidence shows no"
+      },
+      {
+        "chunk_id": "c0145-941129c2",
+        "section": "Caffeine > Implications for use",
+        "text": "Caffeine > Implications for use\n\nreduce perceived exertion when exercise lasts longer. In a position statement, the ISSN describes caffeine as effective in trained athletes for improving sports performance and notes that supplementation with about 3–6 mg/kg has an ergogenic effect on sustained maximal endurance exercise but not necessarily on strength-power performance. The Australian Institute of Sport supports the use of caffeine for improving sports performance in suitable athletic competitions under the direction of an expert in sports medicine, but it notes that more research might be"
+      },
+      {
+        "chunk_id": "c0145-941129c2",
+        "section": "Caffeine > Implications for use",
+        "text": "Caffeine > Implications for use\n\nreduce perceived exertion when exercise lasts longer. In a position statement, the ISSN describes caffeine as effective in trained athletes for improving sports performance and notes that supplementation with about 3–6 mg/kg has an ergogenic effect on sustained maximal endurance exercise but not necessarily on strength-power performance. The Australian Institute of Sport supports the use of caffeine for improving sports performance in suitable athletic competitions under the direction of an expert in sports medicine, but it notes that more research might be"
+      }
+    ]
+  },
+  {
+    "id": 8,
+    "question": "When should caffeine be consumed before exercise to potentially improve performance?",
+    "ground_truth": "Caffeine should generally be consumed about 15–60 minutes before exercise for a potential performance benefit.",
+    "relevant_chunks": [
+      {
+        "chunk_id": "c0135-d5f4f05f",
+        "section": "Caffeine > Efficacy",
+        "text": "Caffeine > Efficacy\n\nMany studies have shown that caffeine might enhance performance in athletes when they ingest about 2–6 mg/kg body weight before exercise by improving endurance, strength, and power in high-intensity team sports activities. For an individual weighing 154 pounds (70 kg), this dose is equivalent to 210–420 mg caffeine. Taking more, however, is unlikely to improve performance further and increases the risk of side effects."
+      },
+      {
+        "chunk_id": "c0143-53fbc0c2",
+        "section": "Caffeine > Implications for use",
+        "text": "Caffeine > Implications for use\n\nCaffeine is easily and rapidly absorbed, even from the buccal membranes in the mouth, and is distributed throughout the body and brain. It reaches peak concentrations in the blood within 45 minutes of consumption and has a half-life of about 4–5 hours. For a potential benefit to athletic performance, users should consume caffeine 15 to 60 minutes before exercise. Consumption of caffeine with fluid during exercise of long duration might extend any performance improvements."
+      }
+    ]
+  },
+  {
+    "id": 9,
+    "question": "Does taking more caffeine necessarily produce greater improvements in athletic performance?",
+    "ground_truth": "No. Taking more than the recommended amounts is unlikely to improve performance further and increases the risk of adverse effects. Heavy caffeine use of 500 mg/day or more might even diminish physical performance.",
+    "relevant_chunks": [
+      {
+        "chunk_id": "c0140-ad4246d3",
+        "section": "Caffeine > Safety",
+        "text": "Caffeine > Safety\n\nHeavy caffeine use (500 mg/day or more) might diminish rather than enhance physical performance and could also disturb sleep and cause irritability and anxiety. Other adverse effects of caffeine include insomnia, restlessness, nausea, vomiting, tachycardia, and arrhythmia. Caffeine does not induce diuresis or increase sweat loss during exercise and therefore does not reduce fluid balance in the body that would adversely affect performance."
+      },
+      {
+        "chunk_id": "c0135-d5f4f05f",
+        "section": "Caffeine > Efficacy",
+        "text": "Caffeine > Efficacy\n\nMany studies have shown that caffeine might enhance performance in athletes when they ingest about 2–6 mg/kg body weight before exercise by improving endurance, strength, and power in high-intensity team sports activities. For an individual weighing 154 pounds (70 kg), this dose is equivalent to 210–420 mg caffeine. Taking more, however, is unlikely to improve performance further and increases the risk of side effects."
+      },
+      {
+        "chunk_id": "c0135-d5f4f05f",
+        "section": "Caffeine > Efficacy",
+        "text": "Caffeine > Efficacy\n\nMany studies have shown that caffeine might enhance performance in athletes when they ingest about 2–6 mg/kg body weight before exercise by improving endurance, strength, and power in high-intensity team sports activities. For an individual weighing 154 pounds (70 kg), this dose is equivalent to 210–420 mg caffeine. Taking more, however, is unlikely to improve performance further and increases the risk of side effects."
+      }
+    ]
+  },
+  {
+    "id": 10,
+    "question": "What are some possible adverse effects of high caffeine intake?",
+    "ground_truth": "High caffeine intake can cause side effects such as disturbed sleep, irritability, and anxiety. Heavy use can also diminish rather than enhance physical performance.",
+    "relevant_chunks": [
+      {
+        "chunk_id": "c0140-ad4246d3",
+        "section": "Caffeine > Safety",
+        "text": "Caffeine > Safety\n\nHeavy caffeine use (500 mg/day or more) might diminish rather than enhance physical performance and could also disturb sleep and cause irritability and anxiety. Other adverse effects of caffeine include insomnia, restlessness, nausea, vomiting, tachycardia, and arrhythmia. Caffeine does not induce diuresis or increase sweat loss during exercise and therefore does not reduce fluid balance in the body that would adversely affect performance."
+      },
+      {
+        "chunk_id": "c0135-d5f4f05f",
+        "section": "Caffeine > Efficacy",
+        "text": "Caffeine > Efficacy\n\nMany studies have shown that caffeine might enhance performance in athletes when they ingest about 2–6 mg/kg body weight before exercise by improving endurance, strength, and power in high-intensity team sports activities. For an individual weighing 154 pounds (70 kg), this dose is equivalent to 210–420 mg caffeine. Taking more, however, is unlikely to improve performance further and increases the risk of side effects."
+      },
+      {
+        "chunk_id": "c0135-d5f4f05f",
+        "section": "Caffeine > Efficacy",
+        "text": "Caffeine > Efficacy\n\nMany studies have shown that caffeine might enhance performance in athletes when they ingest about 2–6 mg/kg body weight before exercise by improving endurance, strength, and power in high-intensity team sports activities. For an individual weighing 154 pounds (70 kg), this dose is equivalent to 210–420 mg caffeine. Taking more, however, is unlikely to improve performance further and increases the risk of side effects."
+      }
+    ]
+  },
+  {
+    "id": 11,
+    "question": "Can caffeine improve strength and power during exercise?",
+    "ground_truth": "Caffeine might improve some aspects of strength and power, although evidence varies by activity. The ISSN position statement indicates that caffeine has an ergogenic effect on sustained maximal endurance exercise but not necessarily on strength-power performance.",
+    "relevant_chunks": [
+      {
+        "chunk_id": "c0145-941129c2",
+        "section": "Caffeine > Implications for use",
+        "text": "Caffeine > Implications for use\n\nreduce perceived exertion when exercise lasts longer. In a position statement, the ISSN describes caffeine as effective in trained athletes for improving sports performance and notes that supplementation with about 3–6 mg/kg has an ergogenic effect on sustained maximal endurance exercise but not necessarily on strength-power performance. The Australian Institute of Sport supports the use of caffeine for improving sports performance in suitable athletic competitions under the direction of an expert in sports medicine, but it notes that more research might be"
+      },
+      {
+        "chunk_id": "c0135-d5f4f05f",
+        "section": "Caffeine > Efficacy",
+        "text": "Caffeine > Efficacy\n\nMany studies have shown that caffeine might enhance performance in athletes when they ingest about 2–6 mg/kg body weight before exercise by improving endurance, strength, and power in high-intensity team sports activities. For an individual weighing 154 pounds (70 kg), this dose is equivalent to 210–420 mg caffeine. Taking more, however, is unlikely to improve performance further and increases the risk of side effects."
+      },
+      {
+        "chunk_id": "c0135-d5f4f05f",
+        "section": "Caffeine > Efficacy",
+        "text": "Caffeine > Efficacy\n\nMany studies have shown that caffeine might enhance performance in athletes when they ingest about 2–6 mg/kg body weight before exercise by improving endurance, strength, and power in high-intensity team sports activities. For an individual weighing 154 pounds (70 kg), this dose is equivalent to 210–420 mg caffeine. Taking more, however, is unlikely to improve performance further and increases the risk of side effects."
+      }
+    ]
+  },
+  {
+    "id": 12,
+    "question": "Does correcting iron-deficiency anemia improve athletic performance?",
+    "ground_truth": "Yes. Correcting iron-deficiency anemia improves work capacity. However, evidence is conflicting on whether milder iron deficiency without anemia impairs athletic performance.",
+    "relevant_chunks": [
+      {
+        "chunk_id": "c0203-9e9a6e18",
+        "section": "Iron > Implications for use",
+        "text": "Iron > Implications for use\n\nCorrecting iron deficiency anemia improves work capacity, but there is conflicting evidence on whether milder iron deficiency without anemia impairs athletic performance. In a position statement, the AND, DoC, and ACSM do not recommend routine supplementation of iron except in response to a health care provider’s instruction and note that such supplementation is only ergogenic if the individual has iron depletion. Furthermore, they warn that iron supplementation can cause gastrointestinal side effects."
+      },
+      {
+        "chunk_id": "c0198-1767f8aa",
+        "section": "Iron > Efficacy",
+        "text": "Iron > Efficacy\n\nAlthough iron deficiency anemia decreases work capacity, there is conflicting evidence on whether milder iron deficiency without anemia impairs sport and exercise performance. One systematic review and meta-analysis to determine whether iron treatments (provided orally or by injection) improved iron status and aerobic capacity in iron-deficient but nonanemic endurance athletes identified 19 studies involving 80 men and 363 women with a mean age of 22 years. Iron treatments improved iron status as expected, but they did not guarantee improvement in aerobic capacity or indices"
+      }
+    ]
+  },
+  {
+    "id": 13,
+    "question": "Why are athletes at increased risk of iron loss?",
+    "ground_truth": "Athletes can lose additional iron through several mechanisms, including iron loss in sweat, reduced iron absorption associated with acute inflammation from physical activity, foot-strike hemolysis, and some gastrointestinal blood loss associated with anti-inflammatory or pain medications.",
+    "relevant_chunks": [
+      {
+        "chunk_id": "c0196-b66c974a",
+        "section": "Iron",
+        "text": "Iron\n\nAthletes of both sexes lose additional iron for several reasons. Physical activity produces acute inflammation that reduces iron absorption from the gut and iron use via a peptide, hepcidin, that regulates iron homeostasis. Iron is also lost in sweat. The destruction of erythrocytes in the feet because of frequent striking on hard surfaces leads to foot-strike hemolysis. Also, use of anti-inflammatories and pain medications can lead to some blood loss from the gastrointestinal tract, thereby decreasing iron stores."
+      }
+    ]
+  },
+  {
+    "id": 14,
+    "question": "Can athletes obtain enough iron through their diet?",
+    "ground_truth": "Yes. Athletes can safely obtain recommended iron intakes by consuming a healthy diet that contains iron-rich foods. Iron-containing dietary supplements may also be used when needed.",
+    "relevant_chunks": [
+      {
+        "chunk_id": "c0201-d65254f4",
+        "section": "Iron > Safety",
+        "text": "Iron > Safety\n\nAthletes can safely obtain recommended intakes of iron by consuming a healthy diet containing iron-rich foods and by taking an iron-containing dietary supplement as needed. High doses of iron may be prescribed for several weeks or months to treat iron deficiency, especially if anemia is present."
+      }
+    ]
+  },
+  {
+    "id": 15,
+    "question": "What are the risks of taking iron supplements when they are not needed?",
+    "ground_truth": "Iron supplementation can cause gastrointestinal side effects and is not routinely recommended unless iron depletion or deficiency is present or supplementation is specifically advised by a health-care provider.",
+    "relevant_chunks": [
+      {
+        "chunk_id": "c0203-9e9a6e18",
+        "section": "Iron > Implications for use",
+        "text": "Iron > Implications for use\n\nCorrecting iron deficiency anemia improves work capacity, but there is conflicting evidence on whether milder iron deficiency without anemia impairs athletic performance. In a position statement, the AND, DoC, and ACSM do not recommend routine supplementation of iron except in response to a health care provider’s instruction and note that such supplementation is only ergogenic if the individual has iron depletion. Furthermore, they warn that iron supplementation can cause gastrointestinal side effects."
+      },
+      {
+        "chunk_id": "c0201-d65254f4",
+        "section": "Iron > Safety",
+        "text": "Iron > Safety\n\nAthletes can safely obtain recommended intakes of iron by consuming a healthy diet containing iron-rich foods and by taking an iron-containing dietary supplement as needed. High doses of iron may be prescribed for several weeks or months to treat iron deficiency, especially if anemia is present."
+      }
+    ]
+  },
+  {
+    "id": 16,
+    "question": "Does protein supplementation improve muscle strength and performance in athletes?",
+    "ground_truth": "Protein supplementation can help athletes meet increased protein needs and, when combined with resistance exercise, can support muscle protein synthesis and adaptations. However, supplementation is not necessarily beneficial when adequate protein is already obtained from the diet.",
+    "relevant_chunks": [
+      {
+        "chunk_id": "c0207-d1e008f4",
+        "section": "Protein",
+        "text": "Protein\n\nAthletes must consider both protein quality and quantity to meet their needs for the nutrient. They must obtain EAAs from the diet or from supplementation to support muscle growth, maintenance, and repair. The nine EAAs are histidine, isoleucine, leucine, lysine, methionine, phenylalanine, threonine, tryptophan, and valine. Most complete proteins (those that contain all EAAs) are composed of about 40% EAAs, so a meal or snack with 25 g total protein provides about 10 g EAAs."
+      },
+      {
+        "chunk_id": "c0218-033df1ac",
+        "section": "Protein > Implications for use",
+        "text": "Protein > Implications for use\n\nExamination Survey (NHANES) showed that the average daily intake of protein by adult men is 100 g and by women is 69 g. Athletes who require additional protein can obtain it by consuming more protein-containing foods and, if needed, protein supplements and protein-fortified food and beverage products."
+      },
+      {
+        "chunk_id": "c0209-c7180a90",
+        "section": "Protein > Efficacy",
+        "text": "Protein > Efficacy\n\nAdequate protein in the diet is required to provide the EAAs necessary for muscle-protein synthesis and to minimize muscle-protein breakdown. Dietary protein consumption increases the concentration of amino acids in the blood, which muscle cells then take up. Sufficient protein is necessary primarily to optimize the training response to, and the recovery period after, exercise."
+      },
+      {
+        "chunk_id": "c0216-a44e6ec2",
+        "section": "Protein > Implications for use",
+        "text": "Protein > Implications for use\n\nrice protein lacks the EAA isoleucine. Many protein supplements consist of a combination of these protein sources. All EAAs are necessary to stimulate muscle protein synthesis, so users should select singular or complementary protein sources accordingly. To maximize muscle adaptations to training, the AND, DoC, and ACSM recommend that athletes consume 0.3 g/kg body weight of high-quality protein (e.g., about 20 g for a person weighing 150 lb) 0 to 2 hours after exercise and then every 3 to 5 hours."
+      },
+      {
+        "chunk_id": "c0217-ac71aef3",
+        "section": "Protein > Implications for use",
+        "text": "Protein > Implications for use\n\nSince the Food and Nutrition Board developed the RDA for protein, more recent data have suggested that athletes require a daily protein intake of 1.2 to 2.0 g/kg to support metabolic adaptations, muscle repair and remodeling, and protein turnover. Athletes might benefit from even greater amounts for short periods of intense training or when they reduce their energy intake to improve physique or achieve a competition weight. The 2007–2008 National Health and Nutrition Examination Survey (NHANES) showed that the average daily intake of protein by adult men is 100"
+      },
+      {
+        "chunk_id": "c0209-c7180a90",
+        "section": "Protein > Efficacy",
+        "text": "Protein > Efficacy\n\nAdequate protein in the diet is required to provide the EAAs necessary for muscle-protein synthesis and to minimize muscle-protein breakdown. Dietary protein consumption increases the concentration of amino acids in the blood, which muscle cells then take up. Sufficient protein is necessary primarily to optimize the training response to, and the recovery period after, exercise."
+      },
+      {
+        "chunk_id": "c0216-a44e6ec2",
+        "section": "Protein > Implications for use",
+        "text": "Protein > Implications for use\n\nrice protein lacks the EAA isoleucine. Many protein supplements consist of a combination of these protein sources. All EAAs are necessary to stimulate muscle protein synthesis, so users should select singular or complementary protein sources accordingly. To maximize muscle adaptations to training, the AND, DoC, and ACSM recommend that athletes consume 0.3 g/kg body weight of high-quality protein (e.g., about 20 g for a person weighing 150 lb) 0 to 2 hours after exercise and then every 3 to 5 hours."
+      },
+      {
+        "chunk_id": "c0217-ac71aef3",
+        "section": "Protein > Implications for use",
+        "text": "Protein > Implications for use\n\nSince the Food and Nutrition Board developed the RDA for protein, more recent data have suggested that athletes require a daily protein intake of 1.2 to 2.0 g/kg to support metabolic adaptations, muscle repair and remodeling, and protein turnover. Athletes might benefit from even greater amounts for short periods of intense training or when they reduce their energy intake to improve physique or achieve a competition weight. The 2007–2008 National Health and Nutrition Examination Survey (NHANES) showed that the average daily intake of protein by adult men is 100"
+      }
+    ]
+  },
+  {
+    "id": 17,
+    "question": "Do athletes necessarily need protein supplements if they consume enough protein from food?",
+    "ground_truth": "No. Athletes who obtain sufficient protein from their diet may not need protein supplements. Supplements can be useful when dietary intake is insufficient or when convenient sources of protein are needed.",
+    "relevant_chunks": [
+      {
+        "chunk_id": "c0218-033df1ac",
+        "section": "Protein > Implications for use",
+        "text": "Protein > Implications for use\n\nExamination Survey (NHANES) showed that the average daily intake of protein by adult men is 100 g and by women is 69 g. Athletes who require additional protein can obtain it by consuming more protein-containing foods and, if needed, protein supplements and protein-fortified food and beverage products."
+      }
+    ]
+  },
+  {
+    "id": 18,
+    "question": "Can carbohydrate supplementation improve performance during prolonged exercise?",
+    "ground_truth": "Yes. Consuming carbohydrates during prolonged endurance exercise (lasting more than an hour) provides energy and replaces lost fluids and electrolytes.",
+    "relevant_chunks": [
+      {
+        "chunk_id": "c0014-026d0d4f",
+        "section": "Introduction",
+        "text": "Introduction\n\nA few dietary supplements might enhance performance only when they add to, but do not substitute for, this dietary foundation. Athletes engaging in endurance activities lasting more than an hour or performed in extreme environments (e.g., hot temperatures or high altitudes) might need to replace lost fluids and electrolytes and consume additional carbohydrates for energy. Even with proper nutritional preparation, the results of taking any dietary supplement(s) for exercise and athletic performance vary by level of training; the nature, intensity, and duration of the activity;"
+      }
+    ]
+  },
+  {
+    "id": 19,
+    "question": "Does beta-alanine supplementation improve exercise performance?",
+    "ground_truth": "Beta-alanine supplementation can increase muscle carnosine concentrations and may improve performance during high-intensity exercise lasting roughly one to several minutes, although benefits vary depending on the activity.",
+    "relevant_chunks": [
+      {
+        "chunk_id": "c0101-2206d897",
+        "section": "Beta-alanine > Efficacy",
+        "text": "Beta-alanine > Efficacy\n\nthe International Society of Sports Nutrition (ISSN) concluded from its literature review that beta-alanine supplements (4–6 g/day consumed for at least 2–4 weeks) can improve high-intensity exercise performance that lasts more than 60 seconds, especially in time-to-exhaustion tasks. However, performance benefits are more modest in exercise tests lasting more than 4 minutes because aerobic metabolic pathways increasingly meet energy demands. The ISSN called for more research to determine whether beta-alanine increases the strength and muscle mass that regular"
+      },
+      {
+        "chunk_id": "c0107-378322e0",
+        "section": "Beta-alanine > Implications for use",
+        "text": "Beta-alanine > Implications for use\n\nThere is insufficient expert consensus on the value of taking beta-alanine to enhance performance in intense, short-term activities or its safety, particularly when users take it regularly for at least several months. In a position statement, the AND, DoC, and ACSM advise that beta-alanine supplementation might improve training capacity and does enhance performance, especially of high-intensity exercise lasting 60–240 seconds, that acid-base disturbances resulting from increased anaerobic glycolysis would otherwise impair. In its position statement, the"
+      },
+      {
+        "chunk_id": "c0108-ba875139",
+        "section": "Beta-alanine > Implications for use",
+        "text": "Beta-alanine > Implications for use\n\nfrom increased anaerobic glycolysis would otherwise impair. In its position statement, the ISSN concludes that beta-alanine supplementation improves exercise performance and attenuates neuromuscular fatigue. The Australian Institute of Sport supports the use of beta-alanine for improving sports performance in suitable athletic competitions under the direction of an expert in sports medicine, but it notes that more research might be required to understand how the supplement should be used for best results."
+      },
+      {
+        "chunk_id": "c0108-ba875139",
+        "section": "Beta-alanine > Implications for use",
+        "text": "Beta-alanine > Implications for use\n\nfrom increased anaerobic glycolysis would otherwise impair. In its position statement, the ISSN concludes that beta-alanine supplementation improves exercise performance and attenuates neuromuscular fatigue. The Australian Institute of Sport supports the use of beta-alanine for improving sports performance in suitable athletic competitions under the direction of an expert in sports medicine, but it notes that more research might be required to understand how the supplement should be used for best results."
+      }
+    ]
+  },
+  {
+    "id": 20,
+    "question": "What is a common side effect of beta-alanine supplementation?",
+    "ground_truth": "A common side effect of beta-alanine supplementation is paresthesia, which is a temporary tingling or prickling sensation, especially when larger doses are consumed at once.",
+    "relevant_chunks": [
+      {
+        "chunk_id": "c0105-8a713b41",
+        "section": "Beta-alanine > Safety",
+        "text": "Beta-alanine > Safety\n\nBeta-alanine supplementation appears to be safe at 1.6–6.4 g/day for up to 8 weeks. Some evidence does show, however, that consuming a conventional dose of beta-alanine of at least 800 mg or exceeding 10 mg/kg body mass can provoke moderate to severe paresthesia. This tingling, prickling, or burning sensation is common in the face, neck, back of the hands, and upper trunk and typically lasts 60–90 minutes but is not a painful, serious, or harmful reaction. Use of divided doses or a sustained-release form of the supplement can attenuate paresthesia resulting from"
+      },
+      {
+        "chunk_id": "c0106-232b9fb2",
+        "section": "Beta-alanine > Safety",
+        "text": "Beta-alanine > Safety\n\ndoses or a sustained-release form of the supplement can attenuate paresthesia resulting from beta-alanine consumption. Some research has also found that beta-alanine supplements can produce pruritus (itchy skin), but the authors do not indicate the severity of this effect. There are no safety data on use of the supplement for more than 1 year."
+      }
+    ]
+  },
+  {
+    "id": 21,
+    "question": "Does sodium bicarbonate supplementation improve high-intensity exercise performance?",
+    "ground_truth": "Sodium bicarbonate can improve performance during certain high-intensity activities by increasing the body's buffering capacity and helping delay the effects of metabolic acidosis.",
+    "relevant_chunks": [
+      {
+        "chunk_id": "c0230-7d44be32",
+        "section": "Sodium bicarbonate",
+        "text": "Sodium bicarbonate\n\nglycolysis from high-intensity exercise, thereby reducing the metabolic acidosis that contributes to fatigue. As a result, supplementation with sodium bicarbonate might improve performance in short-term, intense exercises (e.g., sprinting and swimming) and in intermittently intense sports (e.g., boxing and tennis)."
+      },
+      {
+        "chunk_id": "c0232-be80542a",
+        "section": "Sodium bicarbonate > Efficacy",
+        "text": "Sodium bicarbonate > Efficacy\n\nBecause the research results are conflicting, the activities and individuals most likely to benefit from sodium bicarbonate supplementation in real-world conditions is not clear. Reviewers of these studies generally agree that taking about 300 mg/kg body weight sodium bicarbonate might provide a minor to moderate performance benefit in strenuous exercise over several minutes and in sports that involve intermittent, high-intensity activity. However, individuals have varied responses to bicarbonate loading; the practice does not benefit some users, and it can"
+      }
+    ]
+  },
+  {
+    "id": 22,
+    "question": "Can dietary supplements replace a healthy diet for athletes?",
+    "ground_truth": "No. Dietary supplements should not replace a healthy and balanced diet. Athletes should obtain nutrients primarily through appropriate food choices, using supplements when they are needed to address specific nutritional requirements or deficiencies.",
+    "relevant_chunks": [
+      {
+        "chunk_id": "c0014-026d0d4f",
+        "section": "Introduction",
+        "text": "Introduction\n\nA few dietary supplements might enhance performance only when they add to, but do not substitute for, this dietary foundation. Athletes engaging in endurance activities lasting more than an hour or performed in extreme environments (e.g., hot temperatures or high altitudes) might need to replace lost fluids and electrolytes and consume additional carbohydrates for energy. Even with proper nutritional preparation, the results of taking any dietary supplement(s) for exercise and athletic performance vary by level of training; the nature, intensity, and duration of the activity;"
+      },
+      {
+        "chunk_id": "c0284-bd5498f9",
+        "section": "Choosing a Sensible Approach to Enhance Exercise and Athletic Performance",
+        "text": "Choosing a Sensible Approach to Enhance Exercise and Athletic Performance\n\nAccording to the AND, DoC, and ACSM, sound science supports the use of only a few dietary supplements whose labels claim ergogenic benefits. These organizations add that the best way to use supplements is as additions to a carefully chosen diet, that dietary supplements rarely have ergogenic benefits when not used in these conditions, and that there is no justification for their use by young athletes. The National Federation of State High School Associations also expresses strong opposition to the use of supplements to"
+      },
+      {
+        "chunk_id": "c0284-bd5498f9",
+        "section": "Choosing a Sensible Approach to Enhance Exercise and Athletic Performance",
+        "text": "Choosing a Sensible Approach to Enhance Exercise and Athletic Performance\n\nAccording to the AND, DoC, and ACSM, sound science supports the use of only a few dietary supplements whose labels claim ergogenic benefits. These organizations add that the best way to use supplements is as additions to a carefully chosen diet, that dietary supplements rarely have ergogenic benefits when not used in these conditions, and that there is no justification for their use by young athletes. The National Federation of State High School Associations also expresses strong opposition to the use of supplements to"
+      }
+    ]
+  },
+  {
+    "id": 23,
+    "question": "Are all dietary supplements marketed to athletes proven to improve athletic performance?",
+    "ground_truth": "No. Evidence for performance benefits varies substantially among dietary supplements. Some have evidence of benefit for particular types of exercise, while others have little or insufficient evidence.",
+    "relevant_chunks": [
+      {
+        "chunk_id": "c0020-a840c9db",
+        "section": "Selected Ingredients in Dietary Supplements for Exercise and Athletic Performance",
+        "text": "Selected Ingredients in Dietary Supplements for Exercise and Athletic Performance\n\nMany exercise and athletic-performance dietary supplements in the marketplace contain multiple ingredients (especially those marketed for muscle growth and strength). However, much of the research has focused only on single ingredients. One, therefore, cannot know or predict the effects and safety of combinations in these multi-ingredient products unless clinical trials have investigated that particular combination. Furthermore, the amounts of these ingredients vary widely among products. In some cases, the"
+      },
+      {
+        "chunk_id": "c0014-026d0d4f",
+        "section": "Introduction",
+        "text": "Introduction\n\nA few dietary supplements might enhance performance only when they add to, but do not substitute for, this dietary foundation. Athletes engaging in endurance activities lasting more than an hour or performed in extreme environments (e.g., hot temperatures or high altitudes) might need to replace lost fluids and electrolytes and consume additional carbohydrates for energy. Even with proper nutritional preparation, the results of taking any dietary supplement(s) for exercise and athletic performance vary by level of training; the nature, intensity, and duration of the activity;"
+      },
+      {
+        "chunk_id": "c0016-beb983b1",
+        "section": "Introduction",
+        "text": "Introduction\n\nSellers claim that dozens of ingredients in dietary supplements can enhance exercise and athletic performance. Well-trained elite and recreational athletes might use products containing one or more of these ingredients to train harder, improve performance, and achieve a competitive edge. However, the National Athletic Trainers' Association acknowledges in a position statement that because the outcomes of studies of various performance-enhancing substances are often equivocal, using these substances can be controversial and confusing."
+      },
+      {
+        "chunk_id": "c0014-026d0d4f",
+        "section": "Introduction",
+        "text": "Introduction\n\nA few dietary supplements might enhance performance only when they add to, but do not substitute for, this dietary foundation. Athletes engaging in endurance activities lasting more than an hour or performed in extreme environments (e.g., hot temperatures or high altitudes) might need to replace lost fluids and electrolytes and consume additional carbohydrates for energy. Even with proper nutritional preparation, the results of taking any dietary supplement(s) for exercise and athletic performance vary by level of training; the nature, intensity, and duration of the activity;"
+      },
+      {
+        "chunk_id": "c0016-beb983b1",
+        "section": "Introduction",
+        "text": "Introduction\n\nSellers claim that dozens of ingredients in dietary supplements can enhance exercise and athletic performance. Well-trained elite and recreational athletes might use products containing one or more of these ingredients to train harder, improve performance, and achieve a competitive edge. However, the National Athletic Trainers' Association acknowledges in a position statement that because the outcomes of studies of various performance-enhancing substances are often equivocal, using these substances can be controversial and confusing."
+      }
+    ]
+  },
+  {
+    "id": 24,
+    "question": "Why can the effects of creatine supplementation vary between individuals?",
+    "ground_truth": "Responses to creatine supplementation vary between individuals because factors such as diet and the relative proportions of different muscle fiber types can influence the response.",
+    "relevant_chunks": [
+      {
+        "chunk_id": "c0164-d2d9c39b",
+        "section": "Creatine > Efficacy",
+        "text": "Creatine > Efficacy\n\nIndividuals have varied responses to creatine supplementation, based on factors such as diet and the relative percentages of various muscle fiber types. Vegetarians, for example, with their lower muscle creatine content, might have greater responses to supplementation than meat eaters. Overall, creatine enhances performance during repeated short bursts of high-intensity, intermittent activity, such as sprinting and weight lifting, where energy for this predominantly anaerobic exercise comes mainly from the ATP-creatine phosphate energy system."
+      }
+    ]
+  },
+  {
+    "id": 25,
+    "question": "Can creatine supplementation cause weight gain?",
+    "ground_truth": "Yes. Creatine supplementation can cause weight gain, partly because of increased water retention in muscle. This additional weight may be undesirable for some endurance sports.",
+    "relevant_chunks": [
+      {
+        "chunk_id": "c0166-b710cacc",
+        "section": "Creatine > Safety",
+        "text": "Creatine > Safety\n\nStudies have found no consistent set of side effects from creatine use, except that it often leads to weight gain, because it increases water retention and possibly stimulates muscle protein synthesis. Several studies have found that supplemental creatine monohydrate, when used for a strength-training program, can lead to a 1–2 kg increase in total body weight in a month."
+      },
+      {
+        "chunk_id": "c0165-921df521",
+        "section": "Creatine > Efficacy",
+        "text": "Creatine > Efficacy\n\nCreatine supplementation seems to be of little value for endurance sports, such as distance running or swimming, that do not depend on the short-term ATP-creatine phosphate system to provide short-term energy, and it leads to weight gain that might impede performance in such sports. Furthermore, in predominantly aerobic exercise lasting more than 150 seconds, the body relies on oxidative phosphorylation as the primary energy source, a metabolic pathway that does not require creatine."
+      },
+      {
+        "chunk_id": "c0165-921df521",
+        "section": "Creatine > Efficacy",
+        "text": "Creatine > Efficacy\n\nCreatine supplementation seems to be of little value for endurance sports, such as distance running or swimming, that do not depend on the short-term ATP-creatine phosphate system to provide short-term energy, and it leads to weight gain that might impede performance in such sports. Furthermore, in predominantly aerobic exercise lasting more than 150 seconds, the body relies on oxidative phosphorylation as the primary energy source, a metabolic pathway that does not require creatine."
+      }
+    ]
+  },
+  {
+    "id": 26,
+    "question": "Is caffeine equally effective for every type of athletic performance?",
+    "ground_truth": "No. Caffeine's effects depend on the type of exercise and the dose. Evidence supports benefits for some endurance activities and certain high-intensity team-sport activities, while benefits for strength and power performance are less consistent.",
+    "relevant_chunks": [
+      {
+        "chunk_id": "c0135-d5f4f05f",
+        "section": "Caffeine > Efficacy",
+        "text": "Caffeine > Efficacy\n\nMany studies have shown that caffeine might enhance performance in athletes when they ingest about 2–6 mg/kg body weight before exercise by improving endurance, strength, and power in high-intensity team sports activities. For an individual weighing 154 pounds (70 kg), this dose is equivalent to 210–420 mg caffeine. Taking more, however, is unlikely to improve performance further and increases the risk of side effects."
+      },
+      {
+        "chunk_id": "c0138-b701ae58",
+        "section": "Caffeine > Efficacy",
+        "text": "Caffeine > Efficacy\n\nCaffeine supplementation is more likely to help with endurance-type activities (such as running) and activities of long duration with intermittent activity (such as soccer) than more anaerobic, short-term bouts of intense exercise (such as sprinting or lifting weights). Some evidence suggests that caffeine is more likely to improve performance in people who are not habituated to it. Limiting caffeine intake to 50 mg/day or abstaining from caffeine for 2–7 days before taking it for an athletic event might maximize any ergogenic effect. However, other evidence shows no"
+      },
+      {
+        "chunk_id": "c0145-941129c2",
+        "section": "Caffeine > Implications for use",
+        "text": "Caffeine > Implications for use\n\nreduce perceived exertion when exercise lasts longer. In a position statement, the ISSN describes caffeine as effective in trained athletes for improving sports performance and notes that supplementation with about 3–6 mg/kg has an ergogenic effect on sustained maximal endurance exercise but not necessarily on strength-power performance. The Australian Institute of Sport supports the use of caffeine for improving sports performance in suitable athletic competitions under the direction of an expert in sports medicine, but it notes that more research might be"
+      },
+      {
+        "chunk_id": "c0145-941129c2",
+        "section": "Caffeine > Implications for use",
+        "text": "Caffeine > Implications for use\n\nreduce perceived exertion when exercise lasts longer. In a position statement, the ISSN describes caffeine as effective in trained athletes for improving sports performance and notes that supplementation with about 3–6 mg/kg has an ergogenic effect on sustained maximal endurance exercise but not necessarily on strength-power performance. The Australian Institute of Sport supports the use of caffeine for improving sports performance in suitable athletic competitions under the direction of an expert in sports medicine, but it notes that more research might be"
+      }
+    ]
+  },
+  {
+    "id": 27,
+    "question": "Should an athlete take iron supplements without evidence of iron deficiency?",
+    "ground_truth": "No. Routine iron supplementation is not recommended without evidence of iron depletion or deficiency. Athletes should seek appropriate health-care guidance before taking iron supplements.",
+    "relevant_chunks": [
+      {
+        "chunk_id": "c0203-9e9a6e18",
+        "section": "Iron > Implications for use",
+        "text": "Iron > Implications for use\n\nCorrecting iron deficiency anemia improves work capacity, but there is conflicting evidence on whether milder iron deficiency without anemia impairs athletic performance. In a position statement, the AND, DoC, and ACSM do not recommend routine supplementation of iron except in response to a health care provider’s instruction and note that such supplementation is only ergogenic if the individual has iron depletion. Furthermore, they warn that iron supplementation can cause gastrointestinal side effects."
+      }
+    ]
+  },
+  {
+    "id": 28,
+    "question": "Does every dietary supplement used by athletes have strong scientific evidence supporting its effectiveness?",
+    "ground_truth": "No. The evidence varies among supplements. Some have evidence supporting specific performance benefits, while others have limited, conflicting, or insufficient evidence.",
+    "relevant_chunks": [
+      {
+        "chunk_id": "c0020-a840c9db",
+        "section": "Selected Ingredients in Dietary Supplements for Exercise and Athletic Performance",
+        "text": "Selected Ingredients in Dietary Supplements for Exercise and Athletic Performance\n\nMany exercise and athletic-performance dietary supplements in the marketplace contain multiple ingredients (especially those marketed for muscle growth and strength). However, much of the research has focused only on single ingredients. One, therefore, cannot know or predict the effects and safety of combinations in these multi-ingredient products unless clinical trials have investigated that particular combination. Furthermore, the amounts of these ingredients vary widely among products. In some cases, the"
+      },
+      {
+        "chunk_id": "c0284-bd5498f9",
+        "section": "Choosing a Sensible Approach to Enhance Exercise and Athletic Performance",
+        "text": "Choosing a Sensible Approach to Enhance Exercise and Athletic Performance\n\nAccording to the AND, DoC, and ACSM, sound science supports the use of only a few dietary supplements whose labels claim ergogenic benefits. These organizations add that the best way to use supplements is as additions to a carefully chosen diet, that dietary supplements rarely have ergogenic benefits when not used in these conditions, and that there is no justification for their use by young athletes. The National Federation of State High School Associations also expresses strong opposition to the use of supplements to"
+      },
+      {
+        "chunk_id": "c0016-beb983b1",
+        "section": "Introduction",
+        "text": "Introduction\n\nSellers claim that dozens of ingredients in dietary supplements can enhance exercise and athletic performance. Well-trained elite and recreational athletes might use products containing one or more of these ingredients to train harder, improve performance, and achieve a competitive edge. However, the National Athletic Trainers' Association acknowledges in a position statement that because the outcomes of studies of various performance-enhancing substances are often equivocal, using these substances can be controversial and confusing."
+      },
+      {
+        "chunk_id": "c0016-beb983b1",
+        "section": "Introduction",
+        "text": "Introduction\n\nSellers claim that dozens of ingredients in dietary supplements can enhance exercise and athletic performance. Well-trained elite and recreational athletes might use products containing one or more of these ingredients to train harder, improve performance, and achieve a competitive edge. However, the National Athletic Trainers' Association acknowledges in a position statement that because the outcomes of studies of various performance-enhancing substances are often equivocal, using these substances can be controversial and confusing."
+      }
+    ]
+  },
+  {
+    "id": 29,
+    "question": "Which creatine brand is the best for professional athletes?",
+    "ground_truth": "The provided source does not contain enough information to recommend a specific creatine brand.",
+    "relevant_chunks": []
+  },
+  {
+    "id": 30,
+    "question": "What is the cheapest caffeine supplement available in Egypt?",
+    "ground_truth": "The provided source does not contain information about supplement prices, brands, or products available in Egypt.",
+    "relevant_chunks": []
   }
 ]

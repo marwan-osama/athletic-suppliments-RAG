@@ -79,18 +79,30 @@ def main(argv: Optional[List[str]] = None) -> int:
 
     elif args.command == "query":
         results = pipeline.search(args.text, top_k=args.top_k)
+
         if not results:
             print("No results — is the index built?")
             return 1
+
         print(f"\n--- {len(results)} results for: {args.text!r} ---")
+
         for position, hit in enumerate(results, start=1):
-            print(f"\n[{position}] similarity {hit.similarity:.4f} "
-                  f"| matched via {hit.match_type} | {hit.section or 'document'}")
+            print(f"\n[{position}]")
+            print(f"    Chunk ID:       {hit.chunk_id}")
+            print(f"    Chunk index:    {hit.chunk_index}")
+            print(f"    Similarity:     {hit.similarity:.4f}")
+            print(f"    Matched via:    {hit.match_type}")
+            print(f"    Section:        {hit.section or 'document'}")
+
             if hit.matched_text:
-                print(f"    matched question: {hit.matched_text}")
-            print(f"    {hit.text[:300]}...")
+                print(f"    Matched question: {hit.matched_text}")
+
+            print("\n    Text:")
+            print("    " + hit.text.replace("\n", "\n    "))
+
         if args.answer:
-            print(f"\n--- answer ---\n{pipeline.answer(args.text, results)}")
+            answer = pipeline.answer(args.text, results)
+            print(f"\n--- answer ---\n{answer}")
 
     return 0
 
