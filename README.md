@@ -216,8 +216,16 @@ The golden file holds only the **question** and a **reference answer**. The
 contexts and the answer come from `RAGPipeline.search()` and `.answer()` at run
 time — see [evaluation/harness.py](evaluation/harness.py). That is what makes
 the numbers worth having: they move when the pipeline changes. Measured on the
-shipped set, dropping `top_k` from 5 to 1 took context recall from 0.556 to
-0.444 and faithfulness from 1.000 to 0.944.
+shipped set against the local models:
+
+| `top_k` | context recall | context precision |
+| --- | --- | --- |
+| 5 | 0.730 | 0.963 |
+| 10 | **0.944** | **0.863** |
+
+which is the recall/precision trade-off the knob actually buys. The iron
+question is the one that needs the depth: its reference answer draws on four
+sections of the page, and five chunks cannot hold all of them.
 
 Scoring uses [ragas](https://github.com/explodinggradients/ragas), imported only
 when a run starts, so the pipeline, the CLI and the rest of the UI never need
@@ -225,13 +233,11 @@ it. Install it with `pip install -r requirements.txt`; without it the Evaluate
 tab says so and stays disabled. The judge defaults to the same local server —
 `eval_llm_model` / `eval_base_url` point it at a stronger or hosted model.
 
-> **The shipped golden set needs regrounding.** Its reference answers assert
-> specifics the source page does not contain — a "meta-analysis of 22 studies"
-> with 8% and 14% figures for creatine, and caffeine at 3–6 mg/kg where the page
-> says 2–6 mg/kg. Context recall measures whether retrieval found the evidence
-> the reference relies on, so it is capped below 1.0 for reasons that have
-> nothing to do with retrieval. Treat the current recall numbers as a floor, and
-> reground the references in the page before reading much into them.
+Every claim in a reference answer is traceable to the source page, which is
+what makes context recall mean anything: the metric asks whether retrieval found
+the evidence the reference relies on, so a reference asserting something the
+corpus does not contain fails for reasons that have nothing to do with
+retrieval. Keep that property when adding questions.
 
 ## CLI
 
