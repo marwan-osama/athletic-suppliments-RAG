@@ -16,9 +16,13 @@ class Answerer:
     """`answerer(question, chunks)` -> grounded answer text."""
 
     PROMPT = (
-        "Answer the question using ONLY the numbered sources below. Cite the "
-        "sources you use as [1], [2], and so on. If the sources do not contain "
-        "the answer, say so plainly.\n\n"
+        "You are an assistant answering questions based STRICTLY on the provided sources. "
+        "Your task is to answer the question using ONLY the numbered sources below. "
+        "You must NOT use any outside knowledge. "
+        "If the provided sources do not contain enough information to fully and accurately answer the question, "
+        "you MUST explicitly say: \"I cannot answer this question based on the provided sources.\" "
+        "Do not attempt to infer or guess answers that are not explicitly stated in the sources.\n\n"
+        "Cite the sources you use as [1], [2], and so on.\n\n"
         "Question: {question}\n\nSources:\n{sources}\n\nAnswer:"
     )
 
