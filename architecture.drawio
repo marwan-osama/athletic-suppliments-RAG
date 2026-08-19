@@ -1,95 +1,181 @@
 <mxfile host="app.diagrams.net" version="24.7.17" type="device">
+  <diagram id="page-architecture" name="0 · Architecture">
+    <mxGraphModel dx="1422" dy="820" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1169" pageHeight="826" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="page-architecture-t1" value="Architecture — what runs where" style="text;html=1;fontSize=17;align=left;verticalAlign=middle;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="40" y="24" width="900" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="page-architecture-t2" value="entry points · all four build a Settings and hand it to the pipeline" style="text;html=1;fontSize=12;align=left;verticalAlign=middle;fontStyle=2;fontColor=#999999;" vertex="1" parent="1">
+          <mxGeometry x="40" y="66" width="420" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="page-architecture-c3" value="app.py&lt;br&gt;&lt;font color=&quot;#666666&quot;&gt;Streamlit UI&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="40" y="96" width="245" height="56" as="geometry" />
+        </mxCell>
+        <mxCell id="page-architecture-c4" value="rag/cli.py&lt;br&gt;&lt;font color=&quot;#666666&quot;&gt;chunks · build · query&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="320" y="96" width="245" height="56" as="geometry" />
+        </mxCell>
+        <mxCell id="page-architecture-c5" value="evaluation/cli.py&lt;br&gt;&lt;font color=&quot;#666666&quot;&gt;grades a run&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="600" y="96" width="245" height="56" as="geometry" />
+        </mxCell>
+        <mxCell id="page-architecture-c6" value="tests/&lt;br&gt;&lt;font color=&quot;#666666&quot;&gt;47 tests, offline&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#999999;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="880" y="96" width="245" height="56" as="geometry" />
+        </mxCell>
+        <mxCell id="page-architecture-t7" value="in the repo" style="text;html=1;fontSize=12;align=left;verticalAlign=middle;fontStyle=2;fontColor=#999999;" vertex="1" parent="1">
+          <mxGeometry x="40" y="186" width="420" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="page-architecture-c8" value="&lt;b&gt;RAGPipeline&lt;/b&gt;&amp;nbsp; rag/pipeline.py&lt;br&gt;&lt;font color=&quot;#666666&quot;&gt;wires the stages · build() · search() · answer()&lt;br&gt;apply() pushes runtime settings onto live stages&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="40" y="216" width="540" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="page-architecture-c9" value="&lt;b&gt;evaluation/&lt;/b&gt;&amp;nbsp; 6 modules&lt;br&gt;&lt;font color=&quot;#666666&quot;&gt;asks the pipeline the golden questions,&lt;br&gt;grades what comes back&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="620" y="216" width="505" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="page-architecture-c10" value="&lt;b&gt;Settings&lt;/b&gt;&amp;nbsp; rag/config.py &amp;nbsp;·&amp;nbsp; 61 fields, one dataclass — every hyperparameter and every bypass switch" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#999999;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="40" y="316" width="1085" height="46" as="geometry" />
+        </mxCell>
+        <mxCell id="page-architecture-e11" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=blockThin;endFill=1;strokeColor=#666666;" edge="1" parent="1" source="page-architecture-c3" target="page-architecture-c8">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="page-architecture-e12" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=blockThin;endFill=1;strokeColor=#666666;" edge="1" parent="1" source="page-architecture-c4" target="page-architecture-c8">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="page-architecture-e13" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=blockThin;endFill=1;strokeColor=#666666;" edge="1" parent="1" source="page-architecture-c5" target="page-architecture-c9">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="page-architecture-e14" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=blockThin;endFill=1;strokeColor=#666666;" edge="1" parent="1" source="page-architecture-c6" target="page-architecture-c8">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="page-architecture-e15" value="runs" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=blockThin;endFill=1;strokeColor=#666666;fontSize=11;" edge="1" parent="1" source="page-architecture-c9" target="page-architecture-c8">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="page-architecture-e16" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=blockThin;endFill=1;strokeColor=#666666;exitX=0.25;exitY=0;exitDx=0;exitDy=0;dashed=1;endArrow=none;strokeColor=#999999;" edge="1" parent="1" source="page-architecture-c10" target="page-architecture-c8">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="page-architecture-t17" value="outside the process" style="text;html=1;fontSize=12;align=left;verticalAlign=middle;fontStyle=2;fontColor=#999999;" vertex="1" parent="1">
+          <mxGeometry x="40" y="386" width="420" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="page-architecture-c18" value="&lt;b&gt;NIH ODS fact sheet&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#666666&quot;&gt;one HTML page, local file or URL&lt;br&gt;the only corpus there is&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#999999;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="40" y="416" width="340" height="74" as="geometry" />
+        </mxCell>
+        <mxCell id="page-architecture-c19" value="&lt;b&gt;LM Studio&lt;/b&gt;&amp;nbsp; 127.0.0.1:1234&lt;br&gt;&lt;font color=&quot;#666666&quot;&gt;embeddinggemma-300m · gpt-oss-20b&lt;br&gt;OpenAI-shaped; also the eval judge&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="412" y="416" width="340" height="74" as="geometry" />
+        </mxCell>
+        <mxCell id="page-architecture-c20" value="&lt;b&gt;ChromaDB&lt;/b&gt;&amp;nbsp; ./chroma_db&lt;br&gt;&lt;font color=&quot;#666666&quot;&gt;one persistent collection per&lt;br&gt;indexing configuration&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="784" y="416" width="341" height="74" as="geometry" />
+        </mxCell>
+        <mxCell id="page-architecture-e21" value="fetch" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=blockThin;endFill=1;strokeColor=#666666;fontSize=11;exitX=0.15;exitY=1;exitDx=0;exitDy=0;" edge="1" parent="1" source="page-architecture-c8" target="page-architecture-c18">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="page-architecture-e22" value="embed · generate" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=blockThin;endFill=1;strokeColor=#666666;fontSize=11;" edge="1" parent="1" source="page-architecture-c8" target="page-architecture-c19">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="page-architecture-e23" value="upsert · query" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=blockThin;endFill=1;strokeColor=#666666;fontSize=11;" edge="1" parent="1" source="page-architecture-c8" target="page-architecture-c20">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="page-architecture-e24" value="judge" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=blockThin;endFill=1;strokeColor=#666666;fontSize=11;dashed=1;strokeColor=#d79b00;exitX=0.75;exitY=1;exitDx=0;exitDy=0;" edge="1" parent="1" source="page-architecture-c9" target="page-architecture-c19">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="page-architecture-note25" value="&lt;b&gt;One network boundary.&lt;/b&gt; LLMClient in rag/llm.py is the only code that opens a connection — retries, optional pacing and error messages are written once and every stage inherits them.&lt;br&gt;&lt;br&gt;&lt;b&gt;One config object.&lt;/b&gt; A field that is not on Settings cannot be reached from the UI, and a test fails if a field has no control." style="shape=note;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;size=14;align=left;spacingLeft=8;fontSize=11;verticalAlign=top;spacingTop=6;" vertex="1" parent="1">
+          <mxGeometry x="40" y="530" width="540" height="120" as="geometry" />
+        </mxCell>
+        <mxCell id="page-architecture-note26" value="&lt;b&gt;Nothing here needs a key.&lt;/b&gt; LM Studio serves locally; api_key exists for pointing base_url at a hosted gateway.&lt;br&gt;&lt;br&gt;&lt;b&gt;Switch the server off&lt;/b&gt; and HashEmbedder substitutes word-overlap vectors, so the UI and the tests still run — poorly, but they run." style="shape=note;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;size=14;align=left;spacingLeft=8;fontSize=11;verticalAlign=top;spacingTop=6;" vertex="1" parent="1">
+          <mxGeometry x="620" y="530" width="505" height="120" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
   <diagram id="page-pipeline" name="1 · Pipeline">
     <mxGraphModel dx="1422" dy="820" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1169" pageHeight="826" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
-        <mxCell id="p1-title" value="Pipeline — build once, then search" style="text;html=1;fontSize=17;fontStyle=1;align=left;verticalAlign=middle;" vertex="1" parent="1">
-          <mxGeometry x="40" y="24" width="500" height="30" as="geometry" />
+        <mxCell id="page-pipeline-t1" value="Pipeline — build once, then search" style="text;html=1;fontSize=17;align=left;verticalAlign=middle;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="40" y="24" width="900" height="30" as="geometry" />
         </mxCell>
-        <mxCell id="p1-lane1" value="build" style="text;html=1;fontSize=12;fontStyle=2;fontColor=#999999;align=left;" vertex="1" parent="1">
-          <mxGeometry x="40" y="70" width="60" height="20" as="geometry" />
+        <mxCell id="page-pipeline-t2" value="build · pays for embeddings and generation, once" style="text;html=1;fontSize=12;align=left;verticalAlign=middle;fontStyle=2;fontColor=#999999;" vertex="1" parent="1">
+          <mxGeometry x="40" y="70" width="420" height="20" as="geometry" />
         </mxCell>
-        <mxCell id="p1-b1" value="HTML file&lt;br&gt;or URL" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#999999;fontSize=12;" vertex="1" parent="1">
-          <mxGeometry x="40" y="100" width="150" height="60" as="geometry" />
+        <mxCell id="page-pipeline-c3" value="HTML file&lt;br&gt;or URL" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#999999;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="40" y="100" width="180" height="60" as="geometry" />
         </mxCell>
-        <mxCell id="p1-b2" value="SourceFetcher&lt;br&gt;&lt;font color=&quot;#666666&quot;&gt;→ markdown, cached&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=12;" vertex="1" parent="1">
-          <mxGeometry x="230" y="100" width="150" height="60" as="geometry" />
+        <mxCell id="page-pipeline-c4" value="SourceFetcher&lt;br&gt;&lt;font color=&quot;#666666&quot;&gt;→ markdown, cached&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="262" y="100" width="180" height="60" as="geometry" />
         </mxCell>
-        <mxCell id="p1-b3" value="MarkdownCleaner&lt;br&gt;&lt;font color=&quot;#666666&quot;&gt;→ no links or nav&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=12;" vertex="1" parent="1">
-          <mxGeometry x="420" y="100" width="150" height="60" as="geometry" />
+        <mxCell id="page-pipeline-c5" value="MarkdownCleaner&lt;br&gt;&lt;font color=&quot;#666666&quot;&gt;→ no links or nav&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="484" y="100" width="180" height="60" as="geometry" />
         </mxCell>
-        <mxCell id="p1-b4" value="MarkdownChunker&lt;br&gt;&lt;font color=&quot;#666666&quot;&gt;→ 288 chunks&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=12;" vertex="1" parent="1">
-          <mxGeometry x="610" y="100" width="150" height="60" as="geometry" />
+        <mxCell id="page-pipeline-c6" value="MarkdownChunker&lt;br&gt;&lt;font color=&quot;#666666&quot;&gt;→ 288 chunks&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="706" y="100" width="180" height="60" as="geometry" />
         </mxCell>
-        <mxCell id="p1-b5" value="QuestionGenerator&lt;br&gt;&lt;font color=&quot;#666666&quot;&gt;optional, config switch&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=12;" vertex="1" parent="1">
-          <mxGeometry x="800" y="100" width="150" height="60" as="geometry" />
+        <mxCell id="page-pipeline-c7" value="QuestionGenerator&lt;br&gt;&lt;font color=&quot;#666666&quot;&gt;optional · 3 per chunk&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="928" y="100" width="180" height="60" as="geometry" />
         </mxCell>
-        <mxCell id="p1-b6" value="ServerEmbedder&lt;br&gt;&lt;font color=&quot;#666666&quot;&gt;title: none | text: …&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=12;" vertex="1" parent="1">
-          <mxGeometry x="610" y="250" width="150" height="60" as="geometry" />
-        </mxCell>
-        <mxCell id="p1-b7" value="VectorIndex&lt;br&gt;&lt;font color=&quot;#666666&quot;&gt;ChromaDB&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=12;" vertex="1" parent="1">
-          <mxGeometry x="800" y="250" width="150" height="60" as="geometry" />
-        </mxCell>
-        <mxCell id="p1-lane2" value="search" style="text;html=1;fontSize=12;fontStyle=2;fontColor=#999999;align=left;" vertex="1" parent="1">
-          <mxGeometry x="40" y="400" width="60" height="20" as="geometry" />
-        </mxCell>
-        <mxCell id="p1-q1" value="your question" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#999999;fontSize=12;" vertex="1" parent="1">
-          <mxGeometry x="40" y="430" width="150" height="60" as="geometry" />
-        </mxCell>
-        <mxCell id="p1-q2" value="ServerEmbedder&lt;br&gt;&lt;font color=&quot;#666666&quot;&gt;task: search result | query: …&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=12;" vertex="1" parent="1">
-          <mxGeometry x="230" y="430" width="150" height="60" as="geometry" />
-        </mxCell>
-        <mxCell id="p1-q3" value="Retriever&lt;br&gt;&lt;font color=&quot;#666666&quot;&gt;top-k, one per chunk&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=12;" vertex="1" parent="1">
-          <mxGeometry x="420" y="430" width="150" height="60" as="geometry" />
-        </mxCell>
-        <mxCell id="p1-q4" value="retrieved chunks" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=12;" vertex="1" parent="1">
-          <mxGeometry x="610" y="430" width="150" height="60" as="geometry" />
-        </mxCell>
-        <mxCell id="p1-q5" value="Answerer&lt;br&gt;&lt;font color=&quot;#666666&quot;&gt;cited answer&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=12;" vertex="1" parent="1">
-          <mxGeometry x="800" y="430" width="150" height="60" as="geometry" />
-        </mxCell>
-        <mxCell id="p1-e1" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=blockThin;endFill=1;strokeColor=#666666;" edge="1" parent="1" source="p1-b1" target="p1-b2">
+        <mxCell id="page-pipeline-e8" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=blockThin;endFill=1;strokeColor=#666666;" edge="1" parent="1" source="page-pipeline-c3" target="page-pipeline-c4">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="p1-e2" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=blockThin;endFill=1;strokeColor=#666666;" edge="1" parent="1" source="p1-b2" target="p1-b3">
+        <mxCell id="page-pipeline-e9" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=blockThin;endFill=1;strokeColor=#666666;" edge="1" parent="1" source="page-pipeline-c4" target="page-pipeline-c5">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="p1-e3" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=blockThin;endFill=1;strokeColor=#666666;" edge="1" parent="1" source="p1-b3" target="p1-b4">
+        <mxCell id="page-pipeline-e10" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=blockThin;endFill=1;strokeColor=#666666;" edge="1" parent="1" source="page-pipeline-c5" target="page-pipeline-c6">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="p1-e4" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=blockThin;endFill=1;strokeColor=#666666;" edge="1" parent="1" source="p1-b4" target="p1-b5">
+        <mxCell id="page-pipeline-e11" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=blockThin;endFill=1;strokeColor=#666666;" edge="1" parent="1" source="page-pipeline-c6" target="page-pipeline-c7">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="p1-e5" value="chunks" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=blockThin;endFill=1;strokeColor=#666666;fontSize=11;" edge="1" parent="1" source="p1-b4" target="p1-b6">
+        <mxCell id="page-pipeline-c12" value="ServerEmbedder&lt;br&gt;&lt;font color=&quot;#666666&quot;&gt;title: none | text: …&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="610" y="250" width="180" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="page-pipeline-c13" value="VectorIndex&lt;br&gt;&lt;font color=&quot;#666666&quot;&gt;ChromaDB · 1,152 rows&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="832" y="250" width="180" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="page-pipeline-e14" value="chunks" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=blockThin;endFill=1;strokeColor=#666666;fontSize=11;" edge="1" parent="1" source="page-pipeline-c6" target="page-pipeline-c12">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="p1-e6" value="questions" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=blockThin;endFill=1;strokeColor=#666666;fontSize=11;" edge="1" parent="1" source="p1-b5" target="p1-b6">
+        <mxCell id="page-pipeline-e15" value="questions" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=blockThin;endFill=1;strokeColor=#666666;fontSize=11;" edge="1" parent="1" source="page-pipeline-c7" target="page-pipeline-c12">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="p1-e7" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=blockThin;endFill=1;strokeColor=#666666;" edge="1" parent="1" source="p1-b6" target="p1-b7">
+        <mxCell id="page-pipeline-e16" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=blockThin;endFill=1;strokeColor=#666666;" edge="1" parent="1" source="page-pipeline-c12" target="page-pipeline-c13">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="p1-e8" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=blockThin;endFill=1;strokeColor=#666666;" edge="1" parent="1" source="p1-q1" target="p1-q2">
+        <mxCell id="page-pipeline-t17" value="search · one embedding call, plus generation if it is switched on" style="text;html=1;fontSize=12;align=left;verticalAlign=middle;fontStyle=2;fontColor=#999999;" vertex="1" parent="1">
+          <mxGeometry x="40" y="380" width="420" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="page-pipeline-c18" value="your question" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#999999;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="40" y="410" width="180" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="page-pipeline-c19" value="QueryExpander&lt;br&gt;&lt;font color=&quot;#666666&quot;&gt;optional · +2 phrasings&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="262" y="410" width="180" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="page-pipeline-c20" value="ServerEmbedder&lt;br&gt;&lt;font color=&quot;#666666&quot;&gt;task: search result | query: …&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="484" y="410" width="180" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="page-pipeline-c21" value="Retriever&lt;br&gt;&lt;font color=&quot;#666666&quot;&gt;top-k, one per chunk&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="706" y="410" width="180" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="page-pipeline-c22" value="Answerer&lt;br&gt;&lt;font color=&quot;#666666&quot;&gt;cited answer&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="928" y="410" width="180" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="page-pipeline-e23" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=blockThin;endFill=1;strokeColor=#666666;" edge="1" parent="1" source="page-pipeline-c18" target="page-pipeline-c19">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="p1-e9" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=blockThin;endFill=1;strokeColor=#666666;" edge="1" parent="1" source="p1-q2" target="p1-q3">
+        <mxCell id="page-pipeline-e24" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=blockThin;endFill=1;strokeColor=#666666;" edge="1" parent="1" source="page-pipeline-c19" target="page-pipeline-c20">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="p1-e10" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=blockThin;endFill=1;strokeColor=#666666;" edge="1" parent="1" source="p1-q3" target="p1-q4">
+        <mxCell id="page-pipeline-e25" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=blockThin;endFill=1;strokeColor=#666666;" edge="1" parent="1" source="page-pipeline-c20" target="page-pipeline-c21">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="p1-e11" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=blockThin;endFill=1;strokeColor=#666666;" edge="1" parent="1" source="p1-q4" target="p1-q5">
+        <mxCell id="page-pipeline-e26" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=blockThin;endFill=1;strokeColor=#666666;" edge="1" parent="1" source="page-pipeline-c21" target="page-pipeline-c22">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="p1-e12" value="cosine search" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=blockThin;endFill=1;dashed=1;strokeColor=#82b366;fontSize=11;exitX=0;exitY=0.5;exitDx=0;exitDy=0;" edge="1" parent="1" source="p1-b7" target="p1-q3">
+        <mxCell id="page-pipeline-e27" value="cosine search" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=blockThin;endFill=1;strokeColor=#666666;fontSize=11;dashed=1;strokeColor=#82b366;exitX=0.5;exitY=1;exitDx=0;exitDy=0;" edge="1" parent="1" source="page-pipeline-c13" target="page-pipeline-c21">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="p1-note1" value="&lt;b&gt;LLMClient&lt;/b&gt; is the only code that calls the server.&lt;br&gt;Retries, optional pacing, clear errors — written once.&lt;br&gt;LM Studio needs no key; a hosted gateway would.&lt;br&gt;&lt;br&gt;embeddings · text-embedding-embeddinggemma-300m&lt;br&gt;generation · openai/gpt-oss-20b · served at 127.0.0.1:1234" style="shape=note;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;size=14;align=left;spacingLeft=8;fontSize=11;verticalAlign=top;spacingTop=6;" vertex="1" parent="1">
-          <mxGeometry x="40" y="560" width="440" height="110" as="geometry" />
+        <mxCell id="page-pipeline-note28" value="&lt;b&gt;The build is the slow half.&lt;/b&gt; 288 chunks embed in about 8 seconds; generating 3 questions for each takes about 4 minutes on this machine, one call per chunk.&lt;br&gt;&lt;br&gt;Turn questions off and a build is seconds. The Chunks tab shows the estimate for whatever settings are set, before anything is spent." style="shape=note;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;size=14;align=left;spacingLeft=8;fontSize=11;verticalAlign=top;spacingTop=6;" vertex="1" parent="1">
+          <mxGeometry x="40" y="530" width="540" height="120" as="geometry" />
         </mxCell>
-        <mxCell id="p1-note2" value="&lt;b&gt;Server off?&lt;/b&gt; HashEmbedder substitutes word-overlap vectors, so the&lt;br&gt;pipeline and UI still run — poorly, but they run. RAG_OFFLINE=true.&lt;br&gt;&lt;br&gt;&lt;b&gt;Prefixes matter.&lt;/b&gt; The embedder is asymmetric: documents go in as&lt;br&gt;&quot;title: none | text: …&quot;, searches as &quot;task: search result | query: …&quot;.&lt;br&gt;Measured: 0.47 separation with them, 0.35 without." style="shape=note;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;size=14;align=left;spacingLeft=8;fontSize=11;verticalAlign=top;spacingTop=6;" vertex="1" parent="1">
-          <mxGeometry x="520" y="560" width="520" height="110" as="geometry" />
+        <mxCell id="page-pipeline-note29" value="&lt;b&gt;Optional stages, in order:&lt;/b&gt; the extraction cache, cleaning, question generation, query expansion, answering, and the model server itself.&lt;br&gt;&lt;br&gt;Each has a switch in Settings and a toggle in the sidebar. Bypassing one that changes the stored vectors moves you to a different collection rather than corrupting the one you have." style="shape=note;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;size=14;align=left;spacingLeft=8;fontSize=11;verticalAlign=top;spacingTop=6;" vertex="1" parent="1">
+          <mxGeometry x="620" y="530" width="505" height="120" as="geometry" />
         </mxCell>
       </root>
     </mxGraphModel>
@@ -99,378 +185,803 @@
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
-        <mxCell id="p2-title" value="Modules — one file, one class" style="text;html=1;fontSize=17;fontStyle=1;align=left;verticalAlign=middle;" vertex="1" parent="1">
-          <mxGeometry x="40" y="24" width="500" height="30" as="geometry" />
+        <mxCell id="page-modules-t1" value="Modules — one file, one class" style="text;html=1;fontSize=17;align=left;verticalAlign=middle;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="40" y="24" width="900" height="30" as="geometry" />
         </mxCell>
-        <mxCell id="p2-gA" value="source → chunks · no API calls, free to re-run" style="rounded=0;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#999999;dashed=1;verticalAlign=top;align=left;spacingLeft=10;spacingTop=6;fontSize=11;fontColor=#666666;" vertex="1" parent="1">
-          <mxGeometry x="40" y="80" width="540" height="190" as="geometry" />
+        <mxCell id="page-modules-t2" value="source → chunks · no model calls, free to re-run" style="text;html=1;fontSize=12;align=left;verticalAlign=middle;fontStyle=2;fontColor=#999999;" vertex="1" parent="1">
+          <mxGeometry x="40" y="74" width="420" height="20" as="geometry" />
         </mxCell>
-        <mxCell id="p2-a1" value="fetching.py&lt;br&gt;&lt;b&gt;SourceFetcher&lt;/b&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=11;" vertex="1" parent="1">
-          <mxGeometry x="60" y="120" width="160" height="50" as="geometry" />
+        <mxCell id="page-modules-c3" value="fetching.py&lt;br&gt;&lt;b&gt;SourceFetcher&lt;/b&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="40" y="104" width="170" height="54" as="geometry" />
         </mxCell>
-        <mxCell id="p2-a2" value="preprocessing.py&lt;br&gt;&lt;b&gt;MarkdownCleaner&lt;/b&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=11;" vertex="1" parent="1">
-          <mxGeometry x="240" y="120" width="160" height="50" as="geometry" />
+        <mxCell id="page-modules-c4" value="preprocessing.py&lt;br&gt;&lt;b&gt;MarkdownCleaner&lt;/b&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="230" y="104" width="170" height="54" as="geometry" />
         </mxCell>
-        <mxCell id="p2-a3" value="chunking.py&lt;br&gt;&lt;b&gt;MarkdownChunker&lt;/b&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=11;" vertex="1" parent="1">
-          <mxGeometry x="410" y="120" width="150" height="50" as="geometry" />
+        <mxCell id="page-modules-c5" value="chunking.py&lt;br&gt;&lt;b&gt;MarkdownChunker&lt;/b&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="420" y="104" width="170" height="54" as="geometry" />
         </mxCell>
-        <mxCell id="p2-a4" value="diagnostics.py&lt;br&gt;&lt;b&gt;ChunkInspector&lt;/b&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=11;" vertex="1" parent="1">
-          <mxGeometry x="60" y="195" width="160" height="50" as="geometry" />
+        <mxCell id="page-modules-c6" value="diagnostics.py&lt;br&gt;&lt;b&gt;ChunkInspector&lt;/b&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="40" y="174" width="170" height="54" as="geometry" />
         </mxCell>
-        <mxCell id="p2-a5" value="&lt;font color=&quot;#666666&quot;&gt;size stats · quality flags&lt;br&gt;the feedback loop for tuning&lt;/font&gt;" style="text;html=1;align=left;verticalAlign=middle;fontSize=11;" vertex="1" parent="1">
-          <mxGeometry x="240" y="195" width="240" height="50" as="geometry" />
+        <mxCell id="page-modules-c7" value="size stats · quality flags&lt;br&gt;&lt;font color=&quot;#666666&quot;&gt;the feedback loop for tuning, before any embedding is paid for&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#999999;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="230" y="174" width="360" height="54" as="geometry" />
         </mxCell>
-        <mxCell id="p2-gB" value="model access" style="rounded=0;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#999999;dashed=1;verticalAlign=top;align=left;spacingLeft=10;spacingTop=6;fontSize=11;fontColor=#666666;" vertex="1" parent="1">
-          <mxGeometry x="620" y="80" width="510" height="190" as="geometry" />
+        <mxCell id="page-modules-t8" value="model access" style="text;html=1;fontSize=12;align=left;verticalAlign=middle;fontStyle=2;fontColor=#999999;" vertex="1" parent="1">
+          <mxGeometry x="640" y="74" width="300" height="20" as="geometry" />
         </mxCell>
-        <mxCell id="p2-b1" value="openrouter.py&lt;br&gt;&lt;b&gt;OpenRouterClient&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#666666&quot;&gt;network boundary&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;strokeWidth=3;fontSize=11;" vertex="1" parent="1">
-          <mxGeometry x="640" y="120" width="150" height="125" as="geometry" />
+        <mxCell id="page-modules-c9" value="llm.py&lt;br&gt;&lt;b&gt;LLMClient&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#666666&quot;&gt;the network boundary&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="640" y="104" width="200" height="54" as="geometry" />
         </mxCell>
-        <mxCell id="p2-b2" value="embedding.py&lt;br&gt;&lt;b&gt;OpenRouterEmbedder&lt;/b&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=11;" vertex="1" parent="1">
-          <mxGeometry x="830" y="120" width="150" height="50" as="geometry" />
+        <mxCell id="page-modules-c10" value="embedding.py&lt;br&gt;&lt;b&gt;ServerEmbedder&lt;/b&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="860" y="104" width="130" height="54" as="geometry" />
         </mxCell>
-        <mxCell id="p2-b3" value="augmentation.py&lt;br&gt;&lt;b&gt;QuestionGenerator&lt;/b&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=11;" vertex="1" parent="1">
-          <mxGeometry x="830" y="195" width="150" height="50" as="geometry" />
+        <mxCell id="page-modules-c11" value="embedding.py&lt;br&gt;&lt;b&gt;HashEmbedder&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#666666&quot;&gt;offline&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#999999;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="1010" y="104" width="115" height="54" as="geometry" />
         </mxCell>
-        <mxCell id="p2-b4" value="answering.py&lt;br&gt;&lt;b&gt;Answerer&lt;/b&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=11;" vertex="1" parent="1">
-          <mxGeometry x="1000" y="195" width="110" height="50" as="geometry" />
+        <mxCell id="page-modules-c12" value="augmentation.py&lt;br&gt;&lt;b&gt;QuestionGenerator&lt;/b&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="640" y="174" width="200" height="54" as="geometry" />
         </mxCell>
-        <mxCell id="p2-b5" value="embedding.py&lt;br&gt;&lt;b&gt;HashEmbedder&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#666666&quot;&gt;offline&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#999999;fontSize=11;" vertex="1" parent="1">
-          <mxGeometry x="1000" y="120" width="110" height="50" as="geometry" />
+        <mxCell id="page-modules-c13" value="expansion.py&lt;br&gt;&lt;b&gt;QueryExpander&lt;/b&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="860" y="174" width="130" height="54" as="geometry" />
         </mxCell>
-        <mxCell id="p2-eb1" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=blockThin;endFill=1;strokeColor=#d79b00;" edge="1" parent="1" source="p2-b2" target="p2-b1">
-          <mxGeometry relative="1" as="geometry" />
+        <mxCell id="page-modules-c14" value="answering.py&lt;br&gt;&lt;b&gt;Answerer&lt;/b&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="1010" y="174" width="115" height="54" as="geometry" />
         </mxCell>
-        <mxCell id="p2-eb2" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=blockThin;endFill=1;strokeColor=#d79b00;" edge="1" parent="1" source="p2-b3" target="p2-b1">
-          <mxGeometry relative="1" as="geometry" />
+        <mxCell id="page-modules-t15" value="store &amp; search" style="text;html=1;fontSize=12;align=left;verticalAlign=middle;fontStyle=2;fontColor=#999999;" vertex="1" parent="1">
+          <mxGeometry x="40" y="258" width="420" height="20" as="geometry" />
         </mxCell>
-        <mxCell id="p2-eb3" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=blockThin;endFill=1;strokeColor=#d79b00;" edge="1" parent="1" source="p2-b4" target="p2-b1">
-          <mxGeometry relative="1" as="geometry" />
+        <mxCell id="page-modules-c16" value="indexing.py&lt;br&gt;&lt;b&gt;VectorIndex&lt;/b&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="40" y="288" width="130" height="54" as="geometry" />
         </mxCell>
-        <mxCell id="p2-gC" value="store &amp;amp; search" style="rounded=0;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#999999;dashed=1;verticalAlign=top;align=left;spacingLeft=10;spacingTop=6;fontSize=11;fontColor=#666666;" vertex="1" parent="1">
-          <mxGeometry x="40" y="310" width="540" height="140" as="geometry" />
+        <mxCell id="page-modules-c17" value="retrieval.py&lt;br&gt;&lt;b&gt;Retriever&lt;/b&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="180" y="288" width="130" height="54" as="geometry" />
         </mxCell>
-        <mxCell id="p2-c1" value="indexing.py&lt;br&gt;&lt;b&gt;VectorIndex&lt;/b&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=11;" vertex="1" parent="1">
-          <mxGeometry x="60" y="355" width="160" height="50" as="geometry" />
+        <mxCell id="page-modules-c18" value="schema.py&lt;br&gt;&lt;font color=&quot;#666666&quot;&gt;Chunk · Retrieved&lt;br&gt;Stage · Identity&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#999999;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="320" y="288" width="130" height="54" as="geometry" />
         </mxCell>
-        <mxCell id="p2-c2" value="retrieval.py&lt;br&gt;&lt;b&gt;Retriever&lt;/b&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=11;" vertex="1" parent="1">
-          <mxGeometry x="240" y="355" width="160" height="50" as="geometry" />
+        <mxCell id="page-modules-c19" value="utils.py&lt;br&gt;&lt;font color=&quot;#666666&quot;&gt;batched()&lt;br&gt;parse_lines()&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#999999;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="460" y="288" width="130" height="54" as="geometry" />
         </mxCell>
-        <mxCell id="p2-c3" value="schema.py&lt;br&gt;&lt;b&gt;Chunk · Retrieved · Stage&lt;/b&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#999999;fontSize=11;" vertex="1" parent="1">
-          <mxGeometry x="410" y="355" width="150" height="50" as="geometry" />
+        <mxCell id="page-modules-t20" value="wiring" style="text;html=1;fontSize=12;align=left;verticalAlign=middle;fontStyle=2;fontColor=#999999;" vertex="1" parent="1">
+          <mxGeometry x="640" y="258" width="300" height="20" as="geometry" />
         </mxCell>
-        <mxCell id="p2-gD" value="wiring" style="rounded=0;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#999999;dashed=1;verticalAlign=top;align=left;spacingLeft=10;spacingTop=6;fontSize=11;fontColor=#666666;" vertex="1" parent="1">
-          <mxGeometry x="620" y="310" width="510" height="140" as="geometry" />
+        <mxCell id="page-modules-c21" value="pipeline.py&lt;br&gt;&lt;b&gt;RAGPipeline&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#666666&quot;&gt;build · search · answer · apply&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="640" y="288" width="240" height="54" as="geometry" />
         </mxCell>
-        <mxCell id="p2-d1" value="pipeline.py&lt;br&gt;&lt;b&gt;RAGPipeline&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#666666&quot;&gt;build · search · answer&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=11;" vertex="1" parent="1">
-          <mxGeometry x="640" y="350" width="200" height="60" as="geometry" />
+        <mxCell id="page-modules-c22" value="config.py&lt;br&gt;&lt;b&gt;Settings&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#666666&quot;&gt;61 fields, one place&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#999999;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="900" y="288" width="225" height="54" as="geometry" />
         </mxCell>
-        <mxCell id="p2-d2" value="config.py&lt;br&gt;&lt;b&gt;Settings&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#666666&quot;&gt;every tunable, one place&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=11;" vertex="1" parent="1">
-          <mxGeometry x="880" y="350" width="230" height="60" as="geometry" />
+        <mxCell id="page-modules-t23" value="grading · needs ragas, imported only when a run starts" style="text;html=1;fontSize=12;align=left;verticalAlign=middle;fontStyle=2;fontColor=#999999;" vertex="1" parent="1">
+          <mxGeometry x="40" y="372" width="420" height="20" as="geometry" />
         </mxCell>
-        <mxCell id="p2-gE" value="entry points" style="rounded=0;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#999999;dashed=1;verticalAlign=top;align=left;spacingLeft=10;spacingTop=6;fontSize=11;fontColor=#666666;" vertex="1" parent="1">
-          <mxGeometry x="40" y="490" width="1090" height="110" as="geometry" />
+        <mxCell id="page-modules-c24" value="harness.py&lt;br&gt;&lt;b&gt;collect()&lt;/b&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="40" y="402" width="200" height="50" as="geometry" />
         </mxCell>
-        <mxCell id="p2-e1" value="&lt;b&gt;app.py&lt;/b&gt;&lt;br&gt;Streamlit UI" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=11;" vertex="1" parent="1">
-          <mxGeometry x="60" y="530" width="320" height="50" as="geometry" />
+        <mxCell id="page-modules-c25" value="evaluate_rag.py&lt;br&gt;&lt;b&gt;EvaluationEngine&lt;/b&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="260" y="402" width="200" height="50" as="geometry" />
         </mxCell>
-        <mxCell id="p2-e2" value="&lt;b&gt;rag/cli.py&lt;/b&gt;&lt;br&gt;chunks · build · query" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=11;" vertex="1" parent="1">
-          <mxGeometry x="420" y="530" width="320" height="50" as="geometry" />
+        <mxCell id="page-modules-c26" value="diagnostics.py&lt;br&gt;&lt;b&gt;DiagnosticEngine&lt;/b&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="480" y="402" width="200" height="50" as="geometry" />
         </mxCell>
-        <mxCell id="p2-e3" value="&lt;b&gt;tests/test_pipeline.py&lt;/b&gt;&lt;br&gt;21 tests, no key needed" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=11;" vertex="1" parent="1">
-          <mxGeometry x="780" y="530" width="330" height="50" as="geometry" />
+        <mxCell id="page-modules-c27" value="report.py&lt;br&gt;&lt;b&gt;ReportGenerator&lt;/b&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="700" y="402" width="200" height="50" as="geometry" />
         </mxCell>
-        <mxCell id="p2-note" value="&lt;b&gt;Every stage is a callable object&lt;/b&gt; — it has run(), __call__() and composes with | :&lt;br&gt;&lt;br&gt;chunks = (SourceFetcher() | MarkdownCleaner() | MarkdownChunker(600, 100))(source)" style="shape=note;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;size=14;align=left;spacingLeft=8;fontSize=11;verticalAlign=middle;" vertex="1" parent="1">
-          <mxGeometry x="40" y="630" width="1090" height="90" as="geometry" />
+        <mxCell id="page-modules-c28" value="dataset_loader.py&lt;br&gt;&lt;b&gt;load_dataset()&lt;/b&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#999999;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="920" y="402" width="205" height="50" as="geometry" />
         </mxCell>
-      </root>
-    </mxGraphModel>
-  </diagram>
-  <diagram id="page-text" name="3 · Cleaning &amp; chunking">
-    <mxGraphModel dx="1422" dy="820" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1169" pageHeight="826" math="0" shadow="0">
-      <root>
-        <mxCell id="0" />
-        <mxCell id="1" parent="0" />
-        <mxCell id="p3-title" value="What the text goes through" style="text;html=1;fontSize=17;fontStyle=1;align=left;verticalAlign=middle;" vertex="1" parent="1">
-          <mxGeometry x="40" y="24" width="500" height="30" as="geometry" />
+        <mxCell id="page-modules-t29" value="entry points" style="text;html=1;fontSize=12;align=left;verticalAlign=middle;fontStyle=2;fontColor=#999999;" vertex="1" parent="1">
+          <mxGeometry x="40" y="482" width="420" height="20" as="geometry" />
         </mxCell>
-        <mxCell id="p3-t1" value="&lt;b&gt;1 · raw extraction&lt;/b&gt;&lt;br&gt;&lt;br&gt;Have a question? [Ask ODS](https://ods…)&lt;br&gt;&lt;br&gt;###&amp;nbsp; &amp;nbsp; &amp;nbsp; ← the name never made it&lt;br&gt;&lt;br&gt;#### Efficacy&lt;br&gt;&lt;br&gt;…no such benefits [[53](https://ods…),&lt;br&gt;[56](https://ods…)]." style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;align=left;verticalAlign=top;spacingLeft=10;spacingTop=8;fontSize=11;fontFamily=Courier New;" vertex="1" parent="1">
-          <mxGeometry x="40" y="80" width="470" height="180" as="geometry" />
+        <mxCell id="page-modules-c30" value="app.py&lt;br&gt;&lt;font color=&quot;#666666&quot;&gt;Streamlit UI · 5 tabs&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="40" y="512" width="300" height="50" as="geometry" />
         </mxCell>
-        <mxCell id="p3-t2" value="&lt;b&gt;2 · cleaned&lt;/b&gt;&lt;br&gt;&lt;br&gt;### HMB&amp;nbsp; &amp;nbsp; ← named from its first sentence&lt;br&gt;&lt;br&gt;#### Efficacy&lt;br&gt;&lt;br&gt;…no such benefits." style="rounded=0;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;align=left;verticalAlign=top;spacingLeft=10;spacingTop=8;fontSize=11;fontFamily=Courier New;" vertex="1" parent="1">
-          <mxGeometry x="40" y="330" width="470" height="140" as="geometry" />
+        <mxCell id="page-modules-c31" value="rag/cli.py&lt;br&gt;&lt;font color=&quot;#666666&quot;&gt;chunks · build · query&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="360" y="512" width="300" height="50" as="geometry" />
         </mxCell>
-        <mxCell id="p3-t3" value="&lt;b&gt;3 · chunk&lt;/b&gt;&amp;nbsp; c0042-1f3a9b7c&lt;br&gt;&lt;br&gt;HMB &amp;gt; Efficacy&lt;br&gt;&lt;br&gt;Although studies have investigated HMB for&lt;br&gt;two decades, they have used substantially&lt;br&gt;different periods of supplementation…" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;align=left;verticalAlign=top;spacingLeft=10;spacingTop=8;fontSize=11;fontFamily=Courier New;" vertex="1" parent="1">
-          <mxGeometry x="40" y="540" width="470" height="150" as="geometry" />
+        <mxCell id="page-modules-c32" value="evaluation/cli.py&lt;br&gt;&lt;font color=&quot;#666666&quot;&gt;run&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="680" y="512" width="220" height="50" as="geometry" />
         </mxCell>
-        <mxCell id="p3-a1" value="MarkdownCleaner" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=blockThin;endFill=1;strokeColor=#666666;fontSize=12;fontStyle=1;" edge="1" parent="1" source="p3-t1" target="p3-t2">
-          <mxGeometry relative="1" as="geometry" />
+        <mxCell id="page-modules-c33" value="tests/&lt;br&gt;&lt;font color=&quot;#666666&quot;&gt;47 tests, no server&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#999999;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="920" y="512" width="205" height="50" as="geometry" />
         </mxCell>
-        <mxCell id="p3-a2" value="MarkdownChunker" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=blockThin;endFill=1;strokeColor=#666666;fontSize=12;fontStyle=1;" edge="1" parent="1" source="p3-t2" target="p3-t3">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-        <mxCell id="p3-c1" value="&lt;b&gt;MarkdownCleaner&lt;/b&gt;&lt;br&gt;&lt;br&gt;· unwrap links, drop citation markers&lt;br&gt;· drop nav lines and the reference list&lt;br&gt;· strip &amp;lt;sub&amp;gt; tags, tidy whitespace&lt;br&gt;· &lt;b&gt;name empty headings&lt;/b&gt; from the first&lt;br&gt;&amp;nbsp; sentence of the section" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;align=left;verticalAlign=top;spacingLeft=10;spacingTop=8;fontSize=11;" vertex="1" parent="1">
-          <mxGeometry x="600" y="80" width="530" height="180" as="geometry" />
-        </mxCell>
-        <mxCell id="p3-c2" value="&lt;b&gt;MarkdownChunker&lt;/b&gt;&lt;br&gt;&lt;br&gt;· split at headings first — no chunk spans two supplements&lt;br&gt;· prefix each chunk with its heading path&lt;br&gt;· fold fragments into neighbours, never past chunk_size&lt;br&gt;· id from a hash of the text, so re-indexing upserts" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;align=left;verticalAlign=top;spacingLeft=10;spacingTop=8;fontSize=11;" vertex="1" parent="1">
-          <mxGeometry x="600" y="330" width="530" height="140" as="geometry" />
-        </mxCell>
-        <mxCell id="p3-stats" value="&lt;b&gt;Same file, same 600 / 100 settings&lt;/b&gt;&lt;br&gt;&lt;br&gt;463 → &lt;b&gt;288&lt;/b&gt; chunks&amp;nbsp; ·&amp;nbsp; 35 → &lt;b&gt;0&lt;/b&gt; chunks under 100 chars&lt;br&gt;smallest 3 → &lt;b&gt;111&lt;/b&gt; chars&amp;nbsp; ·&amp;nbsp; 43 → &lt;b&gt;1&lt;/b&gt; flagged as suspect&lt;br&gt;15 → &lt;b&gt;95&lt;/b&gt; distinct named sections" style="shape=note;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;size=14;align=left;spacingLeft=10;spacingTop=8;fontSize=12;verticalAlign=top;" vertex="1" parent="1">
-          <mxGeometry x="600" y="540" width="530" height="150" as="geometry" />
+        <mxCell id="page-modules-note34" value="&lt;b&gt;Every stage is a callable object&lt;/b&gt; — it has run(), __call__(), and composes with the | operator:&lt;br&gt;&lt;br&gt;&amp;nbsp;&amp;nbsp;&lt;font face=&quot;Courier New&quot;&gt;chunks = (SourceFetcher() | MarkdownCleaner() | MarkdownChunker(600, 100))(source)&lt;/font&gt;&lt;br&gt;&lt;br&gt;Identity() is the no-op stage, which is how an optional step is bypassed without anything downstream needing a None check." style="shape=note;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;size=14;align=left;spacingLeft=8;fontSize=11;verticalAlign=top;spacingTop=6;" vertex="1" parent="1">
+          <mxGeometry x="40" y="596" width="1085" height="96" as="geometry" />
         </mxCell>
       </root>
     </mxGraphModel>
   </diagram>
-  <diagram id="page-index" name="4 · Index &amp; retrieval">
+  <diagram id="page-fetch" name="3 · Step 1 — Fetch">
     <mxGraphModel dx="1422" dy="820" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1169" pageHeight="826" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
-        <mxCell id="p4-title" value="What sits in the index, and how a search resolves" style="text;html=1;fontSize=17;fontStyle=1;align=left;verticalAlign=middle;" vertex="1" parent="1">
-          <mxGeometry x="40" y="24" width="620" height="30" as="geometry" />
+        <mxCell id="page-fetch-t1" value="Fetch — one HTML page in, markdown out" style="text;html=1;fontSize=17;align=left;verticalAlign=middle;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="40" y="24" width="900" height="30" as="geometry" />
         </mxCell>
-        <mxCell id="p4-lbl" value="one collection" style="text;html=1;fontSize=12;fontStyle=2;fontColor=#999999;align=left;" vertex="1" parent="1">
-          <mxGeometry x="40" y="70" width="140" height="20" as="geometry" />
+        <mxCell id="page-fetch-t2" value="SourceFetcher · fetching.py" style="text;html=1;fontSize=12;align=left;verticalAlign=middle;fontStyle=2;fontColor=#999999;" vertex="1" parent="1">
+          <mxGeometry x="40" y="70" width="420" height="20" as="geometry" />
         </mxCell>
-        <mxCell id="p4-r1" value="&lt;b&gt;chunk row&lt;/b&gt;&amp;nbsp; c0042-1f3a9b7c&lt;br&gt;document: &quot;HMB &amp;gt; Efficacy … &quot;&lt;br&gt;type=chunk · section · chunk_index" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;align=left;verticalAlign=middle;spacingLeft=10;fontSize=11;" vertex="1" parent="1">
-          <mxGeometry x="40" y="100" width="380" height="80" as="geometry" />
+        <mxCell id="page-fetch-c3" value="source&lt;br&gt;&lt;font color=&quot;#666666&quot;&gt;a local .html file&lt;br&gt;or an http(s) URL&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#999999;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="40" y="100" width="200" height="70" as="geometry" />
         </mxCell>
-        <mxCell id="p4-r2" value="&lt;b&gt;question row&lt;/b&gt;&amp;nbsp; c0042-1f3a9b7c-q0&lt;br&gt;document: &quot;What is HMB?&quot;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;align=left;verticalAlign=middle;spacingLeft=10;fontSize=11;" vertex="1" parent="1">
-          <mxGeometry x="40" y="230" width="380" height="60" as="geometry" />
+        <mxCell id="page-fetch-c4" value="cache hit?&lt;br&gt;&lt;font color=&quot;#666666&quot;&gt;.cache/&amp;lt;slug&amp;gt;.md&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="290" y="100" width="200" height="70" as="geometry" />
         </mxCell>
-        <mxCell id="p4-r3" value="&lt;b&gt;question row&lt;/b&gt;&amp;nbsp; c0042-1f3a9b7c-q1&lt;br&gt;document: &quot;Is HMB safe for older adults?&quot;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;align=left;verticalAlign=middle;spacingLeft=10;fontSize=11;" vertex="1" parent="1">
-          <mxGeometry x="40" y="310" width="380" height="60" as="geometry" />
+        <mxCell id="page-fetch-c5" value="trafilatura.extract&lt;br&gt;&lt;font color=&quot;#666666&quot;&gt;output_format=markdown&lt;br&gt;tables and links kept&lt;br&gt;favor_recall=True&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="540" y="100" width="230" height="70" as="geometry" />
         </mxCell>
-        <mxCell id="p4-pe1" value="parent_id" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=blockThin;endFill=1;strokeColor=#9673a6;fontSize=11;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=1;entryY=1;entryDx=0;entryDy=0;" edge="1" parent="1" source="p4-r2" target="p4-r1">
+        <mxCell id="page-fetch-c6" value="length check&lt;br&gt;&lt;font color=&quot;#666666&quot;&gt;≥ fetch_min_chars&lt;br&gt;default 1,000&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="820" y="100" width="200" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="page-fetch-c7" value="markdown&lt;br&gt;&lt;font color=&quot;#666666&quot;&gt;180,095 chars&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="540" y="250" width="230" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="page-fetch-c8" value="ValueError&lt;br&gt;&lt;font color=&quot;#666666&quot;&gt;“content was lost”&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="820" y="250" width="200" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="page-fetch-e9" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=blockThin;endFill=1;strokeColor=#666666;" edge="1" parent="1" source="page-fetch-c3" target="page-fetch-c4">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="p4-pe2" value="parent_id" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=blockThin;endFill=1;strokeColor=#9673a6;fontSize=11;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=1;entryY=1;entryDx=0;entryDy=0;" edge="1" parent="1" source="p4-r3" target="p4-r1">
+        <mxCell id="page-fetch-e10" value="miss" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=blockThin;endFill=1;strokeColor=#666666;fontSize=11;" edge="1" parent="1" source="page-fetch-c4" target="page-fetch-c5">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="p4-note1" value="Question rows hold &lt;b&gt;a pointer, not a copy&lt;/b&gt; of the chunk text.&lt;br&gt;One copy of the document, nothing to go stale." style="shape=note;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;size=14;align=left;spacingLeft=8;fontSize=11;verticalAlign=middle;" vertex="1" parent="1">
-          <mxGeometry x="40" y="410" width="380" height="80" as="geometry" />
-        </mxCell>
-        <mxCell id="p4-f1" value="your question" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#999999;fontSize=12;" vertex="1" parent="1">
-          <mxGeometry x="620" y="100" width="440" height="45" as="geometry" />
-        </mxCell>
-        <mxCell id="p4-f2" value="embed as &quot;task: search result | query: …&quot;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=12;" vertex="1" parent="1">
-          <mxGeometry x="620" y="175" width="440" height="45" as="geometry" />
-        </mxCell>
-        <mxCell id="p4-f3" value="cosine search · over-fetch top-k × 3" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=12;" vertex="1" parent="1">
-          <mxGeometry x="620" y="250" width="440" height="45" as="geometry" />
-        </mxCell>
-        <mxCell id="p4-f4" value="hits: some chunks, some questions" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#999999;fontSize=12;" vertex="1" parent="1">
-          <mxGeometry x="620" y="325" width="440" height="45" as="geometry" />
-        </mxCell>
-        <mxCell id="p4-f5" value="collapse per parent_id — keep the best score" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=12;" vertex="1" parent="1">
-          <mxGeometry x="620" y="400" width="440" height="45" as="geometry" />
-        </mxCell>
-        <mxCell id="p4-f6" value="resolve parent text — one lookup" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=12;" vertex="1" parent="1">
-          <mxGeometry x="620" y="475" width="440" height="45" as="geometry" />
-        </mxCell>
-        <mxCell id="p4-f7" value="&lt;b&gt;top-k chunks&lt;/b&gt; + similarity + what matched" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=12;" vertex="1" parent="1">
-          <mxGeometry x="620" y="550" width="440" height="45" as="geometry" />
-        </mxCell>
-        <mxCell id="p4-fe1" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=blockThin;endFill=1;strokeColor=#666666;" edge="1" parent="1" source="p4-f1" target="p4-f2">
+        <mxCell id="page-fetch-e11" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=blockThin;endFill=1;strokeColor=#666666;" edge="1" parent="1" source="page-fetch-c5" target="page-fetch-c6">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="p4-fe2" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=blockThin;endFill=1;strokeColor=#666666;" edge="1" parent="1" source="p4-f2" target="p4-f3">
+        <mxCell id="page-fetch-e12" value="passes" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=blockThin;endFill=1;strokeColor=#666666;fontSize=11;exitX=0.25;exitY=1;exitDx=0;exitDy=0;" edge="1" parent="1" source="page-fetch-c6" target="page-fetch-c7">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="p4-fe3" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=blockThin;endFill=1;strokeColor=#666666;" edge="1" parent="1" source="p4-f3" target="p4-f4">
+        <mxCell id="page-fetch-e13" value="too short" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=blockThin;endFill=1;strokeColor=#666666;fontSize=11;exitX=0.75;exitY=1;exitDx=0;exitDy=0;" edge="1" parent="1" source="page-fetch-c6" target="page-fetch-c8">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="p4-fe4" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=blockThin;endFill=1;strokeColor=#666666;" edge="1" parent="1" source="p4-f4" target="p4-f5">
+        <mxCell id="page-fetch-e14" value="hit — no extraction, no download" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=blockThin;endFill=1;strokeColor=#666666;fontSize=11;dashed=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;" edge="1" parent="1" source="page-fetch-c4" target="page-fetch-c7">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="p4-fe5" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=blockThin;endFill=1;strokeColor=#666666;" edge="1" parent="1" source="p4-f5" target="p4-f6">
-          <mxGeometry relative="1" as="geometry" />
+        <mxCell id="page-fetch-note15" value="&lt;b&gt;Why the length check.&lt;/b&gt; A saved page whose wrapper trafilatura does not recognise extracts as a few hundred characters of navigation. Nothing downstream would fail — you would simply index a nearly empty document and wonder why retrieval was poor. Failing loudly here is cheaper than debugging it at the far end." style="shape=note;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;size=14;align=left;spacingLeft=8;fontSize=11;verticalAlign=top;spacingTop=6;" vertex="1" parent="1">
+          <mxGeometry x="40" y="380" width="540" height="130" as="geometry" />
         </mxCell>
-        <mxCell id="p4-fe6" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=blockThin;endFill=1;strokeColor=#666666;" edge="1" parent="1" source="p4-f6" target="p4-f7">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-        <mxCell id="p4-fe7" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=blockThin;endFill=1;dashed=1;strokeColor=#82b366;exitX=1;exitY=0.5;exitDx=0;exitDy=0;" edge="1" parent="1" source="p4-r1" target="p4-f3">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-        <mxCell id="p4-note2" value="&lt;b&gt;Why collapse:&lt;/b&gt; without it one passage fills every top-k slot through its own generated questions.&lt;br&gt;&lt;br&gt;&lt;b&gt;Collection name carries the recipe:&lt;/b&gt;&amp;nbsp; ods_health_facts__embeddinggem_c600_o100_q3_m80_s1&lt;br&gt;embedder · chunk size · overlap · questions · merge threshold · heading prefix — so changing a setting builds a separate index instead of poisoning the old one. Settings with no room left in the name (cleaning flags, heading cap, embedding prefixes) hash into an _x… suffix, which stays empty while they are all at their defaults." style="shape=note;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;size=14;align=left;spacingLeft=8;fontSize=11;verticalAlign=middle;" vertex="1" parent="1">
-          <mxGeometry x="40" y="630" width="1020" height="110" as="geometry" />
+        <mxCell id="page-fetch-note16" value="&lt;b&gt;The cache is the bypass.&lt;/b&gt; use_cache=False re-extracts on every build, and re-downloads when the source is a URL.&lt;br&gt;&lt;br&gt;Extraction is the slow part of this stage and its output is deterministic, so the cache is on by default and the markdown is kept as a plain file you can read." style="shape=note;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;size=14;align=left;spacingLeft=8;fontSize=11;verticalAlign=top;spacingTop=6;" vertex="1" parent="1">
+          <mxGeometry x="620" y="380" width="505" height="130" as="geometry" />
         </mxCell>
       </root>
     </mxGraphModel>
   </diagram>
-  <diagram id="page-ui" name="5 · Streamlit UI">
+  <diagram id="page-clean" name="4 · Step 2 — Clean">
     <mxGraphModel dx="1422" dy="820" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1169" pageHeight="826" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
-        <mxCell id="p5-title" value="The UI — a loop for tuning retrieval and judging it" style="text;html=1;fontSize=17;fontStyle=1;align=left;verticalAlign=middle;" vertex="1" parent="1">
-          <mxGeometry x="40" y="24" width="640" height="30" as="geometry" />
+        <mxCell id="page-clean-t1" value="Clean — what the extraction has to lose" style="text;html=1;fontSize=17;align=left;verticalAlign=middle;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="40" y="24" width="900" height="30" as="geometry" />
         </mxCell>
-        <mxCell id="p5-side" value="&lt;b&gt;Sidebar&lt;/b&gt;&lt;br&gt;&lt;br&gt;source · file or URL&lt;br&gt;&lt;br&gt;&lt;b&gt;chunk size&lt;/b&gt;&lt;br&gt;&lt;b&gt;overlap&lt;/b&gt;&lt;br&gt;merge threshold&lt;br&gt;heading prefix on/off&lt;br&gt;&lt;br&gt;&lt;b&gt;top-k&lt;/b&gt;&lt;br&gt;one result per chunk&lt;br&gt;questions per chunk&lt;br&gt;&lt;br&gt;[ Build index ]&amp;nbsp; [ Rebuild ]&lt;br&gt;&lt;br&gt;rows indexed · 288" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#999999;align=left;verticalAlign=top;spacingLeft=12;spacingTop=10;fontSize=12;" vertex="1" parent="1">
-          <mxGeometry x="40" y="80" width="260" height="460" as="geometry" />
+        <mxCell id="page-clean-t2" value="MarkdownCleaner · preprocessing.py · optional (enable_cleaning)" style="text;html=1;fontSize=12;align=left;verticalAlign=middle;fontStyle=2;fontColor=#999999;" vertex="1" parent="1">
+          <mxGeometry x="40" y="70" width="420" height="20" as="geometry" />
         </mxCell>
-        <mxCell id="p5-ask" value="&lt;b&gt;Ask&lt;/b&gt;&lt;br&gt;&lt;br&gt;ask one question, or keep a question set&lt;br&gt;and run one — or all of them&lt;br&gt;&lt;br&gt;every result shows:&lt;br&gt;· similarity&lt;br&gt;· chunk match or question match&lt;br&gt;· heading path&lt;br&gt;· the full chunk, exactly as indexed&lt;br&gt;&lt;br&gt;mark it relevant / not relevant, add a note" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;align=left;verticalAlign=top;spacingLeft=12;spacingTop=10;fontSize=12;" vertex="1" parent="1">
-          <mxGeometry x="340" y="80" width="390" height="215" as="geometry" />
+        <mxCell id="page-clean-c3" value="&lt;b&gt;1 · raw extraction&lt;/b&gt;&lt;br&gt;&lt;br&gt;Have a question? [Ask ODS](https://ods.od.nih.gov/contact)&lt;br&gt;&lt;br&gt;###&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;← the supplement name never made it&lt;br&gt;&lt;br&gt;#### Efficacy&lt;br&gt;&lt;br&gt;Studies have investigated HMB [[112](https://ods…),[113](https://ods…)] for two decades…" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#999999;fontSize=11;align=left;spacingLeft=10;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="40" y="100" width="500" height="190" as="geometry" />
         </mxCell>
-        <mxCell id="p5-chunks" value="&lt;b&gt;Chunks&lt;/b&gt;&lt;br&gt;&lt;br&gt;the chunks your current settings produce —&lt;br&gt;&lt;b&gt;before any embedding is paid for&lt;/b&gt;&lt;br&gt;&lt;br&gt;· size stats and quality flags&lt;br&gt;· filter by text or section&lt;br&gt;· estimated API requests and minutes&lt;br&gt;· download every chunk" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;align=left;verticalAlign=top;spacingLeft=12;spacingTop=10;fontSize=12;" vertex="1" parent="1">
-          <mxGeometry x="750" y="80" width="380" height="215" as="geometry" />
+        <mxCell id="page-clean-c4" value="&lt;b&gt;2 · cleaned&lt;/b&gt;&lt;br&gt;&lt;br&gt;### HMB&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;← named from its first sentence&lt;br&gt;&lt;br&gt;#### Efficacy&lt;br&gt;&lt;br&gt;Studies have investigated HMB for two decades…" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=11;align=left;spacingLeft=10;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="40" y="330" width="500" height="170" as="geometry" />
         </mxCell>
-        <mxCell id="p5-review" value="&lt;b&gt;Review&lt;/b&gt;&lt;br&gt;&lt;br&gt;· how many chunks judged, how many relevant&lt;br&gt;· precision per question&lt;br&gt;· best rank that actually hit&lt;br&gt;· export the judgements as JSON" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;align=left;verticalAlign=top;spacingLeft=12;spacingTop=10;fontSize=12;" vertex="1" parent="1">
-          <mxGeometry x="340" y="325" width="390" height="215" as="geometry" />
+        <mxCell id="page-clean-e5" value="MarkdownCleaner" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=blockThin;endFill=1;strokeColor=#666666;fontSize=11;" edge="1" parent="1" source="page-clean-c3" target="page-clean-c4">
+          <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="p5-index" value="&lt;b&gt;Index&lt;/b&gt;&lt;br&gt;&lt;br&gt;· rows by type — chunks vs questions&lt;br&gt;· every collection on disk&lt;br&gt;· models in use and the pacing&lt;br&gt;· pipeline log, including retries" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;align=left;verticalAlign=top;spacingLeft=12;spacingTop=10;fontSize=12;" vertex="1" parent="1">
-          <mxGeometry x="750" y="325" width="380" height="215" as="geometry" />
+        <mxCell id="page-clean-c6" value="&lt;b&gt;five operations, each with its own switch&lt;/b&gt;&lt;br&gt;&lt;br&gt;· &lt;b&gt;strip_links&lt;/b&gt; — [label](url) → label, repeated until stable&lt;br&gt;· &lt;b&gt;strip_citations&lt;/b&gt; — drop [112] reference markers&lt;br&gt;· &lt;b&gt;drop_boilerplate&lt;/b&gt; — short nav lines: “Ask ODS”, “Back to top”&lt;br&gt;· &lt;b&gt;drop_sections&lt;/b&gt; — the whole references list and disclaimer&lt;br&gt;· &lt;b&gt;name_empty_headings&lt;/b&gt; — a bare ### renamed from the sentence below" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=11;align=left;spacingLeft=10;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="600" y="100" width="525" height="190" as="geometry" />
         </mxCell>
-        <mxCell id="p5-loop" value="tune → look at the chunks → search → judge → tune again" style="text;html=1;fontSize=13;fontStyle=2;align=center;verticalAlign=middle;fontColor=#666666;" vertex="1" parent="1">
-          <mxGeometry x="340" y="555" width="790" height="30" as="geometry" />
+        <mxCell id="page-clean-note7" value="&lt;b&gt;Why naming headings matters most.&lt;/b&gt; On this page every supplement heading extracts as a bare ###, because the name lives in an element trafilatura discards. Left alone, each subsection reads only “Efficacy” or “Safety” and the passage no longer says which supplement it is about — so a chunk about HMB and one about betaine become indistinguishable to the embedder.&lt;br&gt;&lt;br&gt;The first sentence of a section always opens with the name (“HMB is a metabolite of…”), which is where it is recovered from." style="shape=note;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;size=14;align=left;spacingLeft=8;fontSize=11;verticalAlign=top;spacingTop=6;" vertex="1" parent="1">
+          <mxGeometry x="600" y="330" width="525" height="170" as="geometry" />
         </mxCell>
-        <mxCell id="p5-note" value="&lt;b&gt;Everything but the source is free to change.&lt;/b&gt; Chunk settings are part of the collection name, so moving a slider builds a separate index and moving it back reuses the one you already built. The Chunks tab is the cheap half of the loop: it re-chunks on every slider move without calling the API at all." style="shape=note;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;size=14;align=left;spacingLeft=10;fontSize=11;verticalAlign=middle;" vertex="1" parent="1">
-          <mxGeometry x="40" y="620" width="1090" height="100" as="geometry" />
+        <mxCell id="page-clean-note8" value="&lt;b&gt;Bypassing it&lt;/b&gt; hands the raw extraction straight to the chunker. Worth doing once: 451 chunks instead of 288, 18 sections instead of 95, link-heavy flags across the top of the document, and URLs sitting inside the indexed text. That difference is what the cleaner is buying." style="shape=note;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;size=14;align=left;spacingLeft=8;fontSize=11;verticalAlign=top;spacingTop=6;" vertex="1" parent="1">
+          <mxGeometry x="40" y="540" width="1085" height="90" as="geometry" />
         </mxCell>
       </root>
     </mxGraphModel>
   </diagram>
-  <diagram id="page-expansion" name="6 · Query expansion">
+  <diagram id="page-chunk" name="5 · Step 3 — Chunk">
     <mxGraphModel dx="1422" dy="820" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1169" pageHeight="826" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
-        <mxCell id="p6-title" value="Query expansion — searching more than the question as typed" style="text;html=1;fontSize=17;fontStyle=1;align=left;verticalAlign=middle;" vertex="1" parent="1">
-          <mxGeometry x="40" y="24" width="700" height="30" as="geometry" />
+        <mxCell id="page-chunk-t1" value="Chunk — splitting so a passage still says what it is about" style="text;html=1;fontSize=17;align=left;verticalAlign=middle;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="40" y="24" width="900" height="30" as="geometry" />
         </mxCell>
-        <mxCell id="p6-lane1" value="expand · one LLM call per search" style="text;html=1;fontSize=12;fontStyle=2;fontColor=#999999;align=left;" vertex="1" parent="1">
-          <mxGeometry x="40" y="66" width="260" height="20" as="geometry" />
+        <mxCell id="page-chunk-t2" value="MarkdownChunker · chunking.py" style="text;html=1;fontSize=12;align=left;verticalAlign=middle;fontStyle=2;fontColor=#999999;" vertex="1" parent="1">
+          <mxGeometry x="40" y="70" width="420" height="20" as="geometry" />
         </mxCell>
-        <mxCell id="p6-q" value="your question&lt;br&gt;&lt;font color=&quot;#666666&quot;&gt;&quot;does creatine help sprinting?&quot;&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#999999;fontSize=12;" vertex="1" parent="1">
-          <mxGeometry x="40" y="120" width="200" height="60" as="geometry" />
+        <mxCell id="page-chunk-c3" value="cleaned markdown" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#999999;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="40" y="100" width="245" height="60" as="geometry" />
         </mxCell>
-        <mxCell id="p6-exp" value="QueryExpander&lt;br&gt;&lt;font color=&quot;#666666&quot;&gt;optional, config switch&lt;br&gt;2 extra · temp 0.7&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=12;" vertex="1" parent="1">
-          <mxGeometry x="290" y="120" width="200" height="60" as="geometry" />
+        <mxCell id="page-chunk-c4" value="split at headings&lt;br&gt;&lt;font color=&quot;#666666&quot;&gt;a chunk never spans&lt;br&gt;two supplements&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="320" y="100" width="245" height="60" as="geometry" />
         </mxCell>
-        <mxCell id="p6-p1" value="&lt;b&gt;1 ·&lt;/b&gt; does creatine help sprinting?&amp;nbsp; &lt;font color=&quot;#666666&quot;&gt;— as typed, always kept&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#999999;align=left;spacingLeft=10;fontSize=11;" vertex="1" parent="1">
-          <mxGeometry x="540" y="80" width="300" height="45" as="geometry" />
+        <mxCell id="page-chunk-c5" value="recursive split&lt;br&gt;&lt;font color=&quot;#666666&quot;&gt;size − heading path&lt;br&gt;paragraph → line → word&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="600" y="100" width="245" height="60" as="geometry" />
         </mxCell>
-        <mxCell id="p6-p2" value="&lt;b&gt;2 ·&lt;/b&gt; creatine sprint performance" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;align=left;spacingLeft=10;fontSize=11;" vertex="1" parent="1">
-          <mxGeometry x="540" y="140" width="300" height="45" as="geometry" />
+        <mxCell id="page-chunk-c6" value="merge fragments&lt;br&gt;&lt;font color=&quot;#666666&quot;&gt;below min_chunk_chars,&lt;br&gt;if they fit&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="880" y="100" width="245" height="60" as="geometry" />
         </mxCell>
-        <mxCell id="p6-p3" value="&lt;b&gt;3 ·&lt;/b&gt; phosphocreatine ATP resynthesis" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;align=left;spacingLeft=10;fontSize=11;" vertex="1" parent="1">
-          <mxGeometry x="540" y="200" width="300" height="45" as="geometry" />
-        </mxCell>
-        <mxCell id="p6-search" value="embed as &quot;query: …&quot;&lt;br&gt;cosine search&lt;br&gt;&lt;font color=&quot;#666666&quot;&gt;once per phrasing&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=12;" vertex="1" parent="1">
-          <mxGeometry x="900" y="120" width="180" height="85" as="geometry" />
-        </mxCell>
-        <mxCell id="p6-e1" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=blockThin;endFill=1;strokeColor=#666666;" edge="1" parent="1" source="p6-q" target="p6-exp">
+        <mxCell id="page-chunk-e7" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=blockThin;endFill=1;strokeColor=#666666;" edge="1" parent="1" source="page-chunk-c3" target="page-chunk-c4">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="p6-e2" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=blockThin;endFill=1;strokeColor=#9673a6;" edge="1" parent="1" source="p6-exp" target="p6-p1">
+        <mxCell id="page-chunk-e8" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=blockThin;endFill=1;strokeColor=#666666;" edge="1" parent="1" source="page-chunk-c4" target="page-chunk-c5">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="p6-e3" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=blockThin;endFill=1;strokeColor=#9673a6;" edge="1" parent="1" source="p6-exp" target="p6-p2">
+        <mxCell id="page-chunk-e9" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=blockThin;endFill=1;strokeColor=#666666;" edge="1" parent="1" source="page-chunk-c5" target="page-chunk-c6">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="p6-e4" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=blockThin;endFill=1;strokeColor=#9673a6;" edge="1" parent="1" source="p6-exp" target="p6-p3">
+        <mxCell id="page-chunk-c10" value="&lt;b&gt;Chunk&lt;/b&gt;&amp;nbsp; c0042-1f3a9b7c&lt;br&gt;&lt;br&gt;HMB &amp;gt; Efficacy&lt;br&gt;&lt;br&gt;Although studies have investigated HMB for two decades, they have not produced clear evidence of benefit…" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=11;align=left;spacingLeft=10;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="40" y="250" width="525" height="150" as="geometry" />
+        </mxCell>
+        <mxCell id="page-chunk-e11" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=blockThin;endFill=1;strokeColor=#666666;exitX=0.5;exitY=1;exitDx=0;exitDy=0;" edge="1" parent="1" source="page-chunk-c6" target="page-chunk-c10">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="p6-e5" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=blockThin;endFill=1;strokeColor=#666666;" edge="1" parent="1" source="p6-p1" target="p6-search">
+        <mxCell id="page-chunk-c12" value="&lt;b&gt;the heading path is inside the chunk text&lt;/b&gt;&lt;br&gt;&lt;br&gt;“#### Efficacy” on its own is useless in an index. “HMB &amp;gt; Efficacy” tells both the embedder and the reader what the passage is about.&lt;br&gt;&lt;br&gt;The path is trimmed from the outside in — the document title is on every chunk and carries no information, so it is dropped whenever a deeper heading exists — and capped at max_section_chars so it can never crowd out the body." style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=11;align=left;spacingLeft=10;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="600" y="250" width="525" height="150" as="geometry" />
+        </mxCell>
+        <mxCell id="page-chunk-note13" value="&lt;b&gt;The size promise is kept.&lt;/b&gt; The heading path is subtracted from the budget before splitting, and merging a small fragment is skipped rather than allowed to push a chunk past the size you asked for — which is what the OVERSIZED flag on the Chunks tab checks." style="shape=note;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;size=14;align=left;spacingLeft=8;fontSize=11;verticalAlign=top;spacingTop=6;" vertex="1" parent="1">
+          <mxGeometry x="40" y="440" width="540" height="120" as="geometry" />
+        </mxCell>
+        <mxCell id="page-chunk-note14" value="&lt;b&gt;Content-derived ids.&lt;/b&gt; A chunk&#x27;s id is its index plus a hash of its text, so re-indexing the same document upserts the same rows instead of piling up duplicates — and an edited chunk cannot leave a stale copy behind." style="shape=note;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;size=14;align=left;spacingLeft=8;fontSize=11;verticalAlign=top;spacingTop=6;" vertex="1" parent="1">
+          <mxGeometry x="620" y="440" width="505" height="120" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram id="page-questions" name="6 · Step 4 — Questions">
+    <mxGraphModel dx="1422" dy="820" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1169" pageHeight="826" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="page-questions-t1" value="Hypothetical questions — giving the index something question-shaped" style="text;html=1;fontSize=17;align=left;verticalAlign=middle;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="40" y="24" width="900" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="page-questions-t2" value="QuestionGenerator · augmentation.py · optional (enable_questions)" style="text;html=1;fontSize=12;align=left;verticalAlign=middle;fontStyle=2;fontColor=#999999;" vertex="1" parent="1">
+          <mxGeometry x="40" y="70" width="420" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="page-questions-c3" value="288 chunks" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#999999;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="40" y="100" width="200" height="64" as="geometry" />
+        </mxCell>
+        <mxCell id="page-questions-c4" value="ThreadPoolExecutor&lt;br&gt;&lt;font color=&quot;#666666&quot;&gt;question_workers · default 8&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="290" y="100" width="240" height="64" as="geometry" />
+        </mxCell>
+        <mxCell id="page-questions-c5" value="one generation call per chunk&lt;br&gt;&lt;font color=&quot;#666666&quot;&gt;temperature 0.3 · max_tokens 1024&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="580" y="100" width="300" height="64" as="geometry" />
+        </mxCell>
+        <mxCell id="page-questions-c6" value="parse_lines()&lt;br&gt;&lt;font color=&quot;#666666&quot;&gt;strip bullets&lt;br&gt;and numbering&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="930" y="100" width="195" height="64" as="geometry" />
+        </mxCell>
+        <mxCell id="page-questions-c7" value="{ chunk_id: [ “What is HMB?”, “Is HMB safe for older adults?”, … ] }" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="580" y="230" width="545" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="page-questions-e8" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=blockThin;endFill=1;strokeColor=#666666;" edge="1" parent="1" source="page-questions-c3" target="page-questions-c4">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="p6-e6" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=blockThin;endFill=1;strokeColor=#666666;" edge="1" parent="1" source="p6-p2" target="p6-search">
+        <mxCell id="page-questions-e9" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=blockThin;endFill=1;strokeColor=#666666;" edge="1" parent="1" source="page-questions-c4" target="page-questions-c5">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="p6-e7" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=blockThin;endFill=1;strokeColor=#666666;" edge="1" parent="1" source="p6-p3" target="p6-search">
+        <mxCell id="page-questions-e10" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=blockThin;endFill=1;strokeColor=#666666;" edge="1" parent="1" source="page-questions-c5" target="page-questions-c6">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="p6-bypass" value="switched off → the query alone" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=blockThin;endFill=1;dashed=1;strokeColor=#999999;fontSize=11;fontColor=#999999;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0;entryY=1;entryDx=0;entryDy=0;" edge="1" parent="1" source="p6-q" target="p6-search">
-          <mxGeometry relative="1" as="geometry">
-            <Array as="points">
-              <mxPoint x="140" y="270" />
-              <mxPoint x="870" y="270" />
-            </Array>
-          </mxGeometry>
+        <mxCell id="page-questions-e11" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=blockThin;endFill=1;strokeColor=#666666;exitX=0.5;exitY=1;exitDx=0;exitDy=0;" edge="1" parent="1" source="page-questions-c6" target="page-questions-c7">
+          <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="p6-lane2" value="merge · one vote per phrasing, never per row&amp;nbsp; &amp;nbsp;&lt;font color=&quot;#bbbbbb&quot;&gt;(example figures)&lt;/font&gt;" style="text;html=1;fontSize=12;fontStyle=2;fontColor=#999999;align=left;" vertex="1" parent="1">
-          <mxGeometry x="40" y="310" width="480" height="20" as="geometry" />
+        <mxCell id="page-questions-note12" value="&lt;b&gt;A chunk that fails is skipped, not fatal.&lt;/b&gt; The exception is logged and that chunk is simply indexed without questions." style="shape=note;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;size=14;align=left;spacingLeft=8;fontSize=11;verticalAlign=top;spacingTop=6;" vertex="1" parent="1">
+          <mxGeometry x="40" y="230" width="500" height="70" as="geometry" />
         </mxCell>
-        <mxCell id="p6-h1" value="chunk" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#999999;align=left;spacingLeft=10;fontSize=11;fontStyle=1" vertex="1" parent="1">
-          <mxGeometry x="40" y="340" width="360" height="30" as="geometry" />
+        <mxCell id="page-questions-note13" value="&lt;b&gt;Why this exists.&lt;/b&gt; Users ask questions; documents are written as statements. The embedder has to bridge that gap on its own unless the index also contains text shaped like a question.&lt;br&gt;&lt;br&gt;Each question is stored as its own row pointing back at its parent chunk, so a question match resolves to the passage that answers it — see step 6." style="shape=note;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;size=14;align=left;spacingLeft=8;fontSize=11;verticalAlign=top;spacingTop=6;" vertex="1" parent="1">
+          <mxGeometry x="40" y="340" width="540" height="150" as="geometry" />
         </mxCell>
-        <mxCell id="p6-h2" value="phrasings that found it" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#999999;fontSize=11;fontStyle=1" vertex="1" parent="1">
-          <mxGeometry x="400" y="340" width="200" height="30" as="geometry" />
+        <mxCell id="page-questions-note14" value="&lt;b&gt;This is the slow half of a build.&lt;/b&gt; 288 chunks × one call each ≈ 4 minutes on this machine, against about 8 seconds for all the embeddings.&lt;br&gt;&lt;br&gt;Reasoning tokens come out of max_tokens too: set it too low and a reasoning model spends the whole budget thinking and returns empty content, which LLMClient reports rather than passing off as a model with nothing to say." style="shape=note;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;size=14;align=left;spacingLeft=8;fontSize=11;verticalAlign=top;spacingTop=6;" vertex="1" parent="1">
+          <mxGeometry x="620" y="340" width="505" height="150" as="geometry" />
         </mxCell>
-        <mxCell id="p6-h3" value="similarity" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#999999;fontSize=11;fontStyle=1" vertex="1" parent="1">
-          <mxGeometry x="600" y="340" width="110" height="30" as="geometry" />
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram id="page-embed" name="7 · Step 5 — Embed">
+    <mxGraphModel dx="1422" dy="820" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1169" pageHeight="826" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="page-embed-t1" value="Embed — the same text scores differently on each side" style="text;html=1;fontSize=17;align=left;verticalAlign=middle;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="40" y="24" width="900" height="30" as="geometry" />
         </mxCell>
-        <mxCell id="p6-h4" value="boost" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#999999;fontSize=11;fontStyle=1" vertex="1" parent="1">
-          <mxGeometry x="710" y="340" width="100" height="30" as="geometry" />
+        <mxCell id="page-embed-t2" value="ServerEmbedder · embedding.py" style="text;html=1;fontSize=12;align=left;verticalAlign=middle;fontStyle=2;fontColor=#999999;" vertex="1" parent="1">
+          <mxGeometry x="40" y="70" width="420" height="20" as="geometry" />
         </mxCell>
-        <mxCell id="p6-h5" value="score" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#999999;fontSize=11;fontStyle=1" vertex="1" parent="1">
-          <mxGeometry x="810" y="340" width="110" height="30" as="geometry" />
+        <mxCell id="page-embed-c3" value="chunk text&lt;br&gt;&lt;font color=&quot;#666666&quot;&gt;indexing a document&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#999999;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="40" y="100" width="210" height="60" as="geometry" />
         </mxCell>
-        <mxCell id="p6-h6" value="rank" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#999999;fontSize=11;fontStyle=1" vertex="1" parent="1">
-          <mxGeometry x="920" y="340" width="100" height="30" as="geometry" />
+        <mxCell id="page-embed-c4" value="title: none | text: …" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="290" y="100" width="300" height="60" as="geometry" />
         </mxCell>
-        <mxCell id="p6-a1" value="Creatine &amp;gt; Efficacy&amp;nbsp; &lt;font color=&quot;#666666&quot;&gt;c0164-d2d9c39b&lt;/font&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;align=left;spacingLeft=10;fontSize=11;" vertex="1" parent="1">
+        <mxCell id="page-embed-c5" value="your question&lt;br&gt;&lt;font color=&quot;#666666&quot;&gt;running a search&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#999999;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="40" y="200" width="210" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="page-embed-c6" value="task: search result | query: …" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="290" y="200" width="300" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="page-embed-c7" value="batched&lt;br&gt;&lt;font color=&quot;#666666&quot;&gt;embed_batch_size&lt;br&gt;default 16 texts per call&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="640" y="100" width="220" height="160" as="geometry" />
+        </mxCell>
+        <mxCell id="page-embed-c8" value="unit-normalised&lt;br&gt;&lt;font color=&quot;#666666&quot;&gt;so cosine distance&lt;br&gt;behaves in Chroma&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="910" y="100" width="215" height="160" as="geometry" />
+        </mxCell>
+        <mxCell id="page-embed-e9" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=blockThin;endFill=1;strokeColor=#666666;" edge="1" parent="1" source="page-embed-c3" target="page-embed-c4">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="page-embed-e10" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=blockThin;endFill=1;strokeColor=#666666;" edge="1" parent="1" source="page-embed-c5" target="page-embed-c6">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="page-embed-e11" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=blockThin;endFill=1;strokeColor=#666666;" edge="1" parent="1" source="page-embed-c4" target="page-embed-c7">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="page-embed-e12" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=blockThin;endFill=1;strokeColor=#666666;" edge="1" parent="1" source="page-embed-c6" target="page-embed-c7">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="page-embed-e13" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=blockThin;endFill=1;strokeColor=#666666;" edge="1" parent="1" source="page-embed-c7" target="page-embed-c8">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="page-embed-note14" value="&lt;b&gt;The model is asymmetric.&lt;/b&gt; EmbeddingGemma was trained with one instruction on the document side and another on the query side, and the /embeddings endpoint has no field for it — so the prefix is prepended here.&lt;br&gt;&lt;br&gt;Measured on a creatine query against a matching and a mismatched passage, the prefixes separated the two by &lt;b&gt;0.47&lt;/b&gt; against &lt;b&gt;0.35&lt;/b&gt; with none. Set both to &quot;&quot; for a symmetric model." style="shape=note;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;size=14;align=left;spacingLeft=8;fontSize=11;verticalAlign=top;spacingTop=6;" vertex="1" parent="1">
+          <mxGeometry x="40" y="310" width="540" height="130" as="geometry" />
+        </mxCell>
+        <mxCell id="page-embed-note15" value="&lt;b&gt;The offline substitute.&lt;/b&gt; With the server switched off, HashEmbedder builds deterministic bag-of-words vectors instead. It only matches shared words, so retrieval quality drops a long way — but the UI, the CLI and the whole test suite run with nothing listening.&lt;br&gt;&lt;br&gt;Its vectors get their own collection, because vectors from different embedders are not comparable." style="shape=note;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;size=14;align=left;spacingLeft=8;fontSize=11;verticalAlign=top;spacingTop=6;" vertex="1" parent="1">
+          <mxGeometry x="620" y="310" width="505" height="130" as="geometry" />
+        </mxCell>
+        <mxCell id="page-embed-note16" value="&lt;b&gt;If the server caps batch size&lt;/b&gt;, LLMClient halves the batch and retries rather than failing the build — a 400 whose message mentions a limit is treated as “too many”, and any other 400 is raised, because it will not fix itself." style="shape=note;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;size=14;align=left;spacingLeft=8;fontSize=11;verticalAlign=top;spacingTop=6;" vertex="1" parent="1">
+          <mxGeometry x="40" y="470" width="1085" height="80" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram id="page-index" name="8 · Step 6 — Index">
+    <mxGraphModel dx="1422" dy="820" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1169" pageHeight="826" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="page-index-t1" value="Index — what a collection actually holds" style="text;html=1;fontSize=17;align=left;verticalAlign=middle;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="40" y="24" width="900" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="page-index-t2" value="VectorIndex · indexing.py" style="text;html=1;fontSize=12;align=left;verticalAlign=middle;fontStyle=2;fontColor=#999999;" vertex="1" parent="1">
+          <mxGeometry x="40" y="70" width="420" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="page-index-c3" value="&lt;b&gt;chunk row&lt;/b&gt;&amp;nbsp; c0042-1f3a9b7c&lt;br&gt;document: “HMB &amp;gt; Efficacy …”&lt;br&gt;type=chunk · parent_id=self · section · chunk_index" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=11;align=left;spacingLeft=10;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="40" y="100" width="480" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="page-index-c4" value="&lt;b&gt;question row&lt;/b&gt;&amp;nbsp; c0042-1f3a9b7c-q0&lt;br&gt;document: “What is HMB?”" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=11;align=left;spacingLeft=10;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="40" y="210" width="480" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="page-index-c5" value="&lt;b&gt;question row&lt;/b&gt;&amp;nbsp; c0042-1f3a9b7c-q1&lt;br&gt;document: “Is HMB safe for older adults?”" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=11;align=left;spacingLeft=10;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="40" y="290" width="480" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="page-index-e6" value="parent_id" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=blockThin;endFill=1;strokeColor=#666666;fontSize=11;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=1;entryY=1;entryDx=0;entryDy=0;strokeColor=#9673a6;" edge="1" parent="1" source="page-index-c4" target="page-index-c3">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="page-index-e7" value="parent_id" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=blockThin;endFill=1;strokeColor=#666666;fontSize=11;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=1;entryY=1;entryDx=0;entryDy=0;strokeColor=#9673a6;" edge="1" parent="1" source="page-index-c5" target="page-index-c3">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="page-index-c8" value="&lt;b&gt;a pointer, not a copy&lt;/b&gt;&lt;br&gt;&lt;br&gt;A question row stores only its parent&#x27;s id. One copy of the document exists, and an edited chunk cannot leave a stale duplicate of its text behind. The Retriever resolves pointers to text in a single lookup at the end of a search." style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=11;align=left;spacingLeft=10;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="600" y="100" width="525" height="110" as="geometry" />
+        </mxCell>
+        <mxCell id="page-index-c9" value="&lt;b&gt;written in slices&lt;/b&gt;&lt;br&gt;&lt;br&gt;index_batch_size rows per upsert (default 100), so the embedding endpoint is never handed one enormous request. 288 chunks + 864 questions = &lt;b&gt;1,152 rows&lt;/b&gt; at the default settings." style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=11;align=left;spacingLeft=10;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="600" y="240" width="525" height="110" as="geometry" />
+        </mxCell>
+        <mxCell id="page-index-note10" value="&lt;b&gt;The collection name carries the recipe:&lt;/b&gt;&amp;nbsp; &lt;font face=&quot;Courier New&quot;&gt;ods_health_facts__embeddinggem_c600_o100_q3_m80_s1&lt;/font&gt;&lt;br&gt;embedder · chunk size · overlap · questions per chunk · merge threshold · heading prefix.&lt;br&gt;&lt;br&gt;Every parameter that changes the stored vectors is in the name, so moving a slider builds a &lt;i&gt;separate&lt;/i&gt; index instead of poisoning the one you have — and moving it back reuses what you already built. Settings with no room left in the name (the cleaning flags, the heading cap, the embedding prefixes) are hashed into an _x… suffix, which stays empty while they are all at their defaults so collections built before those knobs existed keep their names." style="shape=note;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;size=14;align=left;spacingLeft=8;fontSize=11;verticalAlign=top;spacingTop=6;" vertex="1" parent="1">
+          <mxGeometry x="40" y="400" width="1085" height="140" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram id="page-expansion" name="9 · Step 7 — Expand">
+    <mxGraphModel dx="1422" dy="820" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1169" pageHeight="826" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="page-expansion-t1" value="Query expansion — searching more than the question as typed" style="text;html=1;fontSize=17;align=left;verticalAlign=middle;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="40" y="24" width="900" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="page-expansion-t2" value="QueryExpander · expansion.py · optional (enable_query_expansion)" style="text;html=1;fontSize=12;align=left;verticalAlign=middle;fontStyle=2;fontColor=#999999;" vertex="1" parent="1">
+          <mxGeometry x="40" y="70" width="420" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="page-expansion-c3" value="your question&lt;br&gt;&lt;font color=&quot;#666666&quot;&gt;“does creatine help sprinting?”&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#999999;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="40" y="100" width="200" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="page-expansion-c4" value="QueryExpander&lt;br&gt;&lt;font color=&quot;#666666&quot;&gt;2 extra · temp 0.7&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="290" y="100" width="200" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="page-expansion-c5" value="&lt;b&gt;1 ·&lt;/b&gt; does creatine help sprinting?&amp;nbsp; &lt;font color=&quot;#666666&quot;&gt;— always kept&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#999999;fontSize=11;align=left;spacingLeft=10;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="540" y="60" width="300" height="45" as="geometry" />
+        </mxCell>
+        <mxCell id="page-expansion-c6" value="&lt;b&gt;2 ·&lt;/b&gt; creatine sprint performance" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=11;align=left;spacingLeft=10;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="540" y="120" width="300" height="45" as="geometry" />
+        </mxCell>
+        <mxCell id="page-expansion-c7" value="&lt;b&gt;3 ·&lt;/b&gt; phosphocreatine ATP resynthesis" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=11;align=left;spacingLeft=10;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="540" y="180" width="300" height="45" as="geometry" />
+        </mxCell>
+        <mxCell id="page-expansion-c8" value="embed + cosine search&lt;br&gt;&lt;font color=&quot;#666666&quot;&gt;once per phrasing&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="890" y="100" width="235" height="85" as="geometry" />
+        </mxCell>
+        <mxCell id="page-expansion-e9" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=blockThin;endFill=1;strokeColor=#666666;" edge="1" parent="1" source="page-expansion-c3" target="page-expansion-c4">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="page-expansion-e10" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=blockThin;endFill=1;strokeColor=#666666;strokeColor=#9673a6;" edge="1" parent="1" source="page-expansion-c4" target="page-expansion-c5">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="page-expansion-e11" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=blockThin;endFill=1;strokeColor=#666666;" edge="1" parent="1" source="page-expansion-c5" target="page-expansion-c8">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="page-expansion-e12" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=blockThin;endFill=1;strokeColor=#666666;strokeColor=#9673a6;" edge="1" parent="1" source="page-expansion-c4" target="page-expansion-c6">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="page-expansion-e13" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=blockThin;endFill=1;strokeColor=#666666;" edge="1" parent="1" source="page-expansion-c6" target="page-expansion-c8">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="page-expansion-e14" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=blockThin;endFill=1;strokeColor=#666666;strokeColor=#9673a6;" edge="1" parent="1" source="page-expansion-c4" target="page-expansion-c7">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="page-expansion-e15" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=blockThin;endFill=1;strokeColor=#666666;" edge="1" parent="1" source="page-expansion-c7" target="page-expansion-c8">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="page-expansion-t16" value="merge · one vote per phrasing, never per row" style="text;html=1;fontSize=12;align=left;verticalAlign=middle;fontStyle=2;fontColor=#999999;" vertex="1" parent="1">
+          <mxGeometry x="40" y="270" width="520" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="page-expansion-c17" value="&lt;b&gt;chunk&lt;/b&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#999999;fontSize=11;align=left;spacingLeft=10;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="40" y="300" width="360" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="page-expansion-c18" value="&lt;b&gt;phrasings&lt;/b&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#999999;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="400" y="300" width="200" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="page-expansion-c19" value="&lt;b&gt;similarity&lt;/b&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#999999;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="600" y="300" width="110" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="page-expansion-c20" value="&lt;b&gt;boost&lt;/b&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#999999;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="710" y="300" width="100" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="page-expansion-c21" value="&lt;b&gt;score&lt;/b&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#999999;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="810" y="300" width="110" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="page-expansion-c22" value="&lt;b&gt;rank&lt;/b&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#999999;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="920" y="300" width="100" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="page-expansion-c23" value="Creatine &amp;gt; Efficacy" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=11;align=left;spacingLeft=10;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="40" y="330" width="360" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="page-expansion-c24" value="●●● 3 of 3" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="400" y="330" width="200" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="page-expansion-c25" value="0.742" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="600" y="330" width="110" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="page-expansion-c26" value="+0.10" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="710" y="330" width="100" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="page-expansion-c27" value="&lt;b&gt;0.842&lt;/b&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="810" y="330" width="110" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="page-expansion-c28" value="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="920" y="330" width="100" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="page-expansion-c29" value="Creatine &amp;gt; Safety" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=11;align=left;spacingLeft=10;verticalAlign=middle;" vertex="1" parent="1">
           <mxGeometry x="40" y="370" width="360" height="40" as="geometry" />
         </mxCell>
-        <mxCell id="p6-a2" value="●●●&amp;nbsp; 3 of 3" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=11;" vertex="1" parent="1">
+        <mxCell id="page-expansion-c30" value="●● 2 of 3" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=11;" vertex="1" parent="1">
           <mxGeometry x="400" y="370" width="200" height="40" as="geometry" />
         </mxCell>
-        <mxCell id="p6-a3" value="0.742" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=11;" vertex="1" parent="1">
+        <mxCell id="page-expansion-c31" value="0.701" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=11;" vertex="1" parent="1">
           <mxGeometry x="600" y="370" width="110" height="40" as="geometry" />
         </mxCell>
-        <mxCell id="p6-a4" value="+0.10" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=11;" vertex="1" parent="1">
+        <mxCell id="page-expansion-c32" value="+0.05" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=11;" vertex="1" parent="1">
           <mxGeometry x="710" y="370" width="100" height="40" as="geometry" />
         </mxCell>
-        <mxCell id="p6-a5" value="&lt;b&gt;0.842&lt;/b&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=11;" vertex="1" parent="1">
+        <mxCell id="page-expansion-c33" value="&lt;b&gt;0.751&lt;/b&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=11;" vertex="1" parent="1">
           <mxGeometry x="810" y="370" width="110" height="40" as="geometry" />
         </mxCell>
-        <mxCell id="p6-a6" value="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=11;" vertex="1" parent="1">
+        <mxCell id="page-expansion-c34" value="&lt;b&gt;2&lt;/b&gt; ▲" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=11;" vertex="1" parent="1">
           <mxGeometry x="920" y="370" width="100" height="40" as="geometry" />
         </mxCell>
-        <mxCell id="p6-b1" value="Creatine &amp;gt; Safety&amp;nbsp; &lt;font color=&quot;#666666&quot;&gt;c0088-7b1e42af&lt;/font&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;align=left;spacingLeft=10;fontSize=11;" vertex="1" parent="1">
+        <mxCell id="page-expansion-c35" value="Ribose &amp;gt; Efficacy" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#999999;fontSize=11;align=left;spacingLeft=10;verticalAlign=middle;" vertex="1" parent="1">
           <mxGeometry x="40" y="410" width="360" height="40" as="geometry" />
         </mxCell>
-        <mxCell id="p6-b2" value="●●&amp;nbsp; 2 of 3" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=11;" vertex="1" parent="1">
+        <mxCell id="page-expansion-c36" value="● 1 of 3" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#999999;fontSize=11;" vertex="1" parent="1">
           <mxGeometry x="400" y="410" width="200" height="40" as="geometry" />
         </mxCell>
-        <mxCell id="p6-b3" value="0.701" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=11;" vertex="1" parent="1">
+        <mxCell id="page-expansion-c37" value="0.715" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#999999;fontSize=11;" vertex="1" parent="1">
           <mxGeometry x="600" y="410" width="110" height="40" as="geometry" />
         </mxCell>
-        <mxCell id="p6-b4" value="+0.05" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=11;" vertex="1" parent="1">
+        <mxCell id="page-expansion-c38" value="—" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#999999;fontSize=11;" vertex="1" parent="1">
           <mxGeometry x="710" y="410" width="100" height="40" as="geometry" />
         </mxCell>
-        <mxCell id="p6-b5" value="&lt;b&gt;0.751&lt;/b&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=11;" vertex="1" parent="1">
+        <mxCell id="page-expansion-c39" value="0.715" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#999999;fontSize=11;" vertex="1" parent="1">
           <mxGeometry x="810" y="410" width="110" height="40" as="geometry" />
         </mxCell>
-        <mxCell id="p6-b6" value="&lt;b&gt;2&lt;/b&gt;&amp;nbsp; &lt;font color=&quot;#82b366&quot;&gt;▲&lt;/font&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=11;" vertex="1" parent="1">
+        <mxCell id="page-expansion-c40" value="3 ▼" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#999999;fontSize=11;" vertex="1" parent="1">
           <mxGeometry x="920" y="410" width="100" height="40" as="geometry" />
         </mxCell>
-        <mxCell id="p6-c1" value="Ribose &amp;gt; Efficacy&amp;nbsp; &lt;font color=&quot;#666666&quot;&gt;c0231-4c05fe18&lt;/font&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#999999;align=left;spacingLeft=10;fontSize=11;" vertex="1" parent="1">
-          <mxGeometry x="40" y="450" width="360" height="40" as="geometry" />
+        <mxCell id="page-expansion-note41" value="&lt;b&gt;similarity is never overwritten.&lt;/b&gt; It stays what the embedder returned, so a result can never claim a closer match than it made. Agreement goes to &lt;i&gt;boost&lt;/i&gt;, and only &lt;i&gt;score&lt;/i&gt; = similarity + boost sorts the list — +0.05 per extra phrasing, capped at +0.15.&lt;br&gt;&lt;br&gt;Row 2 is the weaker match and still outranks row 3." style="shape=note;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;size=14;align=left;spacingLeft=8;fontSize=11;verticalAlign=top;spacingTop=6;" vertex="1" parent="1">
+          <mxGeometry x="40" y="470" width="540" height="120" as="geometry" />
         </mxCell>
-        <mxCell id="p6-c2" value="●&amp;nbsp; 1 of 3" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#999999;fontSize=11;" vertex="1" parent="1">
-          <mxGeometry x="400" y="450" width="200" height="40" as="geometry" />
+        <mxCell id="page-expansion-note42" value="&lt;b&gt;One vote per phrasing, not per row.&lt;/b&gt; A chunk can match through itself and three of its own hypothetical questions — four rows, one phrasing, one vote. Counting rows would boost any chunk that had questions, even with expansion switched off.&lt;br&gt;&lt;br&gt;Costs one generation call per &lt;i&gt;search&lt;/i&gt;. Builds are untouched." style="shape=note;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;size=14;align=left;spacingLeft=8;fontSize=11;verticalAlign=top;spacingTop=6;" vertex="1" parent="1">
+          <mxGeometry x="620" y="470" width="505" height="120" as="geometry" />
         </mxCell>
-        <mxCell id="p6-c3" value="0.715" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#999999;fontSize=11;" vertex="1" parent="1">
-          <mxGeometry x="600" y="450" width="110" height="40" as="geometry" />
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram id="page-retrieve" name="10 · Step 8 — Retrieve">
+    <mxGraphModel dx="1422" dy="820" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1169" pageHeight="826" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="page-retrieve-t1" value="Retrieve — how a search resolves" style="text;html=1;fontSize=17;align=left;verticalAlign=middle;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="40" y="24" width="900" height="30" as="geometry" />
         </mxCell>
-        <mxCell id="p6-c4" value="—" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#999999;fontSize=11;" vertex="1" parent="1">
-          <mxGeometry x="710" y="450" width="100" height="40" as="geometry" />
+        <mxCell id="page-retrieve-t2" value="Retriever · retrieval.py" style="text;html=1;fontSize=12;align=left;verticalAlign=middle;fontStyle=2;fontColor=#999999;" vertex="1" parent="1">
+          <mxGeometry x="40" y="70" width="420" height="20" as="geometry" />
         </mxCell>
-        <mxCell id="p6-c5" value="0.715" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#999999;fontSize=11;" vertex="1" parent="1">
-          <mxGeometry x="810" y="450" width="110" height="40" as="geometry" />
+        <mxCell id="page-retrieve-c3" value="embed each phrasing as “task: search result | query: …”" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="40" y="100" width="620" height="52" as="geometry" />
         </mxCell>
-        <mxCell id="p6-c6" value="3&amp;nbsp; &lt;font color=&quot;#b85450&quot;&gt;▼&lt;/font&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#999999;fontSize=11;" vertex="1" parent="1">
-          <mxGeometry x="920" y="450" width="100" height="40" as="geometry" />
+        <mxCell id="page-retrieve-c4" value="cosine search · n = top_k × overfetch when collapsing" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="40" y="168" width="620" height="52" as="geometry" />
         </mxCell>
-        <mxCell id="p6-swap" value="&lt;b&gt;0.701 is the weaker match&lt;/b&gt; — but two phrasings agreed on it and only one on Ribose, so it ranks above." style="shape=note;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;size=14;align=left;spacingLeft=8;fontSize=11;verticalAlign=middle;" vertex="1" parent="1">
-          <mxGeometry x="40" y="510" width="480" height="110" as="geometry" />
+        <mxCell id="page-retrieve-c5" value="hits: some chunk rows, some question rows" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#999999;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="40" y="236" width="620" height="52" as="geometry" />
         </mxCell>
-        <mxCell id="p6-note1" value="&lt;b&gt;similarity is never overwritten.&lt;/b&gt; It stays what the embedder returned,&lt;br&gt;so a result can never claim a closer match than it made. Agreement goes&lt;br&gt;to &lt;i&gt;boost&lt;/i&gt;, and only &lt;i&gt;score&lt;/i&gt; = similarity + boost sorts the list.&lt;br&gt;&lt;br&gt;+0.05 per extra phrasing, capped at +0.15 — both settings." style="shape=note;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;size=14;align=left;spacingLeft=8;fontSize=11;verticalAlign=top;spacingTop=6;" vertex="1" parent="1">
-          <mxGeometry x="540" y="510" width="480" height="110" as="geometry" />
+        <mxCell id="page-retrieve-c6" value="merge per parent_id — best similarity, count the phrasings" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="40" y="304" width="620" height="52" as="geometry" />
         </mxCell>
-        <mxCell id="p6-note2" value="&lt;b&gt;One vote per phrasing, not per row.&lt;/b&gt; A chunk can match through itself &lt;i&gt;and&lt;/i&gt; three of its own hypothetical questions — four rows, one phrasing, one vote. Counting rows instead would boost any chunk that had questions, even with expansion switched off.&lt;br&gt;&lt;br&gt;&lt;b&gt;Query-time only.&lt;/b&gt; None of this changes what is stored, so no setting here forks a collection or invalidates an index. The cost is one generation call per &lt;i&gt;search&lt;/i&gt; — builds are untouched, searches get slower. Off (or offline), the expander returns the query alone and every result reads matches = 1, boost = 0, score = similarity." style="shape=note;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;size=14;align=left;spacingLeft=8;fontSize=11;verticalAlign=top;spacingTop=6;" vertex="1" parent="1">
-          <mxGeometry x="40" y="640" width="980" height="130" as="geometry" />
+        <mxCell id="page-retrieve-c7" value="sort by score, take top-k" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="40" y="372" width="620" height="52" as="geometry" />
+        </mxCell>
+        <mxCell id="page-retrieve-c8" value="resolve parent text — one lookup for every question hit" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="40" y="440" width="620" height="52" as="geometry" />
+        </mxCell>
+        <mxCell id="page-retrieve-e9" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=blockThin;endFill=1;strokeColor=#666666;" edge="1" parent="1" source="page-retrieve-c3" target="page-retrieve-c4">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="page-retrieve-e10" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=blockThin;endFill=1;strokeColor=#666666;" edge="1" parent="1" source="page-retrieve-c4" target="page-retrieve-c5">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="page-retrieve-e11" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=blockThin;endFill=1;strokeColor=#666666;" edge="1" parent="1" source="page-retrieve-c5" target="page-retrieve-c6">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="page-retrieve-e12" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=blockThin;endFill=1;strokeColor=#666666;" edge="1" parent="1" source="page-retrieve-c6" target="page-retrieve-c7">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="page-retrieve-e13" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=blockThin;endFill=1;strokeColor=#666666;" edge="1" parent="1" source="page-retrieve-c7" target="page-retrieve-c8">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="page-retrieve-c14" value="&lt;b&gt;top-k chunks&lt;/b&gt; + similarity + score + what matched" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="40" y="508" width="620" height="52" as="geometry" />
+        </mxCell>
+        <mxCell id="page-retrieve-e15" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=blockThin;endFill=1;strokeColor=#666666;" edge="1" parent="1" source="page-retrieve-c8" target="page-retrieve-c14">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="page-retrieve-c16" value="&lt;b&gt;why collapse per chunk&lt;/b&gt;&lt;br&gt;&lt;br&gt;Without it, one passage fills every top-k slot through its own generated questions. dedupe_by_chunk folds a chunk and its questions into a single result; switched off, they stay separate and only genuinely repeated rows are dropped." style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=11;align=left;spacingLeft=10;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="700" y="100" width="425" height="130" as="geometry" />
+        </mxCell>
+        <mxCell id="page-retrieve-c17" value="&lt;b&gt;why over-fetch&lt;/b&gt;&lt;br&gt;&lt;br&gt;Collapsing happens after the search, so asking Chroma for exactly top-k would leave fewer than k results once duplicates fold together. retrieval_overfetch (default 3) pulls k × 3 rows so there is something left to rank." style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=11;align=left;spacingLeft=10;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="700" y="250" width="425" height="130" as="geometry" />
+        </mxCell>
+        <mxCell id="page-retrieve-note18" value="&lt;b&gt;What comes back per hit&lt;/b&gt;&lt;br&gt;&lt;br&gt;chunk_id · section · text · match_type (chunk or question) · the question that matched, if it was one · similarity as the embedder returned it · matches and boost from expansion · score, which is what the ordering used.&lt;br&gt;&lt;br&gt;The Ask tab shows all of it, and the Review tab records it with your verdict." style="shape=note;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;size=14;align=left;spacingLeft=8;fontSize=11;verticalAlign=top;spacingTop=6;" vertex="1" parent="1">
+          <mxGeometry x="700" y="400" width="425" height="160" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram id="page-answer" name="11 · Step 9 — Answer">
+    <mxGraphModel dx="1422" dy="820" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1169" pageHeight="826" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="page-answer-t1" value="Answer — composing from the retrieved chunks only" style="text;html=1;fontSize=17;align=left;verticalAlign=middle;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="40" y="24" width="900" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="page-answer-t2" value="Answerer · answering.py · optional (enable_answers)" style="text;html=1;fontSize=12;align=left;verticalAlign=middle;fontStyle=2;fontColor=#999999;" vertex="1" parent="1">
+          <mxGeometry x="40" y="70" width="420" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="page-answer-c3" value="top-k chunks" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="40" y="100" width="210" height="64" as="geometry" />
+        </mxCell>
+        <mxCell id="page-answer-c4" value="numbered sources&lt;br&gt;&lt;font color=&quot;#666666&quot;&gt;[1] (section) text …&lt;br&gt;truncated to the budget&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="300" y="100" width="280" height="64" as="geometry" />
+        </mxCell>
+        <mxCell id="page-answer-c5" value="one generation call&lt;br&gt;&lt;font color=&quot;#666666&quot;&gt;temperature 0.2 · max_tokens 2048&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="630" y="100" width="280" height="64" as="geometry" />
+        </mxCell>
+        <mxCell id="page-answer-c6" value="cited answer&lt;br&gt;&lt;font color=&quot;#666666&quot;&gt;[1], [2] …&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="960" y="100" width="165" height="64" as="geometry" />
+        </mxCell>
+        <mxCell id="page-answer-e7" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=blockThin;endFill=1;strokeColor=#666666;" edge="1" parent="1" source="page-answer-c3" target="page-answer-c4">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="page-answer-e8" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=blockThin;endFill=1;strokeColor=#666666;" edge="1" parent="1" source="page-answer-c4" target="page-answer-c5">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="page-answer-e9" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=blockThin;endFill=1;strokeColor=#666666;" edge="1" parent="1" source="page-answer-c5" target="page-answer-c6">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="page-answer-c10" value="&lt;b&gt;the prompt, in full&lt;/b&gt;&lt;br&gt;&lt;br&gt;Answer the question using ONLY the numbered sources below. Cite the sources you use as [1], [2], and so on. If the sources do not contain the answer, say so plainly.&lt;br&gt;&lt;br&gt;Question: {question}&lt;br&gt;&lt;br&gt;Sources:&lt;br&gt;{sources}&lt;br&gt;&lt;br&gt;Answer:" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#999999;fontSize=11;align=left;spacingLeft=10;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="40" y="220" width="525" height="190" as="geometry" />
+        </mxCell>
+        <mxCell id="page-answer-note11" value="&lt;b&gt;The context budget is spent in rank order.&lt;/b&gt; Sources are added until answer_max_context_chars (default 8,000) runs out, and the last one in is truncated rather than dropped — so a lower-ranked chunk can be cut off, but the top result is always whole.&lt;br&gt;&lt;br&gt;&lt;b&gt;Reasoning comes out of max_tokens too&lt;/b&gt;, which is why the budget is generous. A model that spends it all thinking returns empty content, and LLMClient says so rather than returning an empty answer." style="shape=note;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;size=14;align=left;spacingLeft=8;fontSize=11;verticalAlign=top;spacingTop=6;" vertex="1" parent="1">
+          <mxGeometry x="620" y="220" width="505" height="190" as="geometry" />
+        </mxCell>
+        <mxCell id="page-answer-note12" value="&lt;b&gt;Optional on purpose.&lt;/b&gt; Retrieval quality is judged by reading the chunks, which the Ask tab shows without generating anything — so the answer is an extra call you opt into. Switched off, the pipeline still retrieves and the button explains why it is disabled; running offline, the same call returns a notice instead of a placeholder that could be mistaken for an answer." style="shape=note;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;size=14;align=left;spacingLeft=8;fontSize=11;verticalAlign=top;spacingTop=6;" vertex="1" parent="1">
+          <mxGeometry x="40" y="450" width="1085" height="100" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram id="page-eval" name="12 · Evaluation — a run">
+    <mxGraphModel dx="1422" dy="820" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1169" pageHeight="826" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="page-eval-t1" value="Evaluation — grading the pipeline, not a file" style="text;html=1;fontSize=17;align=left;verticalAlign=middle;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="40" y="24" width="900" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="page-eval-t2" value="evaluation/ · needs ragas, imported only when a run starts" style="text;html=1;fontSize=12;align=left;verticalAlign=middle;fontStyle=2;fontColor=#999999;" vertex="1" parent="1">
+          <mxGeometry x="40" y="70" width="420" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="page-eval-c3" value="golden set&lt;br&gt;&lt;font color=&quot;#666666&quot;&gt;question + reference&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#999999;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="40" y="100" width="175" height="64" as="geometry" />
+        </mxCell>
+        <mxCell id="page-eval-c4" value="harness&lt;br&gt;&lt;font color=&quot;#666666&quot;&gt;collect()&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="255" y="100" width="175" height="64" as="geometry" />
+        </mxCell>
+        <mxCell id="page-eval-c5" value="&lt;b&gt;RAGPipeline&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#666666&quot;&gt;search() · answer()&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="470" y="100" width="190" height="64" as="geometry" />
+        </mxCell>
+        <mxCell id="page-eval-c6" value="records&lt;br&gt;&lt;font color=&quot;#666666&quot;&gt;+ contexts + answer&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#999999;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="700" y="100" width="190" height="64" as="geometry" />
+        </mxCell>
+        <mxCell id="page-eval-c7" value="judge&lt;br&gt;&lt;font color=&quot;#666666&quot;&gt;4 ragas metrics&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="930" y="100" width="195" height="64" as="geometry" />
+        </mxCell>
+        <mxCell id="page-eval-e8" value="asks" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=blockThin;endFill=1;strokeColor=#666666;fontSize=11;" edge="1" parent="1" source="page-eval-c3" target="page-eval-c4">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="page-eval-e9" value="runs" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=blockThin;endFill=1;strokeColor=#666666;fontSize=11;" edge="1" parent="1" source="page-eval-c4" target="page-eval-c5">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="page-eval-e10" value="returns" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=blockThin;endFill=1;strokeColor=#666666;fontSize=11;" edge="1" parent="1" source="page-eval-c5" target="page-eval-c6">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="page-eval-e11" value="grades" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=blockThin;endFill=1;strokeColor=#666666;fontSize=11;" edge="1" parent="1" source="page-eval-c6" target="page-eval-c7">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="page-eval-c12" value="abandoned: contexts and answer read straight from the file — the pipeline never runs, so no setting can move a score" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#999999;fontSize=11;dashed=1;" vertex="1" parent="1">
+          <mxGeometry x="255" y="210" width="635" height="44" as="geometry" />
+        </mxCell>
+        <mxCell id="page-eval-e13" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=blockThin;endFill=1;strokeColor=#666666;dashed=1;strokeColor=#999999;exitX=0.5;exitY=1;exitDx=0;exitDy=0;" edge="1" parent="1" source="page-eval-c3" target="page-eval-c12">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="page-eval-e14" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=blockThin;endFill=1;strokeColor=#666666;dashed=1;strokeColor=#999999;entryX=0.5;entryY=1;entryDx=0;entryDy=0;" edge="1" parent="1" source="page-eval-c12" target="page-eval-c7">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="page-eval-t15" value="four metrics, two stages — a failure names the stage to look at" style="text;html=1;fontSize=12;align=left;verticalAlign=middle;fontStyle=2;fontColor=#999999;" vertex="1" parent="1">
+          <mxGeometry x="40" y="290" width="420" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="page-eval-c16" value="&lt;b&gt;context_recall&lt;/b&gt; &amp;nbsp; did retrieval find the evidence the reference needs?" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=11;align=left;spacingLeft=10;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="40" y="320" width="525" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="page-eval-c17" value="&lt;b&gt;context_precision&lt;/b&gt; &amp;nbsp; are the chunks returned actually about the question?" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=11;align=left;spacingLeft=10;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="40" y="380" width="525" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="page-eval-c18" value="&lt;b&gt;faithfulness&lt;/b&gt; &amp;nbsp; is the answer grounded in those chunks?" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=11;align=left;spacingLeft=10;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="600" y="320" width="525" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="page-eval-c19" value="&lt;b&gt;answer_relevancy&lt;/b&gt; &amp;nbsp; does the answer address the question asked?" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=11;align=left;spacingLeft=10;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="600" y="380" width="525" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="page-eval-note20" value="&lt;b&gt;Measured, same questions, only top-k changed:&lt;/b&gt;&lt;br&gt;&lt;br&gt;&amp;nbsp;&amp;nbsp;top-k 5&amp;nbsp;&amp;nbsp;→&amp;nbsp;&amp;nbsp;recall 0.730 · precision 0.963&lt;br&gt;&amp;nbsp;&amp;nbsp;top-k 10&amp;nbsp;→&amp;nbsp;&amp;nbsp;recall 0.944 · precision 0.863&lt;br&gt;&lt;br&gt;That trade-off is the whole point of running the pipeline live. On the abandoned path both rows are identical." style="shape=note;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;size=14;align=left;spacingLeft=8;fontSize=11;verticalAlign=top;spacingTop=6;" vertex="1" parent="1">
+          <mxGeometry x="40" y="460" width="540" height="150" as="geometry" />
+        </mxCell>
+        <mxCell id="page-eval-note21" value="&lt;b&gt;It refuses rather than reporting nothing.&lt;/b&gt; An empty index, a switched-off server, or answering disabled would each still produce a full set of confident numbers — about a placeholder. check_ready() fails first, naming the fix.&lt;br&gt;&lt;br&gt;Evaluation settings sit outside index_key: grading reads an index, it can never fork or rebuild one." style="shape=note;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;size=14;align=left;spacingLeft=8;fontSize=11;verticalAlign=top;spacingTop=6;" vertex="1" parent="1">
+          <mxGeometry x="620" y="460" width="505" height="150" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram id="page-eval-data" name="13 · Evaluation — the data">
+    <mxGraphModel dx="1422" dy="820" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1169" pageHeight="826" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="page-eval-data-t1" value="Where every input to a score comes from" style="text;html=1;fontSize=17;align=left;verticalAlign=middle;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="40" y="24" width="900" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="page-eval-data-t2" value="one source document, two things drawn from it" style="text;html=1;fontSize=12;align=left;verticalAlign=middle;fontStyle=2;fontColor=#999999;" vertex="1" parent="1">
+          <mxGeometry x="40" y="70" width="310" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="page-eval-data-c3" value="&lt;b&gt;NIH ODS fact sheet&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#666666&quot;&gt;Dietary Supplements for Exercise&lt;br&gt;and Athletic Performance&lt;br&gt;180,095 chars of markdown&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#999999;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="40" y="100" width="250" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="page-eval-data-c4" value="&lt;b&gt;the corpus&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#666666&quot;&gt;cleaned → chunked → embedded&lt;br&gt;288 chunks + 864 questions&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="370" y="60" width="300" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="page-eval-data-c5" value="&lt;b&gt;the golden set&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#666666&quot;&gt;3 × question + reference answer&lt;br&gt;hand-written, grounded in the page&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="370" y="170" width="300" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="page-eval-data-e6" value="steps 1–6" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=blockThin;endFill=1;strokeColor=#666666;fontSize=11;exitX=1;exitY=0.25;exitDx=0;exitDy=0;" edge="1" parent="1" source="page-eval-data-c3" target="page-eval-data-c4">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="page-eval-data-e7" value="read by a human" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=blockThin;endFill=1;strokeColor=#666666;fontSize=11;exitX=1;exitY=0.75;exitDx=0;exitDy=0;" edge="1" parent="1" source="page-eval-data-c3" target="page-eval-data-c5">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="page-eval-data-c8" value="&lt;b&gt;retrieved at run time&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#666666&quot;&gt;contexts + answer, from search() and answer()&lt;br&gt;never stored in the file&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="760" y="60" width="365" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="page-eval-data-e9" value="queried with the golden questions" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=blockThin;endFill=1;strokeColor=#666666;fontSize=11;" edge="1" parent="1" source="page-eval-data-c4" target="page-eval-data-c8">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="page-eval-data-e10" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=blockThin;endFill=1;strokeColor=#666666;dashed=1;" edge="1" parent="1" source="page-eval-data-c5" target="page-eval-data-c8">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="page-eval-data-c11" value="&lt;b&gt;the judge&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#666666&quot;&gt;a second model, gpt-oss-20b by default&lt;br&gt;compares the two&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="760" y="170" width="365" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="page-eval-data-e12" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=blockThin;endFill=1;strokeColor=#666666;exitX=0.5;exitY=1;exitDx=0;exitDy=0;" edge="1" parent="1" source="page-eval-data-c8" target="page-eval-data-c11">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="page-eval-data-e13" value="reference" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=blockThin;endFill=1;strokeColor=#666666;fontSize=11;" edge="1" parent="1" source="page-eval-data-c5" target="page-eval-data-c11">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="page-eval-data-note14" value="&lt;b&gt;The golden set holds only the question and the reference answer.&lt;/b&gt; Contexts and answers are outputs — the things being graded — so storing them in the file would mean grading the file: every metric would read the same at any chunk size, top-k or embedder, and a regression could not move it. The imported branch worked that way, which is why the harness was added.&lt;br&gt;&lt;br&gt;&lt;b&gt;Reference answers must be traceable to the page.&lt;/b&gt; context_recall asks whether retrieval found the evidence the reference relies on — so a reference asserting something the corpus does not contain fails for a reason that has nothing to do with retrieval. The retriever cannot find what was never written." style="shape=note;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;size=14;align=left;spacingLeft=8;fontSize=11;verticalAlign=top;spacingTop=6;" vertex="1" parent="1">
+          <mxGeometry x="40" y="280" width="1085" height="130" as="geometry" />
+        </mxCell>
+        <mxCell id="page-eval-data-t15" value="all three shipped references failed that test, and were regrounded" style="text;html=1;fontSize=12;align=left;verticalAlign=middle;fontStyle=2;fontColor=#999999;" vertex="1" parent="1">
+          <mxGeometry x="40" y="430" width="420" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="page-eval-data-c16" value="&lt;b&gt;creatine&lt;/b&gt; &amp;nbsp;cited a “meta-analysis of 22 studies” with 8% and 14% figures — no such meta-analysis is on the page" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=11;align=left;spacingLeft=10;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="40" y="460" width="1085" height="44" as="geometry" />
+        </mxCell>
+        <mxCell id="page-eval-data-c17" value="&lt;b&gt;caffeine&lt;/b&gt; &amp;nbsp;gave 3–6 mg/kg as the recommendation; the page says 2–6, and attributes 3–6 to the ISSN for endurance specifically" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=11;align=left;spacingLeft=10;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="40" y="512" width="1085" height="44" as="geometry" />
+        </mxCell>
+        <mxCell id="page-eval-data-c18" value="&lt;b&gt;iron&lt;/b&gt; &amp;nbsp;claimed deficiency without anaemia impairs performance and that ACSM recommends screening — the page says the evidence is &lt;i&gt;conflicting&lt;/i&gt;, and that ACSM advises &lt;i&gt;against&lt;/i&gt; routine supplementation" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=11;align=left;spacingLeft=10;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="40" y="564" width="1085" height="44" as="geometry" />
+        </mxCell>
+        <mxCell id="page-eval-data-note19" value="&lt;b&gt;Verified mechanically.&lt;/b&gt; A six-word window slid across every sentence of every reference against the indexed corpus: lowest overlap 54%, most above 80%. Keep that property when adding questions." style="shape=note;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;size=14;align=left;spacingLeft=8;fontSize=11;verticalAlign=top;spacingTop=6;" vertex="1" parent="1">
+          <mxGeometry x="40" y="630" width="540" height="110" as="geometry" />
+        </mxCell>
+        <mxCell id="page-eval-data-note20" value="&lt;b&gt;What regrounding was worth&lt;/b&gt;, pipeline unchanged:&lt;br&gt;&lt;br&gt;&amp;nbsp;&amp;nbsp;context recall&amp;nbsp;&amp;nbsp;&amp;nbsp;0.556 → &lt;b&gt;0.730&lt;/b&gt;&lt;br&gt;&amp;nbsp;&amp;nbsp;answer relevancy&amp;nbsp;0.891 → &lt;b&gt;0.922&lt;/b&gt;&lt;br&gt;&lt;br&gt;Two of three samples went from failing to passing." style="shape=note;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;size=14;align=left;spacingLeft=8;fontSize=11;verticalAlign=top;spacingTop=6;" vertex="1" parent="1">
+          <mxGeometry x="620" y="630" width="505" height="110" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram id="page-ui" name="14 · Streamlit UI">
+    <mxGraphModel dx="1422" dy="820" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1169" pageHeight="826" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="page-ui-t1" value="The UI — one loop for tuning, one for judging" style="text;html=1;fontSize=17;align=left;verticalAlign=middle;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="40" y="24" width="900" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="page-ui-t2" value="sidebar · one section per stage, in the order the stages run" style="text;html=1;fontSize=12;align=left;verticalAlign=middle;fontStyle=2;fontColor=#999999;" vertex="1" parent="1">
+          <mxGeometry x="40" y="70" width="420" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="page-ui-c3" value="&lt;b&gt;📥 Source &amp;amp; fetching&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#666666&quot;&gt;source · cache · base URL · min chars&lt;/font&gt;&lt;br&gt;&lt;br&gt;&lt;b&gt;🧹 Cleaning&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#666666&quot;&gt;bypass + 5 flags + dropped sections&lt;/font&gt;&lt;br&gt;&lt;br&gt;&lt;b&gt;✂️ Chunking&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#666666&quot;&gt;size · overlap · merge · prefix · cap&lt;/font&gt;&lt;br&gt;&lt;br&gt;&lt;b&gt;❓ Question augmentation&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#666666&quot;&gt;bypass · count · workers · temp · tokens&lt;/font&gt;&lt;br&gt;&lt;br&gt;&lt;b&gt;🔢 Embedding&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#666666&quot;&gt;server bypass · model · batch · prefixes&lt;/font&gt;&lt;br&gt;&lt;br&gt;&lt;b&gt;🗄️ Index storage&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#666666&quot;&gt;path · prefix · upsert size&lt;/font&gt;&lt;br&gt;&lt;br&gt;&lt;b&gt;🔀 Query expansion&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#666666&quot;&gt;bypass · phrasings · temp · boost · cap&lt;/font&gt;&lt;br&gt;&lt;br&gt;&lt;b&gt;🔎 Retrieval&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#666666&quot;&gt;top-k · one per chunk · overfetch&lt;/font&gt;&lt;br&gt;&lt;br&gt;&lt;b&gt;💬 Answering&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#666666&quot;&gt;bypass · temp · tokens · context budget&lt;/font&gt;&lt;br&gt;&lt;br&gt;&lt;b&gt;🔌 Model server&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#666666&quot;&gt;URL · model · key · rate · timeout · retries&lt;/font&gt;&lt;br&gt;&lt;br&gt;&lt;b&gt;🩺 Diagnostics&lt;/b&gt; &amp;nbsp; &lt;b&gt;📊 Evaluation&lt;/b&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#999999;fontSize=11;align=left;spacingLeft=10;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="40" y="100" width="300" height="460" as="geometry" />
+        </mxCell>
+        <mxCell id="page-ui-c4" value="&lt;b&gt;Ask&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#666666&quot;&gt;a question or a saved set · every result shows similarity, what matched, its heading path and full text · judge each one&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=11;align=left;spacingLeft=10;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="390" y="100" width="735" height="76" as="geometry" />
+        </mxCell>
+        <mxCell id="page-ui-c5" value="&lt;b&gt;Chunks&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#666666&quot;&gt;what the current settings produce, before any embedding is paid for · size stats · quality flags · the projected cost&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=11;align=left;spacingLeft=10;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="390" y="192" width="735" height="76" as="geometry" />
+        </mxCell>
+        <mxCell id="page-ui-c6" value="&lt;b&gt;Review&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#666666&quot;&gt;precision per question · best rank that actually hit · export the judgements as JSON&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=11;align=left;spacingLeft=10;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="390" y="284" width="735" height="76" as="geometry" />
+        </mxCell>
+        <mxCell id="page-ui-c7" value="&lt;b&gt;Evaluate&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#666666&quot;&gt;run the golden set · four scores against the threshold · per-question table · what to try · download the report&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=11;align=left;spacingLeft=10;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="390" y="376" width="735" height="76" as="geometry" />
+        </mxCell>
+        <mxCell id="page-ui-c8" value="&lt;b&gt;Index&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#666666&quot;&gt;rows by type · collections on disk · stages in force · effective settings · pipeline log&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=11;align=left;spacingLeft=10;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="390" y="468" width="735" height="76" as="geometry" />
+        </mxCell>
+        <mxCell id="page-ui-note9" value="&lt;b&gt;Every one of the 61 settings has a control&lt;/b&gt;, and a test walks app.py to prove it — a new field on Settings without a widget fails the suite.&lt;br&gt;&lt;br&gt;&lt;b&gt;Nothing here is destructive.&lt;/b&gt; Settings that change the stored vectors move you to a collection of their own, so you can compare configurations and move back to one you already built. Settings that do not are pushed onto the live stages by RAGPipeline.apply(), so moving a retrieval slider never reopens the database." style="shape=note;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;size=14;align=left;spacingLeft=8;fontSize=11;verticalAlign=top;spacingTop=6;" vertex="1" parent="1">
+          <mxGeometry x="40" y="590" width="1085" height="130" as="geometry" />
         </mxCell>
       </root>
     </mxGraphModel>
