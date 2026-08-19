@@ -25,7 +25,7 @@
         <mxCell id="p1-b5" value="QuestionGenerator&lt;br&gt;&lt;font color=&quot;#666666&quot;&gt;optional, config switch&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=12;" vertex="1" parent="1">
           <mxGeometry x="800" y="100" width="150" height="60" as="geometry" />
         </mxCell>
-        <mxCell id="p1-b6" value="OpenRouterEmbedder&lt;br&gt;&lt;font color=&quot;#666666&quot;&gt;passage: …&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=12;" vertex="1" parent="1">
+        <mxCell id="p1-b6" value="ServerEmbedder&lt;br&gt;&lt;font color=&quot;#666666&quot;&gt;title: none | text: …&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=12;" vertex="1" parent="1">
           <mxGeometry x="610" y="250" width="150" height="60" as="geometry" />
         </mxCell>
         <mxCell id="p1-b7" value="VectorIndex&lt;br&gt;&lt;font color=&quot;#666666&quot;&gt;ChromaDB&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=12;" vertex="1" parent="1">
@@ -37,7 +37,7 @@
         <mxCell id="p1-q1" value="your question" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#999999;fontSize=12;" vertex="1" parent="1">
           <mxGeometry x="40" y="430" width="150" height="60" as="geometry" />
         </mxCell>
-        <mxCell id="p1-q2" value="OpenRouterEmbedder&lt;br&gt;&lt;font color=&quot;#666666&quot;&gt;query: …&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=12;" vertex="1" parent="1">
+        <mxCell id="p1-q2" value="ServerEmbedder&lt;br&gt;&lt;font color=&quot;#666666&quot;&gt;task: search result | query: …&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=12;" vertex="1" parent="1">
           <mxGeometry x="230" y="430" width="150" height="60" as="geometry" />
         </mxCell>
         <mxCell id="p1-q3" value="Retriever&lt;br&gt;&lt;font color=&quot;#666666&quot;&gt;top-k, one per chunk&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=12;" vertex="1" parent="1">
@@ -85,11 +85,11 @@
         <mxCell id="p1-e12" value="cosine search" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=blockThin;endFill=1;dashed=1;strokeColor=#82b366;fontSize=11;exitX=0;exitY=0.5;exitDx=0;exitDy=0;" edge="1" parent="1" source="p1-b7" target="p1-q3">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="p1-note1" value="&lt;b&gt;OpenRouterClient&lt;/b&gt; is the only code that calls the API.&lt;br&gt;Retries, 20 requests/minute pacing, clear errors — written once.&lt;br&gt;&lt;br&gt;embeddings · nvidia/llama-nemotron-embed-vl-1b-v2:free&lt;br&gt;generation · nvidia/nemotron-nano-9b-v2:free" style="shape=note;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;size=14;align=left;spacingLeft=8;fontSize=11;verticalAlign=top;spacingTop=6;" vertex="1" parent="1">
+        <mxCell id="p1-note1" value="&lt;b&gt;LLMClient&lt;/b&gt; is the only code that calls the server.&lt;br&gt;Retries, optional pacing, clear errors — written once.&lt;br&gt;LM Studio needs no key; a hosted gateway would.&lt;br&gt;&lt;br&gt;embeddings · text-embedding-embeddinggemma-300m&lt;br&gt;generation · openai/gpt-oss-20b · served at 127.0.0.1:1234" style="shape=note;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;size=14;align=left;spacingLeft=8;fontSize=11;verticalAlign=top;spacingTop=6;" vertex="1" parent="1">
           <mxGeometry x="40" y="560" width="440" height="110" as="geometry" />
         </mxCell>
-        <mxCell id="p1-note2" value="&lt;b&gt;No API key?&lt;/b&gt; HashEmbedder substitutes word-overlap vectors,&lt;br&gt;so the whole pipeline and UI still run offline — poorly, but they run.&lt;br&gt;&lt;br&gt;&lt;b&gt;Prefixes matter.&lt;/b&gt; The embedding model is asymmetric: documents&lt;br&gt;go in as &quot;passage: …&quot;, searches as &quot;query: …&quot;." style="shape=note;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;size=14;align=left;spacingLeft=8;fontSize=11;verticalAlign=top;spacingTop=6;" vertex="1" parent="1">
-          <mxGeometry x="520" y="560" width="430" height="110" as="geometry" />
+        <mxCell id="p1-note2" value="&lt;b&gt;Server off?&lt;/b&gt; HashEmbedder substitutes word-overlap vectors, so the&lt;br&gt;pipeline and UI still run — poorly, but they run. RAG_OFFLINE=true.&lt;br&gt;&lt;br&gt;&lt;b&gt;Prefixes matter.&lt;/b&gt; The embedder is asymmetric: documents go in as&lt;br&gt;&quot;title: none | text: …&quot;, searches as &quot;task: search result | query: …&quot;.&lt;br&gt;Measured: 0.47 separation with them, 0.35 without." style="shape=note;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;size=14;align=left;spacingLeft=8;fontSize=11;verticalAlign=top;spacingTop=6;" vertex="1" parent="1">
+          <mxGeometry x="520" y="560" width="520" height="110" as="geometry" />
         </mxCell>
       </root>
     </mxGraphModel>
@@ -253,7 +253,7 @@
         <mxCell id="p4-f1" value="your question" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#999999;fontSize=12;" vertex="1" parent="1">
           <mxGeometry x="620" y="100" width="440" height="45" as="geometry" />
         </mxCell>
-        <mxCell id="p4-f2" value="embed as &quot;query: …&quot;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=12;" vertex="1" parent="1">
+        <mxCell id="p4-f2" value="embed as &quot;task: search result | query: …&quot;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=12;" vertex="1" parent="1">
           <mxGeometry x="620" y="175" width="440" height="45" as="geometry" />
         </mxCell>
         <mxCell id="p4-f3" value="cosine search · over-fetch top-k × 3" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=12;" vertex="1" parent="1">
@@ -292,7 +292,7 @@
         <mxCell id="p4-fe7" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=blockThin;endFill=1;dashed=1;strokeColor=#82b366;exitX=1;exitY=0.5;exitDx=0;exitDy=0;" edge="1" parent="1" source="p4-r1" target="p4-f3">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="p4-note2" value="&lt;b&gt;Why collapse:&lt;/b&gt; without it one passage fills every top-k slot through its own generated questions.&lt;br&gt;&lt;br&gt;&lt;b&gt;Collection name carries the recipe:&lt;/b&gt;&amp;nbsp; ods_health_facts__llamanemotro_c600_o100_q3_m80_s1&lt;br&gt;model · chunk size · overlap · questions · merge threshold · heading prefix — so changing a setting builds a separate index instead of poisoning the old one." style="shape=note;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;size=14;align=left;spacingLeft=8;fontSize=11;verticalAlign=middle;" vertex="1" parent="1">
+        <mxCell id="p4-note2" value="&lt;b&gt;Why collapse:&lt;/b&gt; without it one passage fills every top-k slot through its own generated questions.&lt;br&gt;&lt;br&gt;&lt;b&gt;Collection name carries the recipe:&lt;/b&gt;&amp;nbsp; ods_health_facts__embeddinggem_c600_o100_q3_m80_s1&lt;br&gt;embedder · chunk size · overlap · questions · merge threshold · heading prefix — so changing a setting builds a separate index instead of poisoning the old one. Settings with no room left in the name (cleaning flags, heading cap, embedding prefixes) hash into an _x… suffix, which stays empty while they are all at their defaults." style="shape=note;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;size=14;align=left;spacingLeft=8;fontSize=11;verticalAlign=middle;" vertex="1" parent="1">
           <mxGeometry x="40" y="630" width="1020" height="110" as="geometry" />
         </mxCell>
       </root>
