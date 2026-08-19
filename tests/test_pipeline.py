@@ -23,6 +23,7 @@ from rag.chunking import MarkdownChunker
 from rag.config import DOCUMENT_PREFIX, QUERY_PREFIX, Settings, env_flag
 from rag.diagnostics import LINK_HEAVY, OVERSIZED, TINY, ChunkInspector
 from rag.embedding import HashEmbedder, ServerEmbedder, _normalize
+from rag.expansion import QueryExpander
 from rag.indexing import VectorIndex
 from rag.llm import LLMClient, LLMError, RateLimiter
 from rag.pipeline import DISABLED_NOTICE, RAGPipeline, reader
@@ -405,6 +406,133 @@ def test_settings_default_to_the_local_server():
 
 
 # --------------------------------------------------------------------------- #
+# Query expansion
+# --------------------------------------------------------------------------- #
+def expanding_client(reply: str) -> LLMClient:
+    def handler(request: httpx.Request) -> httpx.Response:
+        return httpx.Response(200, json={"choices": [{"message": {"content": reply}}]})
+
+    return fake_client(handler)
+
+
+def test_expander_keeps_the_original_query_first():
+    expander = QueryExpander(
+        expanding_client("1. creatine sprint performance\n- phosphocreatine ATP"),
+        num_expansions=2,
+    )
+    assert expander("does creatine help sprinting?") == [
+        "does creatine help sprinting?",
+        "creatine sprint performance",
+        "phosphocreatine ATP",
+    ]
+
+
+def test_expander_degrades_to_the_plain_query():
+    """A search that cannot be expanded is still a search."""
+
+    def failing(request: httpx.Request) -> httpx.Response:
+        return httpx.Response(400, text='{"error":"nope"}')
+
+    logged = []
+    expander = QueryExpander(
+        fake_client(failing), num_expansions=2, log=logged.append
+    )
+    assert expander("is HMB safe?") == ["is HMB safe?"]
+    assert logged and "query expansion" in logged[0], logged
+
+    # ...and the count is the switch, so zero never reaches the server.
+    never = QueryExpander(expanding_client("unused"), num_expansions=0)
+    assert never("is HMB safe?") == ["is HMB safe?"]
+    assert QueryExpander(expanding_client("x"), num_expansions=2)("  ") == ["  "]
+
+
+def test_expander_drops_a_phrasing_identical_to_the_query():
+    expander = QueryExpander(
+        expanding_client("is HMB safe?\nHMB side effects"), num_expansions=2
+    )
+    assert expander("is HMB safe?") == ["is HMB safe?", "HMB side effects"]
+
+
+def test_agreement_boosts_the_rank_but_never_the_similarity():
+    """The number on screen stays the one the embedder returned."""
+    chunks = MarkdownChunker(chunk_size=300, chunk_overlap=50)(MarkdownCleaner()(MESSY))
+
+    with tempfile.TemporaryDirectory() as tmp:
+        index = VectorIndex(HashEmbedder(), db_path=tmp, collection_name="test")
+        index.add(chunks)
+
+        # Two phrasings, both of which find the creatine passage.
+        expander = QueryExpander(
+            expanding_client("creatine ATP muscles energy"), num_expansions=1
+        )
+        retriever = Retriever(index, top_k=3, expander=expander, match_boost=0.05)
+        agreed = retriever("creatine energy sprinting muscles")
+
+        assert agreed, "expected results"
+        best = agreed[0]
+        assert best.matches == 2, "both phrasings found it"
+        assert best.boost == 0.05
+        assert best.score == best.similarity + 0.05
+        assert best.similarity < 1.0 and best.score > best.similarity
+
+        # Without expansion nothing is boosted, however many rows matched.
+        plain = Retriever(index, top_k=3)("creatine energy sprinting muscles")
+        assert all(hit.matches == 1 and hit.boost == 0.0 for hit in plain)
+        assert all(hit.score == hit.similarity for hit in plain)
+
+
+def test_a_chunks_own_questions_are_not_mistaken_for_agreement():
+    """One vote per phrasing — not per matching row.
+
+    A chunk indexed with three hypothetical questions can match through all of
+    them on a single query. That is one phrasing agreeing with itself, and must
+    not read as four independent confirmations.
+    """
+    chunk = Chunk(0, "Creatine helps generate ATP for short bursts of activity.")
+    questions = {chunk.id: ["What does creatine do?", "Is creatine for sprinting?"]}
+
+    with tempfile.TemporaryDirectory() as tmp:
+        index = VectorIndex(HashEmbedder(), db_path=tmp, collection_name="test")
+        index.add([chunk], questions)
+
+        results = Retriever(index, top_k=3)("creatine ATP sprinting")
+        assert results, "expected a result"
+        assert all(hit.matches == 1 for hit in results), [h.matches for h in results]
+        assert all(hit.boost == 0.0 for hit in results)
+
+
+def test_expansion_does_not_duplicate_results_without_dedupe():
+    """`dedupe=False` keeps questions separate from chunks, not repeats of a row."""
+    chunk = Chunk(0, "Beta-alanine buffers acid and delays muscular fatigue.")
+    questions = {chunk.id: ["How does beta-alanine work?"]}
+
+    with tempfile.TemporaryDirectory() as tmp:
+        index = VectorIndex(HashEmbedder(), db_path=tmp, collection_name="test")
+        index.add([chunk], questions)
+
+        expander = QueryExpander(
+            expanding_client("beta alanine fatigue buffering"), num_expansions=1
+        )
+        results = Retriever(index, top_k=5, dedupe=False, expander=expander)(
+            "beta-alanine muscular fatigue"
+        )
+        seen = [(hit.chunk_id, hit.matched_text) for hit in results]
+        assert len(seen) == len(set(seen)), f"a row came back twice: {seen}"
+
+
+def test_query_expansion_is_query_time_and_never_touches_the_index():
+    """Expansion changes what is searched for, not what is stored."""
+    settings = Settings()
+    assert settings.collection_name == settings.with_(query_expansions=7).collection_name
+    assert settings.index_key == settings.with_(query_expansions=7).index_key
+    assert settings.reader_key == settings.with_(match_boost=0.2).reader_key
+    # The switch collapses into the count, like the questions switch does.
+    off = Settings(enable_query_expansion=False, query_expansions=4)
+    assert off.query_expansions == 0
+    assert off.with_(query_expansions=9).query_expansions == 0
+
+
+# --------------------------------------------------------------------------- #
 # Optional stages: every one of them can be switched off
 # --------------------------------------------------------------------------- #
 def test_cleaning_can_be_bypassed():
@@ -452,6 +580,30 @@ def test_every_stage_setting_reaches_its_stage():
         assert pipeline.retriever.dedupe is True
         assert pipeline.inspector.tiny_below == 5
         assert pipeline.index is index, "a runtime change must not reopen the index"
+
+
+def test_expansion_switch_is_separate_from_being_offline():
+    with tempfile.TemporaryDirectory() as tmp:
+        off = RAGPipeline(
+            Settings(db_path=tmp, enable_query_expansion=False),
+            log=lambda message: None,
+        )
+        assert off.expander is not None, "the stage exists; its count is zero"
+        assert off.can_expand is False
+        assert off.retriever.expander("anything") == ["anything"]
+
+        offline = RAGPipeline(
+            Settings(db_path=tmp, offline=True), log=lambda message: None
+        )
+        assert offline.expander is None and offline.can_expand is False
+
+        # ...and `apply` turns it back on without rebuilding the index.
+        on = RAGPipeline(Settings(db_path=tmp), log=lambda message: None)
+        index = on.index
+        on.apply(on.settings.with_(query_expansions=5, query_expansion_temperature=1.1))
+        assert on.expander.num_expansions == 5
+        assert on.expander.temperature == 1.1
+        assert on.index is index, "a query-time change must not reopen the index"
 
 
 def test_answering_switch_is_separate_from_being_offline():

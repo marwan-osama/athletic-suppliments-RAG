@@ -15,10 +15,17 @@ from __future__ import annotations
 
 import json
 from collections import deque
+from pathlib import Path
 from typing import Any, Dict, List
 
 import streamlit as st
 
+from evaluation import DiagnosticEngine, EvaluationEngine, ReportGenerator
+from evaluation import available as evaluation_available
+from evaluation import collect, load_dataset
+from evaluation.evaluate_rag import METRIC_NAMES
+from evaluation.evaluate_rag import INSTALL_HINT as EVAL_INSTALL_HINT
+from evaluation.harness import HarnessError, check_ready
 from rag.config import REASONING_EFFORTS, Settings
 from rag.pipeline import RAGPipeline, reader
 from rag.schema import Chunk, Retrieved
@@ -292,6 +299,57 @@ def storage_controls(defaults: Settings) -> Dict[str, Any]:
         }
 
 
+def expansion_controls(defaults: Settings) -> Dict[str, Any]:
+    with st.sidebar.expander(
+        stage_title("🔀", "Query expansion", "enable_query_expansion",
+                    defaults.enable_query_expansion)
+    ):
+        enabled = switch(
+            "Search other phrasings too", "enable_query_expansion",
+            defaults.enable_query_expansion,
+            "Asks the model for alternative wordings of the question and "
+            "searches for each. Finds passages worded differently from the "
+            "query, at one generation call per search — so searching gets "
+            "slower, not building.",
+        )
+        return {
+            "enable_query_expansion": enabled,
+            "query_expansions": st.slider(
+                "Extra phrasings", 1, 8,
+                # Zeroed while the switch is off, so fall back to the default
+                # rather than showing a slider pinned at its floor.
+                defaults.query_expansions or Settings.query_expansions, 1,
+                key=cfg("query_expansions"), disabled=not enabled,
+                help="Each one costs a search of its own; the original query is "
+                     "always kept.",
+            ),
+            "query_expansion_temperature": st.slider(
+                "Temperature", 0.0, 2.0,
+                float(defaults.query_expansion_temperature), 0.05,
+                key=cfg("query_expansion_temperature"), disabled=not enabled,
+                help="Higher than the other stages by default: phrasings that "
+                     "differ from each other are the point.",
+            ),
+            "query_expansion_max_tokens": st.number_input(
+                "Max tokens per call", 32, 8_192,
+                defaults.query_expansion_max_tokens, 32,
+                key=cfg("query_expansion_max_tokens"), disabled=not enabled,
+            ),
+            "match_boost": st.slider(
+                "Agreement boost", 0.0, 0.3, float(defaults.match_boost), 0.01,
+                key=cfg("match_boost"), disabled=not enabled,
+                help="Added to a chunk's rank for each phrasing beyond the "
+                     "first that found it. Moves the ranking only — the "
+                     "similarity shown on a result is never touched.",
+            ),
+            "match_boost_cap": st.slider(
+                "Boost cap", 0.0, 0.5, float(defaults.match_boost_cap), 0.01,
+                key=cfg("match_boost_cap"), disabled=not enabled,
+                help="However many phrasings agree, the boost stops here.",
+            ),
+        }
+
+
 def retrieval_controls(defaults: Settings) -> Dict[str, Any]:
     with st.sidebar.expander("🔎 Retrieval", expanded=True):
         dedupe = st.checkbox(
@@ -385,6 +443,72 @@ def server_controls(defaults: Settings) -> Dict[str, Any]:
         }
 
 
+def evaluation_controls(defaults: Settings) -> Dict[str, Any]:
+    with st.sidebar.expander("📊 Evaluation"):
+        st.caption(
+            "Grades the pipeline on the Evaluate tab. Runs on demand — none of "
+            "this affects a search."
+        )
+        return {
+            "eval_dataset_path": st.text_input(
+                "Golden set", value=str(defaults.eval_dataset_path),
+                key=cfg("eval_dataset_path"),
+                help="A .json, .jsonl or .csv of questions and reference "
+                     "answers. Contexts and answers come from the pipeline.",
+            ),
+            "eval_output_dir": st.text_input(
+                "Report directory", value=str(defaults.eval_output_dir),
+                key=cfg("eval_output_dir"),
+            ),
+            "eval_threshold": st.slider(
+                "Failure threshold", 0.0, 1.0, float(defaults.eval_threshold), 0.05,
+                key=cfg("eval_threshold"),
+                help="A metric below this counts as a failure and gets diagnosed.",
+            ),
+            "eval_llm_model": st.text_input(
+                "Judge model", value=defaults.eval_llm_model,
+                key=cfg("eval_llm_model"),
+                placeholder=defaults.llm_model,
+                help="Blank uses the generation model. A stronger judge than "
+                     "the model being judged is the usual arrangement.",
+            ),
+            "eval_embed_model": st.text_input(
+                "Judge embeddings", value=defaults.eval_embed_model,
+                key=cfg("eval_embed_model"), placeholder=defaults.embed_model,
+                help="Blank uses the pipeline's embedding model. Answer "
+                     "relevancy is the metric that needs it.",
+            ),
+            "eval_base_url": st.text_input(
+                "Judge endpoint", value=defaults.eval_base_url,
+                key=cfg("eval_base_url"), placeholder=defaults.base_url,
+                help="Blank uses the same server. Point it elsewhere to judge "
+                     "local answers with a hosted model.",
+            ),
+            "eval_normalize_acronyms": st.checkbox(
+                "Expand medical acronyms", value=defaults.eval_normalize_acronyms,
+                key=cfg("eval_normalize_acronyms"),
+                help="So 'HMB' and 'beta-hydroxy beta-methylbutyrate' are not "
+                     "scored as different claims.",
+            ),
+            "eval_llm_diagnostics": st.checkbox(
+                "Diagnose failures with the model", value=defaults.eval_llm_diagnostics,
+                key=cfg("eval_llm_diagnostics"),
+                help="Adds a written analysis per failing sample, at one "
+                     "generation call each. Off leaves the rule-based advice.",
+            ),
+            "eval_max_workers": st.slider(
+                "Judge concurrency", 1, 16, defaults.eval_max_workers, 1,
+                key=cfg("eval_max_workers"),
+                help="One at a time by default — a local model serving several "
+                     "scoring calls at once mostly queues them.",
+            ),
+            "eval_timeout": st.number_input(
+                "Judge timeout (s)", 10, 3600, defaults.eval_timeout, 10,
+                key=cfg("eval_timeout"),
+            ),
+        }
+
+
 def diagnostics_controls(defaults: Settings) -> Dict[str, Any]:
     with st.sidebar.expander("🩺 Chunk diagnostics"):
         return {
@@ -408,8 +532,9 @@ def sidebar() -> Settings:
     values: Dict[str, Any] = {}
     for controls in (
         source_controls, cleaning_controls, chunking_controls, question_controls,
-        embedding_controls, storage_controls, retrieval_controls,
-        answering_controls, server_controls, diagnostics_controls,
+        embedding_controls, storage_controls, expansion_controls,
+        retrieval_controls, answering_controls, server_controls,
+        diagnostics_controls, evaluation_controls,
     ):
         values.update(controls(defaults))
     return defaults.with_(**values)
@@ -549,9 +674,13 @@ def render_results(pipeline: RAGPipeline, question: str, hits: List[Retrieved]) 
 
 def render_hit(question: str, position: int, hit: Retrieved) -> None:
     badge = "❓ question match" if hit.match_type == "question" else "📄 chunk match"
+    agreement = (
+        f" · 🔀 {hit.matches} phrasings agreed, rank +{hit.boost:.2f}"
+        if hit.matches > 1 else ""
+    )
     title = (
         f"**{position}. {hit.section or 'document'}** — similarity "
-        f"{hit.similarity:.3f} · {badge} · {len(hit.text)} chars"
+        f"{hit.similarity:.3f} · {badge} · {len(hit.text)} chars{agreement}"
     )
     with st.expander(title, expanded=position <= 3):
         st.progress(max(0.0, min(hit.similarity, 1.0)))
@@ -575,6 +704,8 @@ def render_hit(question: str, position: int, hit: Retrieved) -> None:
             "chunk_id": hit.chunk_id,
             "section": hit.section,
             "similarity": round(hit.similarity, 4),
+            "score": round(hit.score, 4),
+            "matches": hit.matches,
             "match_type": hit.match_type,
             "rank": position,
         }
@@ -703,6 +834,146 @@ def review_tab() -> None:
 
 
 # --------------------------------------------------------------------------- #
+# Tab: evaluate
+# --------------------------------------------------------------------------- #
+def evaluate_tab(pipeline: RAGPipeline, settings: Settings) -> None:
+    st.caption(
+        "Asks the pipeline every question in the golden set and grades what "
+        "comes back, so these numbers move when the settings above do."
+    )
+
+    try:
+        dataset = load_dataset(settings.eval_dataset_path)
+    except Exception as exc:  # noqa: BLE001 - a missing or malformed file
+        st.error(f"Could not read the golden set: {exc}")
+        return
+
+    base_url, judge, judge_embed = settings.eval_endpoint()
+    columns = st.columns(4)
+    columns[0].metric("Questions", len(dataset))
+    columns[1].metric("Threshold", f"{settings.eval_threshold:.2f}")
+    columns[2].metric("Judge", judge.split("/")[-1])
+    columns[3].metric("Rows indexed", f"{pipeline.index.count:,}")
+    st.caption(f"Judge `{judge}` · embeddings `{judge_embed}` · at `{base_url}`")
+
+    blocked = evaluation_blocker(pipeline)
+    if blocked:
+        st.warning(blocked)
+    if st.button("Run evaluation", type="primary", disabled=bool(blocked),
+                 help="One search and one answer per question, then the judge "
+                      "reads every sample — minutes, not seconds."):
+        run_evaluation(pipeline, settings, dataset)
+
+    result = state("eval", {}).get("result")
+    if result is None:
+        with st.expander(f"Golden set ({len(dataset)} questions)"):
+            for position, row in enumerate(dataset, start=1):
+                st.markdown(f"`{position}.` **{row['question']}**")
+                st.caption(row["ground_truth"])
+        return
+
+    render_evaluation(result, state("eval", {}).get("diagnostics"),
+                      state("eval", {}).get("report_path"))
+
+
+def evaluation_blocker(pipeline: RAGPipeline) -> str:
+    """Why the run would be meaningless, in the order the user can fix it."""
+    if not evaluation_available():
+        return EVAL_INSTALL_HINT
+    try:
+        check_ready(pipeline)
+    except HarnessError as exc:
+        return str(exc)
+    return ""
+
+
+def run_evaluation(pipeline: RAGPipeline, settings: Settings, dataset) -> None:
+    bar = st.progress(0.0, text="asking the pipeline…")
+    try:
+        records = collect(
+            pipeline, dataset,
+            on_progress=lambda done, total: bar.progress(
+                done / max(total, 1), text=f"asking the pipeline: {done}/{total}"
+            ),
+        )
+        bar.progress(1.0, text="scoring — the judge reads every sample…")
+        result = EvaluationEngine(settings).run(records)
+        diagnostics = DiagnosticEngine(settings).run(result)
+    except Exception as exc:  # noqa: BLE001 - surface judge/server errors in the UI
+        bar.empty()
+        st.error(f"Evaluation failed: {exc}")
+        return
+
+    bar.empty()
+    path = ReportGenerator(settings.eval_output_dir).save_json(result, diagnostics)
+    state("eval", {}).update(result=result, diagnostics=diagnostics, report_path=path)
+    st.rerun()
+
+
+def render_evaluation(result, diagnostics, report_path) -> None:
+    st.subheader("Scores")
+    columns = st.columns(len(result.aggregate))
+    for column, (metric, score) in zip(columns, result.aggregate.items()):
+        column.metric(
+            metric.replace("_", " ").title(), f"{score:.3f}",
+            delta=f"{score - result.threshold:+.3f} vs threshold",
+            delta_color="normal" if score >= result.threshold else "inverse",
+        )
+    st.caption(
+        "Recall and precision grade retrieval; faithfulness and relevancy "
+        "grade the answer — so a failing metric names the stage to look at."
+    )
+
+    st.dataframe(
+        [
+            {
+                "question": sample.question,
+                **{name: round(sample.scores[name], 3) for name in METRIC_NAMES},
+                "failing": ", ".join(sample.failing_stages) or "—",
+            }
+            for sample in result.samples
+        ],
+        use_container_width=True,
+    )
+
+    if report_path:
+        st.caption(f"Report written to `{report_path}`")
+        st.download_button(
+            "Download report (.json)",
+            data=Path(report_path).read_text(encoding="utf-8"),
+            file_name=Path(report_path).name,
+            mime="application/json",
+        )
+
+    if diagnostics and diagnostics.prioritised_actions:
+        st.subheader("What to try, most failures first")
+        for action in diagnostics.prioritised_actions[:8]:
+            st.markdown(f"- {action}")
+
+    for sample in result.samples:
+        if not sample.failure_flags:
+            continue
+        with st.expander(
+            f"❌ {sample.question} — {', '.join(sample.failure_flags)}"
+        ):
+            st.markdown("**Answer**")
+            st.info(sample.answer)
+            st.markdown("**Reference**")
+            st.caption(sample.ground_truth)
+            if sample.retrieved:
+                st.markdown("**Retrieved**")
+                st.dataframe(sample.retrieved, use_container_width=True)
+            analysis = next(
+                (d.llm_analysis for d in (diagnostics.diagnoses if diagnostics else [])
+                 if d.question == sample.question and d.llm_analysis),
+                "",
+            )
+            if analysis:
+                st.markdown("**Diagnosis**")
+                st.write(analysis)
+
+
+# --------------------------------------------------------------------------- #
 # Tab: index
 # --------------------------------------------------------------------------- #
 def index_tab(pipeline: RAGPipeline, settings: Settings) -> None:
@@ -736,6 +1007,12 @@ def index_tab(pipeline: RAGPipeline, settings: Settings) -> None:
                 f"{settings.questions_per_chunk} per chunk · {settings.llm_model} "
                 f"· {settings.question_workers} workers"
                 if pipeline.generator else "bypassed"
+            ),
+            "expansion": (
+                f"{settings.query_expansions} extra phrasings · "
+                f"{settings.llm_model} · temperature "
+                f"{settings.query_expansion_temperature}"
+                if pipeline.can_expand else "bypassed"
             ),
             "retrieval": (
                 f"top {settings.top_k}"
@@ -789,13 +1066,17 @@ def main() -> None:
     sidebar_status(pipeline, settings)
 
     st.title("Dietary supplements for athletic performance — RAG explorer")
-    ask, chunks, review, index = st.tabs(["Ask", "Chunks", "Review", "Index"])
+    ask, chunks, review, evaluate, index = st.tabs(
+        ["Ask", "Chunks", "Review", "Evaluate", "Index"]
+    )
     with ask:
         ask_tab(pipeline, settings)
     with chunks:
         chunks_tab(pipeline, settings)
     with review:
         review_tab()
+    with evaluate:
+        evaluate_tab(pipeline, settings)
     with index:
         index_tab(pipeline, settings)
 

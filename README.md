@@ -6,7 +6,8 @@ pipeline stage, plus a Streamlit UI for tuning the retrieval settings and
 reviewing what comes back.
 
 ```
-fetch → clean → chunk → generate questions → embed → index → retrieve → answer
+fetch → clean → chunk → generate questions → embed → index
+query → expand → retrieve → answer
 ```
 
 Models run locally in [LM Studio](https://lmstudio.ai), both off its
@@ -55,11 +56,13 @@ stop appearing, the log will say why.
 | [rag/llm.py](rag/llm.py) | `LLMClient` | the only module that calls the server: retries, pacing, errors |
 | [rag/embedding.py](rag/embedding.py) | `ServerEmbedder`, `HashEmbedder` | query/document-aware embeddings; offline fallback |
 | [rag/indexing.py](rag/indexing.py) | `VectorIndex` | ChromaDB collection: upsert, count, query, reset |
-| [rag/retrieval.py](rag/retrieval.py) | `Retriever` | query → ranked chunks, one result per parent chunk |
+| [rag/expansion.py](rag/expansion.py) | `QueryExpander` | query → that query plus other phrasings (optional) |
+| [rag/retrieval.py](rag/retrieval.py) | `Retriever` | query → ranked chunks, one result per parent chunk, phrasings merged |
 | [rag/answering.py](rag/answering.py) | `Answerer` | grounded answer with `[n]` citations (optional) |
 | [rag/diagnostics.py](rag/diagnostics.py) | `ChunkInspector` | chunk size stats and quality flags |
 | [rag/pipeline.py](rag/pipeline.py) | `RAGPipeline` | wires the stages; `build()`, `search()`, `answer()` |
 | [rag/config.py](rag/config.py) | `Settings` | every tunable value, one dataclass |
+| [evaluation/](evaluation) | `EvaluationEngine` | grades the pipeline against a golden set (optional) |
 | [app.py](app.py) | — | Streamlit UI |
 | [rag/cli.py](rag/cli.py) | — | `python -m rag.cli chunks \| build \| query` |
 
@@ -135,10 +138,12 @@ from, including the UI slider and `--questions`, and disabled runs get their own
   | ❓ Question augmentation | master switch, questions per chunk, workers, temperature, max tokens |
   | 🔢 Embedding | server switch, model, batch size, dimensions, document and query prefixes |
   | 🗄️ Index storage | Chroma path, collection prefix, rows per upsert |
+  | 🔀 Query expansion | master switch, extra phrasings, temperature, max tokens, agreement boost and its cap |
   | 🔎 Retrieval | top-k, one-result-per-chunk, overfetch multiplier |
   | 💬 Answering | master switch, temperature, max tokens, context budget |
   | 🔌 Model server | base URL, generation model, API key, rate limit, timeout, retries, reasoning effort |
   | 🩺 Chunk diagnostics | the TINY flag threshold |
+  | 📊 Evaluation | golden set, report directory, failure threshold, judge model/embeddings/endpoint, acronym expansion, LLM diagnosis, concurrency, timeout |
 - **Ask** — ask a question, or keep a question set and run one (or all) of them.
   Every result shows its similarity, whether it matched the chunk or a generated
   question, its heading path, and its full text.
@@ -147,6 +152,8 @@ from, including the UI slider and `--questions`, and disabled runs get their own
   embeddings. This is the cheap way to tune chunk size and overlap.
 - **Review** — mark retrieved chunks relevant / not relevant with notes, see
   precision per question, and export the judgements as JSON.
+- **Evaluate** — score the pipeline against the golden set: four metrics, a
+  per-question table, what to try for each failure, and the JSON report.
 - **Index** — row counts by type, collection list, the stages currently in
   force, the effective settings (with what differs from the defaults called out),
   and the pipeline log.
@@ -160,10 +167,77 @@ the cleaning flags, the heading cap, the embedding prefixes — are hashed into 
 `_x…` suffix, which stays empty while they are all at their defaults so indexes
 already on disk keep their names.
 
+### Query expansion
+
+Retrieval can search more than the question as typed. With it on, the model is
+asked for a few other phrasings — domain terms, scientific synonyms — and the
+index is searched once per phrasing, which finds passages worded unlike the
+question. A chunk that several phrasings agree on is more likely to be the right
+one, so extra agreement lifts it up the ranking.
+
+That bonus lands on `Retrieved.score`, which is what results are sorted by.
+`Retrieved.similarity` stays exactly what the embedder returned, so the number
+shown next to a result never overstates the match; a boosted result says how many
+phrasings agreed and what it was given. Agreement is counted one vote per
+phrasing, not per matching row — a chunk found through three of its own
+hypothetical questions is one phrasing agreeing with itself, not three
+confirmations.
+
+It costs one generation call per **search** (build time is unaffected), so
+searching gets slower. `RAG_ENABLE_QUERY_EXPANSION=false`, or the sidebar toggle,
+turns it off.
+
 Settings split in two: those that decide what is stored (`Settings.index_key`)
 get a pipeline and a collection of their own, and everything else is pushed onto
 the live stages by `RAGPipeline.apply()` — so changing top-k or a temperature
 never reopens the database or invalidates an index.
+
+## Evaluation
+
+Judging retrieval by eye stops scaling around the third question. The
+`evaluation` package asks the pipeline a fixed set of questions and grades what
+comes back:
+
+| metric | grades | asks |
+| --- | --- | --- |
+| context recall | `Retriever` | did it find the evidence the reference answer needs? |
+| context precision | `Retriever` | are the chunks it returned actually about the question? |
+| faithfulness | `Answerer` | is the answer grounded in those chunks? |
+| answer relevancy | `Answerer` | does the answer address the question asked? |
+
+Two grade retrieval and two grade generation, so a failing metric names the
+stage to look at rather than saying "the RAG is bad".
+
+```bash
+.venv/bin/python -m evaluation run
+```
+
+The golden file holds only the **question** and a **reference answer**. The
+contexts and the answer come from `RAGPipeline.search()` and `.answer()` at run
+time — see [evaluation/harness.py](evaluation/harness.py). That is what makes
+the numbers worth having: they move when the pipeline changes. Measured on the
+shipped set against the local models:
+
+| `top_k` | context recall | context precision |
+| --- | --- | --- |
+| 5 | 0.730 | 0.963 |
+| 10 | **0.944** | **0.863** |
+
+which is the recall/precision trade-off the knob actually buys. The iron
+question is the one that needs the depth: its reference answer draws on four
+sections of the page, and five chunks cannot hold all of them.
+
+Scoring uses [ragas](https://github.com/explodinggradients/ragas), imported only
+when a run starts, so the pipeline, the CLI and the rest of the UI never need
+it. Install it with `pip install -r requirements.txt`; without it the Evaluate
+tab says so and stays disabled. The judge defaults to the same local server —
+`eval_llm_model` / `eval_base_url` point it at a stronger or hosted model.
+
+Every claim in a reference answer is traceable to the source page, which is
+what makes context recall mean anything: the metric asks whether retrieval found
+the evidence the reference relies on, so a reference asserting something the
+corpus does not contain fails for reasons that have nothing to do with
+retrieval. Keep that property when adding questions.
 
 ## CLI
 

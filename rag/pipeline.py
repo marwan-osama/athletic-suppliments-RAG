@@ -1,13 +1,14 @@
 """The pipeline: wires the stages together and exposes build / search / answer.
 
-    fetch -> clean -> chunk -> (questions) -> embed -> index -> retrieve -> answer
+    fetch -> clean -> chunk -> (questions) -> embed -> index
+                                    query -> (expand) -> retrieve -> answer
 
 Stages compose with `|`, so `pipeline.chunk()` is literally
 `(fetcher | cleaner | chunker)(source)`.
 
 Every stage takes its hyperparameters from `Settings`, and the optional ones —
-cleaning, question generation, answering, the fetch cache, the model server
-itself — drop out when their switch is off. Settings that change the stored
+cleaning, question generation, query expansion, answering, the fetch cache, the
+model server itself — drop out when their switch is off. Settings that change the stored
 vectors are baked into `Settings.index_key`; the rest can be pushed onto a live
 pipeline with `apply()`, which is what lets the UI move a slider without
 reopening the database.
@@ -24,6 +25,7 @@ from .chunking import MarkdownChunker
 from .config import Settings
 from .diagnostics import ChunkInspector, ChunkReport
 from .embedding import HashEmbedder, ServerEmbedder
+from .expansion import QueryExpander
 from .fetching import SourceFetcher
 from .indexing import VectorIndex
 from .llm import LLMClient
@@ -136,7 +138,10 @@ class RAGPipeline:
             db_path=settings.db_path,
             collection_name=settings.collection_name,
         )
-        self.retriever = Retriever(self.index)
+        # The expander exists whenever a server does; `num_expansions` is what
+        # switches it off, so `apply()` can toggle it without a rebuild.
+        self.expander = QueryExpander(self.client, log=log) if self.client else None
+        self.retriever = Retriever(self.index, expander=self.expander)
         self.generator = (
             QuestionGenerator(self.client, log=log)
             if self.client and settings.questions_per_chunk > 0
@@ -170,6 +175,8 @@ class RAGPipeline:
         self.retriever.top_k = settings.top_k
         self.retriever.dedupe = settings.dedupe_by_chunk
         self.retriever.overfetch = settings.retrieval_overfetch
+        self.retriever.match_boost = settings.match_boost
+        self.retriever.match_boost_cap = settings.match_boost_cap
 
         if self.client is not None:
             self.client.tune(
@@ -186,6 +193,12 @@ class RAGPipeline:
             self.generator.temperature = settings.question_temperature
             self.generator.max_tokens = settings.question_max_tokens
             self.generator.reasoning_effort = settings.reasoning_effort
+        if self.expander is not None:
+            self.expander.model_name = settings.llm_model
+            self.expander.num_expansions = settings.query_expansions
+            self.expander.temperature = settings.query_expansion_temperature
+            self.expander.max_tokens = settings.query_expansion_max_tokens
+            self.expander.reasoning_effort = settings.reasoning_effort
         if self.answerer is not None:
             self.answerer.model_name = settings.llm_model
             self.answerer.temperature = settings.answer_temperature
@@ -197,6 +210,11 @@ class RAGPipeline:
     def offline(self) -> bool:
         """True when the model server is switched off (hash vectors, no LLM)."""
         return self.client is None
+
+    @property
+    def can_expand(self) -> bool:
+        """Whether searches will be expanded: needs a server and a non-zero count."""
+        return self.expander is not None and self.settings.query_expansions > 0
 
     @property
     def can_answer(self) -> bool:
