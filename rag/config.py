@@ -171,7 +171,7 @@ class Settings:
     match_boost_cap: float = 0.15
 
     # --- reranking (optional stage) ----------------------------------------- #
-    enable_reranking: bool = True
+    enable_reranking: bool = False
     rerank_candidates: int = 15
     rerank_top_k: int = 5
     rerank_temperature: float = 0.3
@@ -232,7 +232,7 @@ class Settings:
             enable_query_expansion=env_flag(
                 "RAG_ENABLE_QUERY_EXPANSION", default=True
             ),
-            enable_reranking=env_flag("RAG_ENABLE_RERANKING", default=True),
+            enable_reranking=env_flag("RAG_ENABLE_RERANKING", default=False),
             offline=env_flag("RAG_OFFLINE", default=False),
             use_cache=env_flag("RAG_USE_CACHE", default=True),
         )
