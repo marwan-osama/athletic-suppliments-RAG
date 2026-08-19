@@ -30,6 +30,7 @@ from .fetching import SourceFetcher
 from .indexing import VectorIndex
 from .llm import LLMClient
 from .preprocessing import MarkdownCleaner
+from .reranking import LLMReranker
 from .retrieval import Retriever
 from .schema import BuildReport, Chain, Chunk, Identity, Retrieved, Stage
 
@@ -142,6 +143,7 @@ class RAGPipeline:
         # switches it off, so `apply()` can toggle it without a rebuild.
         self.expander = QueryExpander(self.client, log=log) if self.client else None
         self.retriever = Retriever(self.index, expander=self.expander)
+        self.reranker = LLMReranker(self.client, log=log) if self.client else None
         self.generator = (
             QuestionGenerator(self.client, log=log)
             if self.client and settings.questions_per_chunk > 0
@@ -199,6 +201,12 @@ class RAGPipeline:
             self.expander.temperature = settings.query_expansion_temperature
             self.expander.max_tokens = settings.query_expansion_max_tokens
             self.expander.reasoning_effort = settings.reasoning_effort
+        if self.reranker is not None:
+            self.reranker.model_name = settings.llm_model
+            self.reranker.top_k = settings.rerank_top_k
+            self.reranker.temperature = settings.rerank_temperature
+            self.reranker.max_tokens = settings.rerank_max_tokens
+            self.reranker.reasoning_effort = settings.reasoning_effort
         if self.answerer is not None:
             self.answerer.model_name = settings.llm_model
             self.answerer.temperature = settings.answer_temperature
@@ -286,7 +294,12 @@ class RAGPipeline:
 
     # -- querying ------------------------------------------------------------ #
     def search(self, query: str, top_k: Optional[int] = None) -> List[Retrieved]:
-        return self.retriever.run(query, top_k=top_k)
+        k = top_k or (self.settings.rerank_candidates if self.settings.enable_reranking and self.reranker else self.settings.top_k)
+        candidates = self.retriever.run(query, top_k=k)
+        
+        if self.settings.enable_reranking and self.reranker:
+            return self.reranker.run(query, candidates)
+        return candidates
 
     def answer(self, query: str, chunks: List[Retrieved]) -> str:
         if self.answerer is None:

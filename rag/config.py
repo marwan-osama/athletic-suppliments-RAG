@@ -170,6 +170,13 @@ class Settings:
     match_boost: float = 0.05  # per phrasing beyond the first
     match_boost_cap: float = 0.15
 
+    # --- reranking (optional stage) ----------------------------------------- #
+    enable_reranking: bool = True
+    rerank_candidates: int = 15
+    rerank_top_k: int = 5
+    rerank_temperature: float = 0.3
+    rerank_max_tokens: int = 100
+
     # --- answering (optional stage) ----------------------------------------- #
     enable_answers: bool = True
     answer_temperature: float = 0.2
@@ -225,6 +232,7 @@ class Settings:
             enable_query_expansion=env_flag(
                 "RAG_ENABLE_QUERY_EXPANSION", default=True
             ),
+            enable_reranking=env_flag("RAG_ENABLE_RERANKING", default=True),
             offline=env_flag("RAG_OFFLINE", default=False),
             use_cache=env_flag("RAG_USE_CACHE", default=True),
         )

@@ -370,6 +370,32 @@ def retrieval_controls(defaults: Settings) -> Dict[str, Any]:
         }
 
 
+def reranking_controls(defaults: Settings) -> Dict[str, Any]:
+    with st.sidebar.expander(
+        stage_title("🏆", "Reranking", "enable_reranking", defaults.enable_reranking)
+    ):
+        enabled = switch(
+            "Rerank candidates using LLM", "enable_reranking",
+            defaults.enable_reranking,
+            "Passes a larger pool of candidates to the LLM to score and returns the top results. "
+            "Improves accuracy but costs a generation call.",
+        )
+        return {
+            "enable_reranking": enabled,
+            "rerank_candidates": st.slider(
+                "Candidates to fetch", 5, 50, defaults.rerank_candidates, 5,
+                key=cfg("rerank_candidates"), disabled=not enabled,
+                help="How many candidates retrieval should fetch before reranking.",
+            ),
+            "rerank_top_k": st.slider(
+                "Final top-k", 1, 20, defaults.rerank_top_k, 1,
+                key=cfg("rerank_top_k"), disabled=not enabled,
+                help="How many results the reranker returns.",
+            ),
+        }
+
+
+
 def answering_controls(defaults: Settings) -> Dict[str, Any]:
     with st.sidebar.expander(
         stage_title("💬", "Answering", "enable_answers", defaults.enable_answers)
@@ -533,7 +559,7 @@ def sidebar() -> Settings:
     for controls in (
         source_controls, cleaning_controls, chunking_controls, question_controls,
         embedding_controls, storage_controls, expansion_controls,
-        retrieval_controls, answering_controls, server_controls,
+        retrieval_controls, reranking_controls, answering_controls, server_controls,
         diagnostics_controls, evaluation_controls,
     ):
         values.update(controls(defaults))
