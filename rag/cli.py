@@ -100,12 +100,21 @@ def main(argv: Optional[List[str]] = None) -> int:
             print("\n    Text:")
             print("    " + hit.text.replace("\n", "\n    "))
 
+        # if args.answer:
+        #     answer = pipeline.answer(args.text, results)
+        #     print(f"\n--- answer ---\n{answer}")
+
         if args.answer:
+            import time
+
+            start = time.perf_counter()
             answer = pipeline.answer(args.text, results)
+            elapsed = time.perf_counter() - start
+
             print(f"\n--- answer ---\n{answer}")
-
+            print(f"\nGeneration time: {elapsed:.2f} seconds")
     return 0
-
+    
 
 if __name__ == "__main__":  # pragma: no cover
     sys.exit(main())

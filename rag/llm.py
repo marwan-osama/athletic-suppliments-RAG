@@ -126,16 +126,25 @@ class LLMClient:
         temperature: float = 0.3,
         max_tokens: Optional[int] = None,
         reasoning_effort: Optional[str] = None,
+        system: Optional[str] = None,
     ) -> str:
         """One user turn in, assistant text out.
 
         `reasoning_effort` is passed through for servers that honour it. Neither
         model this project ships with does — they reason regardless — so the
         budget in `max_tokens` has to cover the thinking as well as the answer.
+
+        `system`, when provided, is prepended as a system-role message so that
+        small models receive persistent grounding instructions separate from
+        the user query.
         """
+        messages: List[Dict[str, str]] = []
+        if system:
+            messages.append({"role": "system", "content": system})
+        messages.append({"role": "user", "content": prompt})
         payload: Dict[str, Any] = {
             "model": model,
-            "messages": [{"role": "user", "content": prompt}],
+            "messages": messages,
             "temperature": temperature,
         }
         if max_tokens:
