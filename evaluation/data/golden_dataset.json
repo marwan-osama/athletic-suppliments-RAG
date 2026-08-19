@@ -1,0 +1,14 @@
+[
+  {
+    "question": "Does creatine supplementation improve high-intensity exercise performance?",
+    "ground_truth": "Creatine supplementation has been shown to increase intramuscular phosphocreatine stores by 10-40%, which enhances the ability to perform repeated bouts of high-intensity exercise. A meta-analysis of 22 studies found that creatine supplementation improved maximal strength by an average of 8% and repetitive high-intensity exercise performance by 14% compared to placebo. The International Society of Sports Nutrition considers creatine monohydrate the most effective ergogenic nutritional supplement for increasing high-intensity exercise capacity and lean body mass."
+  },
+  {
+    "question": "What is the recommended caffeine dose for athletic performance enhancement?",
+    "ground_truth": "Research consistently shows that caffeine doses of 3-6 mg per kg of body weight, consumed 30-60 minutes before exercise, improve endurance performance, reduce perceived exertion, and enhance alertness. Higher doses (≥9 mg/kg) do not provide additional benefits and increase the risk of side effects including nausea, anxiety, insomnia, and tachycardia. The NCAA bans caffeine at urinary concentrations exceeding 15 mcg/mL."
+  },
+  {
+    "question": "Should athletes take iron supplements to prevent deficiency?",
+    "ground_truth": "Athletes, particularly female athletes, distance runners, and vegetarians, are at increased risk of iron deficiency due to exercise-induced iron losses through sweat, gastrointestinal bleeding, and hemolysis. Iron deficiency without anemia can impair muscle function and limit exercise performance. The American College of Sports Medicine recommends screening at-risk athletes and treating deficiency with supervised supplementation rather than universal supplementation, as excess iron can cause gastrointestinal side effects and, in individuals with hemochromatosis, organ damage."
+  }
+]

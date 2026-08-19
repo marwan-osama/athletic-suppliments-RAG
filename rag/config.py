@@ -179,10 +179,29 @@ class Settings:
     # --- diagnostics -------------------------------------------------------- #
     tiny_below: int = 100  # chunks under this are flagged TINY
 
+    # --- evaluation --------------------------------------------------------- #
+    # Scores the pipeline against a golden set of questions. Not part of a
+    # search: it runs on demand, asks the pipeline every question in the file,
+    # and grades what comes back. The judge is a second model, and the three
+    # blank fields below inherit the pipeline's own so judging locally needs no
+    # extra configuration.
+    eval_dataset_path: Path = Path("evaluation/data/golden_dataset.json")
+    eval_output_dir: Path = Path("./eval_results")
+    eval_base_url: str = ""
+    eval_llm_model: str = ""
+    eval_embed_model: str = ""
+    eval_threshold: float = 0.8  # a metric below this counts as a failure
+    eval_normalize_acronyms: bool = True  # "HMB" and its expansion should match
+    eval_llm_diagnostics: bool = True  # ask the judge why a sample failed
+    eval_max_workers: int = 1
+    eval_timeout: int = 180
+
     def __post_init__(self) -> None:
         # Callers (CLI flags, Streamlit widgets) pass plain strings.
         self.db_path = Path(self.db_path)
         self.cache_dir = Path(self.cache_dir)
+        self.eval_dataset_path = Path(self.eval_dataset_path)
+        self.eval_output_dir = Path(self.eval_output_dir)
         self.drop_sections = as_sections(self.drop_sections)
         if self.reasoning_effort not in REASONING_EFFORTS:
             self.reasoning_effort = ""
@@ -214,6 +233,9 @@ class Settings:
             ("LLM_BASE_URL", "base_url"),
             ("LLM_MODEL", "llm_model"),
             ("EMBED_MODEL", "embed_model"),
+            ("EVAL_BASE_URL", "eval_base_url"),
+            ("EVAL_LLM_MODEL", "eval_llm_model"),
+            ("EVAL_EMBED_MODEL", "eval_embed_model"),
         ):
             if value := os.getenv(name):
                 settings = replace(settings, **{field: value})
@@ -328,6 +350,19 @@ class Settings:
         """
         data = self.to_dict()
         return json.dumps({name: data[name] for name in READER_FIELDS}, sort_keys=True)
+
+    def eval_endpoint(self) -> Tuple[str, str, str]:
+        """`(base_url, llm model, embed model)` for the judge.
+
+        Each blank field falls back to the pipeline's own, so judging with the
+        same local server is the default and pointing the judge at a stronger
+        (or hosted) model is a matter of filling one field in.
+        """
+        return (
+            self.eval_base_url or self.base_url,
+            self.eval_llm_model or self.llm_model,
+            self.eval_embed_model or self.embed_model,
+        )
 
     @property
     def embedder_tag(self) -> str:

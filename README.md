@@ -62,6 +62,7 @@ stop appearing, the log will say why.
 | [rag/diagnostics.py](rag/diagnostics.py) | `ChunkInspector` | chunk size stats and quality flags |
 | [rag/pipeline.py](rag/pipeline.py) | `RAGPipeline` | wires the stages; `build()`, `search()`, `answer()` |
 | [rag/config.py](rag/config.py) | `Settings` | every tunable value, one dataclass |
+| [evaluation/](evaluation) | `EvaluationEngine` | grades the pipeline against a golden set (optional) |
 | [app.py](app.py) | — | Streamlit UI |
 | [rag/cli.py](rag/cli.py) | — | `python -m rag.cli chunks \| build \| query` |
 
@@ -142,6 +143,7 @@ from, including the UI slider and `--questions`, and disabled runs get their own
   | 💬 Answering | master switch, temperature, max tokens, context budget |
   | 🔌 Model server | base URL, generation model, API key, rate limit, timeout, retries, reasoning effort |
   | 🩺 Chunk diagnostics | the TINY flag threshold |
+  | 📊 Evaluation | golden set, report directory, failure threshold, judge model/embeddings/endpoint, acronym expansion, LLM diagnosis, concurrency, timeout |
 - **Ask** — ask a question, or keep a question set and run one (or all) of them.
   Every result shows its similarity, whether it matched the chunk or a generated
   question, its heading path, and its full text.
@@ -150,6 +152,8 @@ from, including the UI slider and `--questions`, and disabled runs get their own
   embeddings. This is the cheap way to tune chunk size and overlap.
 - **Review** — mark retrieved chunks relevant / not relevant with notes, see
   precision per question, and export the judgements as JSON.
+- **Evaluate** — score the pipeline against the golden set: four metrics, a
+  per-question table, what to try for each failure, and the JSON report.
 - **Index** — row counts by type, collection list, the stages currently in
   force, the effective settings (with what differs from the defaults called out),
   and the pipeline log.
@@ -187,6 +191,47 @@ Settings split in two: those that decide what is stored (`Settings.index_key`)
 get a pipeline and a collection of their own, and everything else is pushed onto
 the live stages by `RAGPipeline.apply()` — so changing top-k or a temperature
 never reopens the database or invalidates an index.
+
+## Evaluation
+
+Judging retrieval by eye stops scaling around the third question. The
+`evaluation` package asks the pipeline a fixed set of questions and grades what
+comes back:
+
+| metric | grades | asks |
+| --- | --- | --- |
+| context recall | `Retriever` | did it find the evidence the reference answer needs? |
+| context precision | `Retriever` | are the chunks it returned actually about the question? |
+| faithfulness | `Answerer` | is the answer grounded in those chunks? |
+| answer relevancy | `Answerer` | does the answer address the question asked? |
+
+Two grade retrieval and two grade generation, so a failing metric names the
+stage to look at rather than saying "the RAG is bad".
+
+```bash
+.venv/bin/python -m evaluation run
+```
+
+The golden file holds only the **question** and a **reference answer**. The
+contexts and the answer come from `RAGPipeline.search()` and `.answer()` at run
+time — see [evaluation/harness.py](evaluation/harness.py). That is what makes
+the numbers worth having: they move when the pipeline changes. Measured on the
+shipped set, dropping `top_k` from 5 to 1 took context recall from 0.556 to
+0.444 and faithfulness from 1.000 to 0.944.
+
+Scoring uses [ragas](https://github.com/explodinggradients/ragas), imported only
+when a run starts, so the pipeline, the CLI and the rest of the UI never need
+it. Install it with `pip install -r requirements.txt`; without it the Evaluate
+tab says so and stays disabled. The judge defaults to the same local server —
+`eval_llm_model` / `eval_base_url` point it at a stronger or hosted model.
+
+> **The shipped golden set needs regrounding.** Its reference answers assert
+> specifics the source page does not contain — a "meta-analysis of 22 studies"
+> with 8% and 14% figures for creatine, and caffeine at 3–6 mg/kg where the page
+> says 2–6 mg/kg. Context recall measures whether retrieval found the evidence
+> the reference relies on, so it is capped below 1.0 for reasons that have
+> nothing to do with retrieval. Treat the current recall numbers as a floor, and
+> reground the references in the page before reading much into them.
 
 ## CLI
 
