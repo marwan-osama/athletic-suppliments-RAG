@@ -1,0 +1,5 @@
+{
+  "summary": "Singleton API client using Dio, JWT handling, base URL selection for Android emulator vs others.",
+  "updatedAt": "2026-08-20T04:45:50.046182200Z",
+  "userFacing": true
+}

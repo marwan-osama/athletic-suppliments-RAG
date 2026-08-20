@@ -1,0 +1,5 @@
+{
+  "summary": "Auth provider managing login, register, JWT persistence, current user state.",
+  "updatedAt": "2026-08-20T04:47:12.460433500Z",
+  "userFacing": true
+}

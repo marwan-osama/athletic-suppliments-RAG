@@ -1,0 +1,5 @@
+{
+  "summary": "Login screen UI with email/password fields and login button. Uses AuthProvider to perform login and navigates on success.",
+  "updatedAt": "2026-08-20T04:47:29.595264900Z",
+  "userFacing": true
+}
