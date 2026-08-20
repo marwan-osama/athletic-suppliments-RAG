@@ -131,10 +131,20 @@ class AuthProvider extends ChangeNotifier {
   // ── Helpers ────────────────────────────────────────────────────────────────
 
   String _extractError(DioException e) {
+    switch (e.type) {
+      case DioExceptionType.connectionTimeout:
+      case DioExceptionType.sendTimeout:
+        return 'Connection timed out. Is the server running?';
+      case DioExceptionType.receiveTimeout:
+        return 'Server took too long to respond. Try again.';
+      case DioExceptionType.connectionError:
+        return 'Cannot reach server. Check your network and server IP.';
+      default:
+        break;
+    }
     final data = e.response?.data;
     if (data is Map && data['error'] != null) return data['error'].toString();
-    if (data is Map && data['message'] != null)
-      return data['message'].toString();
-    return e.message ?? 'An error occurred';
+    if (data is Map && data['message'] != null) return data['message'].toString();
+    return e.message ?? 'An unexpected error occurred';
   }
 }
