@@ -151,19 +151,35 @@ class EvaluationEngine:
             else records
         )
 
-        base_url, model, embed_model = self.settings.eval_endpoint()
+        base_url, model, _ = self.settings.eval_endpoint()
+        # The judge's embeddings follow their own endpoint: a hosted judge LLM
+        # is common, a hosted embedding model for *this* index is not, and one
+        # gateway rarely serves both.
+        embed_url, embed_key, embed_model = self.settings.eval_embed_endpoint()
         # "not-needed" rather than "": LM Studio ignores the key, but the
         # OpenAI client refuses to start without one.
         key = self.settings.api_key or "not-needed"
+        # The judge is configured like the pipeline on purpose. Both settings
+        # below decide *which* model actually answers and how hard it thinks —
+        # a judge routed to a different provider, or reasoning to a different
+        # depth, is a different judge, and two runs graded by different judges
+        # cannot be compared no matter how carefully the pipeline was held still.
+        judge_options = {}
+        if self.settings.extra_body():
+            judge_options["extra_body"] = self.settings.extra_body()
+        if self.settings.reasoning_effort:
+            judge_options["reasoning_effort"] = self.settings.reasoning_effort
         judge = ragas["LangchainLLMWrapper"](
             ragas["ChatOpenAI"](
                 model=model, openai_api_base=base_url, openai_api_key=key,
                 temperature=0.0, request_timeout=self.settings.eval_timeout,
+                **judge_options,
             )
         )
         embeddings = ragas["LangchainEmbeddingsWrapper"](
             ragas["OpenAIEmbeddings"](
-                model=embed_model, openai_api_base=base_url, openai_api_key=key,
+                model=embed_model, openai_api_base=embed_url,
+                openai_api_key=embed_key or "not-needed",
                 check_embedding_ctx_length=False,
             )
         )

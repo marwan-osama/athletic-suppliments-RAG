@@ -191,6 +191,27 @@ def test_the_judge_inherits_the_pipeline_endpoint_until_told_otherwise():
     )
 
 
+def test_the_judges_embeddings_follow_the_embedder_not_the_judge_endpoint():
+    """A hosted judge LLM must not drag the embeddings onto its gateway.
+
+    `eval_base_url` is routinely a service that serves chat and nothing else,
+    so resolving the judge's embeddings through it — as this once did — sends
+    /embeddings somewhere it does not exist.
+    """
+    settings = Settings().with_(
+        embed_base_url="http://127.0.0.1:1234/v1",
+        eval_base_url="https://openrouter.ai/api/v1",
+        eval_llm_model="openai/gpt-oss-20b",
+    )
+    assert settings.eval_endpoint()[0] == "https://openrouter.ai/api/v1"
+    assert settings.eval_embed_endpoint() == (
+        "http://127.0.0.1:1234/v1", settings.api_key, settings.embed_model
+    )
+    # And it is still overridable on its own.
+    moved = settings.with_(eval_embed_base_url="http://elsewhere/v1")
+    assert moved.eval_embed_endpoint()[0] == "http://elsewhere/v1"
+
+
 def test_evaluation_settings_never_touch_the_index():
     """Grading reads the index; it must not be able to fork or rebuild it."""
     settings = Settings()

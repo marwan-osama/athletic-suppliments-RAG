@@ -8,6 +8,12 @@ Two things differ from a plain fixed-size split:
    an index; "Creatine > Efficacy" tells both the embedder and the reader what
    the passage is about — which also removes the heading-only fragments that a
    naive split leaves behind.
+
+Page provenance is resolved here too. `PdfReader` leaves `<!--page:N-->` markers
+in the markdown; this stage walks them in document order, records the page(s)
+each chunk covers, and strips the markers from the text it stores. Tracking is
+sequential rather than per-chunk because most chunks contain no marker at all —
+they sit between two of them, on whatever page was last opened.
 """
 
 from __future__ import annotations
@@ -16,6 +22,7 @@ from typing import List, Tuple
 
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 
+from .fetching import PAGE_PATTERN, read_pages, strip_pages
 from .preprocessing import split_heading
 from .schema import Chunk, Stage
 
@@ -41,12 +48,35 @@ class MarkdownChunker(Stage):
 
     def run(self, markdown: str) -> List[Chunk]:
         chunks: List[Chunk] = []
+        # The page in effect: the last marker passed, which is the page a piece
+        # sits on when it contains no marker of its own.
+        page = 0
         for section, body in self._split_sections(markdown):
             prefix = self._prefix(section)
             for piece in self._split_body(body, reserved=len(prefix)):
+                marked = read_pages(piece)
+                # Opening on a marker means the piece starts a new page rather
+                # than continuing the previous one.
+                opens_page = bool(marked) and not PAGE_PATTERN.sub(
+                    "", piece.split(f"<!--page:{marked[0]}-->")[0]
+                ).strip()
+                pages = tuple(dict.fromkeys(
+                    ([] if opens_page or not page else [page]) + list(marked)
+                ))
+                text = strip_pages(piece)
+                if not text:
+                    page = marked[-1] if marked else page
+                    continue
                 chunks.append(
-                    Chunk(index=len(chunks), text=prefix + piece, section=section)
+                    Chunk(
+                        index=len(chunks),
+                        text=prefix + text,
+                        section=section,
+                        pages=pages,
+                    )
                 )
+                if marked:
+                    page = marked[-1]
         return chunks
 
     def _prefix(self, section: str) -> str:

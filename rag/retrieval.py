@@ -8,6 +8,11 @@ When query expansion is on, the search runs once per phrasing and the results ar
 merged. Agreement between phrasings is evidence: a chunk several of them found
 gets a boost, applied to `Retrieved.score` so that `similarity` stays the number
 the embedder actually returned.
+
+With a reranker attached, the cut to `top_k` happens last: `rerank_candidates`
+chunks are pulled, the model orders them, and only then is the list truncated. So
+the reranker chooses which chunks reach the answer, and cannot make the result
+set smaller than dense retrieval already made it.
 """
 
 from __future__ import annotations
@@ -15,7 +20,8 @@ from __future__ import annotations
 from typing import Callable, Dict, Hashable, List, Optional
 
 from .expansion import QueryExpander
-from .indexing import QUESTION_ROW, VectorIndex
+from .indexing import QUESTION_ROW, VectorIndex, pages_from_metadata
+from .reranking import Reranker
 from .schema import Retrieved, Stage
 
 # What counts as "the same result", per dedupe mode. Collapsing by parent chunk
@@ -31,12 +37,14 @@ class Retriever(Stage):
     def __init__(
         self,
         index: VectorIndex,
-        top_k: int = 5,
+        top_k: int = 10,
         dedupe: bool = True,
         overfetch: int = 3,
         expander: Optional[QueryExpander] = None,
         match_boost: float = 0.05,
         match_boost_cap: float = 0.15,
+        reranker: Optional[Reranker] = None,
+        rerank_candidates: int = 0,
     ):
         self.index = index
         self.top_k = top_k
@@ -45,6 +53,8 @@ class Retriever(Stage):
         self.expander = expander
         self.match_boost = match_boost
         self.match_boost_cap = match_boost_cap
+        self.reranker = reranker
+        self.rerank_candidates = rerank_candidates
 
     def run(self, query: str, top_k: int | None = None) -> List[Retrieved]:
         k = top_k or self.top_k
@@ -52,7 +62,10 @@ class Retriever(Stage):
             return []
 
         phrasings = self.expander(query) if self.expander else [query]
-        n_results = k * self.overfetch if self.dedupe else k
+        # Reranking judges a longer list than it returns, so the pool has to be
+        # deep enough to hold the candidates before the cut to `k`.
+        pool = max(k, self.rerank_candidates) if self.reranking else k
+        n_results = pool * self.overfetch if self.dedupe else pool
 
         # Kept per phrasing rather than in one flat list: agreement is counted
         # one vote per phrasing, so a chunk that matched through three of its own
@@ -64,7 +77,16 @@ class Retriever(Stage):
 
         best = self._merge(found, BY_CHUNK if self.dedupe else BY_ROW)
         best.sort(key=lambda hit: hit.score, reverse=True)
-        results = best[:k]
+
+        # Rerank the pool, then cut — the other order would hand the model only
+        # the chunks dense retrieval already preferred, which is the ranking the
+        # rerank exists to second-guess.
+        results = best[:pool]
+        if self.reranking:
+            results = self.reranker(query, results, want=k)
+        results = results[:k]
+        for position, hit in enumerate(results, start=1):
+            hit.rank = position
 
         # Question hits carry only a parent pointer — fill in the parent text.
         texts = self.index.texts_for(
@@ -73,6 +95,11 @@ class Retriever(Stage):
         for hit in results:
             hit.text = texts.get(hit.chunk_id, hit.text)
         return results
+
+    @property
+    def reranking(self) -> bool:
+        """Whether a search will be reranked: needs a reranker and a pool to use."""
+        return self.reranker is not None and self.rerank_candidates > 0
 
     # -- internals ---------------------------------------------------------- #
     def _vector(self, query: str) -> List[float]:
@@ -131,6 +158,7 @@ class Retriever(Stage):
                     section=metadata.get("section", ""),
                     chunk_index=int(metadata.get("chunk_index", -1)),
                     matched_text=document if match_type == QUESTION_ROW else "",
+                    pages=pages_from_metadata(metadata.get("pages")),
                 )
             )
         return hits

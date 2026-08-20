@@ -70,11 +70,17 @@ class LLMClient:
         app_title: str = "athletic-supplements-rag",
         log: Callable[[str], None] = print,
         transport: Optional[httpx.BaseTransport] = None,
+        # Merged into every /chat/completions body. The OpenAI shape is the
+        # common denominator between providers, not the whole of what any one
+        # of them accepts — OpenRouter's routing preferences live here, for
+        # instance, and a server that does not know a key ignores it.
+        extra_body: Optional[Dict[str, Any]] = None,
     ):
         self.base_url = base_url.rstrip("/")
         self.max_retries = max_retries
         self.log = log
         self.limiter = RateLimiter(requests_per_minute)
+        self.extra_body = dict(extra_body or {})
 
         headers = {"Content-Type": "application/json", "X-Title": app_title}
         if api_key:
@@ -142,6 +148,10 @@ class LLMClient:
             payload["max_tokens"] = max_tokens
         if reasoning_effort:
             payload["reasoning"] = {"effort": reasoning_effort}
+        # Caller-set keys win, so a per-call `reasoning` is not overwritten by a
+        # per-endpoint default.
+        for key, value in self.extra_body.items():
+            payload.setdefault(key, value)
 
         return self._text_of(self._post("/chat/completions", payload))
 

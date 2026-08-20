@@ -72,6 +72,21 @@ def report(on_progress: ProgressFn | None, done: int, total: int) -> None:
 # --------------------------------------------------------------------------- #
 # Documents
 # --------------------------------------------------------------------------- #
+def page_label(pages: "tuple[int, ...]") -> str:
+    """Pages as a citation: `()` -> "", `(7,)` -> "p. 7", `(7, 8)` -> "pp. 7-8".
+
+    A run of consecutive pages is written as a range; a chunk that somehow spans
+    a gap keeps every page listed, because dropping one would misattribute it.
+    """
+    if not pages:
+        return ""
+    if len(pages) == 1:
+        return f"p. {pages[0]}"
+    if list(pages) == list(range(pages[0], pages[-1] + 1)):
+        return f"pp. {pages[0]}-{pages[-1]}"
+    return "pp. " + ", ".join(str(page) for page in pages)
+
+
 @dataclass(frozen=True)
 class Chunk:
     """One retrievable passage of the source document."""
@@ -79,6 +94,13 @@ class Chunk:
     index: int
     text: str
     section: str = ""
+    # Which page(s) of the PDF this passage came from. Recovered from the
+    # markers `PdfReader` leaves in the markdown, so a citation can name a page.
+    pages: tuple = ()
+
+    @property
+    def pages_label(self) -> str:
+        return page_label(self.pages)
 
     @property
     def id(self) -> str:
@@ -107,6 +129,26 @@ class Retrieved:
     # earned it. Both are 1 and 0.0 without query expansion.
     matches: int = 1
     boost: float = 0.0
+    # Page(s) of the source PDF, carried through the index so an answer can cite
+    # where it came from.
+    pages: tuple = ()
+    # Where this hit sat in the dense ranking before the reranker moved it, and
+    # where it ended up — both 1-based; `dense_rank` is -1 when nothing reranked.
+    # Kept separate from `score` so the number shown beside a result stays the
+    # one the embedder returned.
+    dense_rank: int = -1
+    rank: int = 0
+
+    @property
+    def pages_label(self) -> str:
+        return page_label(self.pages)
+
+    @property
+    def rerank_move(self) -> int:
+        """Places gained by reranking — positive is a promotion, 0 if unranked."""
+        if self.dense_rank < 0 or not self.rank:
+            return 0
+        return self.dense_rank - self.rank
 
     @property
     def distance(self) -> float:

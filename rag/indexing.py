@@ -1,5 +1,10 @@
 """Stage 6 — the vector store: writes chunks (and their questions) to ChromaDB.
 
+Chroma metadata values must be scalars, so a chunk's page tuple is stored as a
+comma-separated string and parsed back by `Retriever`. Question rows repeat their
+parent's pages: a question hit resolves to the parent chunk, and it has to cite
+the same page the chunk would.
+
 Question rows store only a pointer to their parent chunk, not a copy of its
 text; `texts_for()` resolves the pointers at query time. One copy of the
 document, and edits to a chunk cannot leave a stale duplicate behind.
@@ -16,6 +21,20 @@ from .schema import Chunk, ProgressFn, report
 
 CHUNK_ROW = "chunk"
 QUESTION_ROW = "question"
+
+
+def pages_to_metadata(pages: Iterable[int]) -> str:
+    """`(7, 8)` -> `"7,8"` — Chroma stores scalars, not sequences."""
+    return ",".join(str(page) for page in pages)
+
+
+def pages_from_metadata(raw: Any) -> tuple:
+    """`"7,8"` -> `(7, 8)`, tolerating rows written before pages existed."""
+    if not raw:
+        return ()
+    return tuple(
+        int(part) for part in str(raw).split(",") if part.strip().isdigit()
+    )
 
 
 class VectorIndex:
@@ -60,6 +79,7 @@ class VectorIndex:
                     "parent_id": chunk.id,
                     "chunk_index": chunk.index,
                     "section": chunk.section,
+                    "pages": pages_to_metadata(chunk.pages),
                 }
             )
             for position, question in enumerate((questions or {}).get(chunk.id, [])):
@@ -71,6 +91,7 @@ class VectorIndex:
                         "parent_id": chunk.id,
                         "chunk_index": chunk.index,
                         "section": chunk.section,
+                        "pages": pages_to_metadata(chunk.pages),
                     }
                 )
 

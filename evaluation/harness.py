@@ -75,6 +75,7 @@ def collect(
                     {
                         "chunk_id": hit.chunk_id,
                         "section": hit.section,
+                        "pages": hit.pages_label,
                         "similarity": round(hit.similarity, 4),
                         "score": round(hit.score, 4),
                         "matches": hit.matches,

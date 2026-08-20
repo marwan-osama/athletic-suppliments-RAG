@@ -66,7 +66,8 @@ def main(argv: Optional[List[str]] = None) -> int:
             print(f"\nfull dump -> {pipeline.inspector.dump(chunks, args.dump)}")
         for index in report.flagged[: args.show]:
             chunk = chunks[index]
-            print(f"\n[{index}] {chunk.size} chars  {' '.join(report.flags[index])}")
+            print(f"\n[{index}] {chunk.size} chars  {chunk.pages_label}  "
+                  f"{' '.join(report.flags[index])}")
             print(repr(chunk.text[:300]))
 
     elif args.command == "build":
@@ -84,8 +85,13 @@ def main(argv: Optional[List[str]] = None) -> int:
             return 1
         print(f"\n--- {len(results)} results for: {args.text!r} ---")
         for position, hit in enumerate(results, start=1):
+            where = " · ".join(
+                part for part in (hit.section or "document", hit.pages_label) if part
+            )
+            moved = (f" | reranked {hit.rerank_move:+d} from #{hit.dense_rank}"
+                     if hit.rerank_move else "")
             print(f"\n[{position}] similarity {hit.similarity:.4f} "
-                  f"| matched via {hit.match_type} | {hit.section or 'document'}")
+                  f"| matched via {hit.match_type} | {where}{moved}")
             if hit.matched_text:
                 print(f"    matched question: {hit.matched_text}")
             print(f"    {hit.text[:300]}...")

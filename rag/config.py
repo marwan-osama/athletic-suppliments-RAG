@@ -19,10 +19,9 @@ from typing import Any, Dict, Iterable, Optional, Tuple
 
 from .llm import LOCAL_BASE_URL
 
-DEFAULT_URL = (
-    "https://ods.od.nih.gov/factsheets/"
-    "ExerciseAndAthleticPerformance-HealthProfessional/"
-)
+# The document the pipeline indexes. ODS publishes this fact sheet as a web page
+# only, so the PDF is built from it by `tools/build_source_pdf.py` and checked in.
+DEFAULT_SOURCE = "data/ods-exercise-and-athletic-performance.pdf"
 
 # Loaded in LM Studio; `python -m rag.cli models` lists what the server offers.
 EMBED_MODEL = "text-embedding-embeddinggemma-300m"
@@ -89,6 +88,13 @@ class Settings:
     # --- model server (LM Studio's local server, one endpoint for both) ------ #
     base_url: str = LOCAL_BASE_URL
     api_key: Optional[str] = None  # LM Studio needs none; hosted gateways do
+    # Embeddings need not live where generation does, and a hosted gateway
+    # forces the split: OpenRouter serves /chat/completions and no /embeddings.
+    # The separation is also what keeps an index usable — its vectors came from
+    # one embedding model, so moving generation to another host must not drag
+    # the embedder along with it. Blank inherits `base_url` / `api_key`.
+    embed_base_url: str = ""
+    embed_api_key: Optional[str] = None
     embed_model: str = EMBED_MODEL
     llm_model: str = LLM_MODEL
     embed_dimensions: int = 768  # what embeddinggemma-300m returns
@@ -102,6 +108,16 @@ class Settings:
     max_retries: int = 3
     # Passed through for servers that honour it; "" leaves it out of the request.
     reasoning_effort: str = ""
+    # JSON merged into every chat request, for fields outside the OpenAI shape.
+    # This is where a gateway's own routing goes. OpenRouter serves one model id
+    # from many providers at different quantizations, and which one answers
+    # changes how much the model reasons — so a run that is meant to be
+    # comparable has to pin it:
+    #
+    #   {"provider": {"quantizations": ["fp4"], "allow_fallbacks": false}}
+    #
+    # matches the MXFP4 build LM Studio serves locally.
+    llm_extra_body: str = ""
     # The embedding model is asymmetric — it was trained with these prefixes.
     # Set both to "" for a symmetric model.
     document_prefix: str = DOCUMENT_PREFIX
@@ -109,12 +125,16 @@ class Settings:
     # Skip the server entirely and use word-overlap vectors (RAG_OFFLINE).
     offline: bool = False
 
-    # --- source / fetching -------------------------------------------------- #
-    source: str = DEFAULT_URL
-    source_url: str = DEFAULT_URL  # used to resolve relative links in local files
+    # --- source / reading --------------------------------------------------- #
+    source: str = DEFAULT_SOURCE  # path to the PDF to index
     cache_dir: Path = Path(".cache")
-    use_cache: bool = True  # False re-extracts (and re-downloads) every time
+    use_cache: bool = True  # False re-extracts the PDF every time
     fetch_min_chars: int = 1_000  # below this, extraction silently lost content
+    # How many distinct above-body font sizes become heading levels. The PDF has
+    # no headings of its own; this is what recovers them.
+    pdf_heading_levels: int = 4
+    # Drop running heads and footers — lines that repeat across most pages.
+    pdf_drop_repeated_lines: bool = True
 
     # --- cleaning (optional stage) ------------------------------------------ #
     # False hands the raw extraction straight to the chunker — worth trying once
@@ -150,11 +170,34 @@ class Settings:
     index_batch_size: int = 100  # rows per upsert, so no single huge request
 
     # --- retrieval ---------------------------------------------------------- #
-    top_k: int = 5
+    # 10 rather than 5 on measurement, not taste: over the 34-question golden set
+    # it takes context recall from 0.628 to 0.781 (0.660 to 0.822 excluding the
+    # questions the page cannot answer) and lifts faithfulness, at the cost of
+    # context precision, which falls from 0.793 to 0.714. Depth is what the
+    # multi-part and comparative questions need — every one of them reaches
+    # perfect recall at 10, and several were finding the right chunks at 5 and
+    # ranking them below the cutoff.
+    top_k: int = 10
     dedupe_by_chunk: bool = True
     # How many extra rows to pull before collapsing duplicates. Only used when
     # `dedupe_by_chunk` is on: a chunk plus its questions can fill the top-k.
     retrieval_overfetch: int = 3
+
+    # --- reranking (optional stage) ----------------------------------------- #
+    # Fetch `rerank_candidates` chunks, have the model order them, keep `top_k`.
+    # The embedder scores question and passage apart; the reranker reads them
+    # together. On this corpus 41% of the evidence is retrieved but ranked
+    # between 6 and 20, which is what this recovers. One generation call per
+    # search, so it trades latency for ordering.
+    enable_rerank: bool = True
+    rerank_candidates: int = 20
+    rerank_temperature: float = 0.0  # an ordering should not move between runs
+    # Reasoning comes out of this budget, and how much a model reasons is a
+    # property of the server, not the prompt: LM Studio's local build spends
+    # ~9 tokens here, an OpenRouter provider spent 651 and returned nothing.
+    # Sized for the latter — a cap cannot lengthen a reply that already ended.
+    rerank_max_tokens: int = 2_048
+    rerank_snippet_chars: int = 400  # per candidate, to keep the prompt tight
 
     # --- query expansion (optional stage) ----------------------------------- #
     # Ask the model for other phrasings of the query and retrieve for each one.
@@ -163,7 +206,7 @@ class Settings:
     enable_query_expansion: bool = True
     query_expansions: int = 2
     query_expansion_temperature: float = 0.7  # variety is the point here
-    query_expansion_max_tokens: int = 200
+    query_expansion_max_tokens: int = 1_024  # see `rerank_max_tokens`
     # A chunk that several phrasings agree on is more likely to be the right one,
     # so extra matches lift it up the ranking. This moves `Retrieved.score`;
     # `similarity` stays the number the embedder actually returned.
@@ -190,6 +233,10 @@ class Settings:
     eval_base_url: str = ""
     eval_llm_model: str = ""
     eval_embed_model: str = ""
+    # Judging splits the same way the pipeline does: a hosted judge LLM still
+    # needs its embeddings from wherever the embedding model runs. Blank
+    # inherits the pipeline's embedding endpoint, not `eval_base_url`.
+    eval_embed_base_url: str = ""
     eval_threshold: float = 0.8  # a metric below this counts as a failure
     eval_normalize_acronyms: bool = True  # "HMB" and its expansion should match
     eval_llm_diagnostics: bool = True  # ask the judge why a sample failed
@@ -212,6 +259,8 @@ class Settings:
             self.questions_per_chunk = 0
         if not self.enable_query_expansion:
             self.query_expansions = 0
+        if not self.enable_rerank:
+            self.rerank_candidates = 0
 
     # -- construction -------------------------------------------------------- #
     @classmethod
@@ -219,12 +268,17 @@ class Settings:
         load_dotenv()
         settings = cls(
             api_key=os.getenv("LLM_API_KEY"),
+            embed_api_key=os.getenv("EMBED_API_KEY"),
+            # Pacing matters only against a metered endpoint, so it arrives with
+            # the base URL that needs it rather than being edited in the UI.
+            requests_per_minute=int(os.getenv("LLM_RPM") or 0),
             enable_questions=env_flag("RAG_ENABLE_QUESTIONS", default=True),
             enable_cleaning=env_flag("RAG_ENABLE_CLEANING", default=True),
             enable_answers=env_flag("RAG_ENABLE_ANSWERS", default=True),
             enable_query_expansion=env_flag(
                 "RAG_ENABLE_QUERY_EXPANSION", default=True
             ),
+            enable_rerank=env_flag("RAG_ENABLE_RERANK", default=True),
             offline=env_flag("RAG_OFFLINE", default=False),
             use_cache=env_flag("RAG_USE_CACHE", default=True),
         )
@@ -232,10 +286,14 @@ class Settings:
             ("RAG_SOURCE", "source"),
             ("LLM_BASE_URL", "base_url"),
             ("LLM_MODEL", "llm_model"),
+            ("EMBED_BASE_URL", "embed_base_url"),
             ("EMBED_MODEL", "embed_model"),
             ("EVAL_BASE_URL", "eval_base_url"),
             ("EVAL_LLM_MODEL", "eval_llm_model"),
             ("EVAL_EMBED_MODEL", "eval_embed_model"),
+            ("EVAL_EMBED_BASE_URL", "eval_embed_base_url"),
+            ("LLM_EXTRA_BODY", "llm_extra_body"),
+            ("LLM_REASONING_EFFORT", "reasoning_effort"),
         ):
             if value := os.getenv(name):
                 settings = replace(settings, **{field: value})
@@ -335,8 +393,9 @@ class Settings:
         return "|".join(
             str(part)
             for part in (
-                self.collection_name, self.db_path, self.source, self.source_url,
+                self.collection_name, self.db_path, self.source,
                 self.cache_dir, self.base_url, self.api_key, self.embed_model,
+                self.embed_base_url, self.embed_api_key,
                 self.embed_dimensions, self.offline,
             )
         )
@@ -361,6 +420,40 @@ class Settings:
         return (
             self.eval_base_url or self.base_url,
             self.eval_llm_model or self.llm_model,
+            self.eval_embed_model or self.embed_model,
+        )
+
+    def extra_body(self) -> Dict[str, Any]:
+        """`llm_extra_body` parsed. Malformed JSON is reported, not swallowed."""
+        if not self.llm_extra_body.strip():
+            return {}
+        try:
+            parsed = json.loads(self.llm_extra_body)
+        except json.JSONDecodeError as exc:
+            raise ValueError(f"llm_extra_body is not valid JSON: {exc}") from exc
+        if not isinstance(parsed, dict):
+            raise ValueError("llm_extra_body must be a JSON object")
+        return parsed
+
+    def embed_endpoint(self) -> Tuple[str, Optional[str]]:
+        """`(base_url, api_key)` for embeddings — the pipeline's own unless split."""
+        return (
+            self.embed_base_url or self.base_url,
+            self.embed_api_key or self.api_key,
+        )
+
+    def eval_embed_endpoint(self) -> Tuple[str, Optional[str], str]:
+        """`(base_url, api_key, model)` for the judge's embeddings.
+
+        Falls back to the pipeline's embedding endpoint rather than to
+        `eval_endpoint()`, because those two answer different questions: the
+        judge's *LLM* may be hosted anywhere, while its embeddings have to come
+        from a server that actually serves the embedding model.
+        """
+        base_url, key = self.embed_endpoint()
+        return (
+            self.eval_embed_base_url or base_url,
+            key,
             self.eval_embed_model or self.embed_model,
         )
 
@@ -390,6 +483,9 @@ class Settings:
 # `index_variant` hashes them; see the note there for why they are not spelled
 # out like the chunking parameters.
 VARIANT_FIELDS: Tuple[str, ...] = (
+    # A different document is a different index. Without this, pointing
+    # RAG_SOURCE at another PDF silently reuses the previous one's collection.
+    "source",
     "enable_cleaning",
     "strip_links",
     "strip_citations",
@@ -399,12 +495,17 @@ VARIANT_FIELDS: Tuple[str, ...] = (
     "max_section_chars",
     "document_prefix",
     "query_prefix",
+    # How the PDF is read decides where chunks begin and what breadcrumb they
+    # carry, so a change here is a different index, not a different view of one.
+    "pdf_heading_levels",
+    "pdf_drop_repeated_lines",
 )
 
 
 # Everything `pipeline.reader()` reads. Nothing else can change the chunks.
 READER_FIELDS: Tuple[str, ...] = (
-    "source", "source_url", "cache_dir", "use_cache", "fetch_min_chars",
+    "source", "cache_dir", "use_cache", "fetch_min_chars",
+    "pdf_heading_levels", "pdf_drop_repeated_lines",
     "enable_cleaning", "strip_links", "strip_citations", "drop_boilerplate",
     "name_empty_headings", "drop_sections",
     "chunk_size", "chunk_overlap", "min_chunk_chars", "prepend_section",

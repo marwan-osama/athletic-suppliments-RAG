@@ -44,7 +44,7 @@ class QueryExpander(Stage):
         # each other are the whole point, and a near-copy of the query buys
         # nothing.
         temperature: float = 0.7,
-        max_tokens: int = 200,
+        max_tokens: int = 1_024,
         reasoning_effort: str = "",
         log: Callable[[str], None] = print,
     ):

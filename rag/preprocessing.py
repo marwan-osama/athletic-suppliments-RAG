@@ -1,9 +1,13 @@
 """Stage 2 — clean the extracted markdown before chunking.
 
-The raw extraction is dense with things that hurt retrieval: every citation is a
-markdown link to an anchor, headings arrive wrapped in `<sub>` tags, and the page
-navigation ("Ask ODS", email-list links, breadcrumb lists) is interleaved with
-prose. Left alone, whole chunks end up made of URLs.
+What `PdfReader` hands over still carries things that hurt retrieval: numbered
+citations left in the prose, web chrome that was on the page when the document
+was typeset, and whole sections (the 200-entry reference list) that are nothing
+but numbers and names. Left alone, chunks end up made of them.
+
+Page markers pass through untouched: an HTML comment matches none of the
+patterns here, which is what lets provenance survive a stage that rewrites
+almost every other character.
 """
 
 from __future__ import annotations
@@ -40,7 +44,7 @@ _TITLE_STOP = re.compile(
     r"includes|comes|and|or|also|which|that)\b|[,:;(\[–—]"
 )
 
-# Navigation / chrome that trafilatura keeps but which is not article text.
+# Navigation / chrome that was on the page when it was typeset, not article text.
 _BOILERPLATE = (
     "ask ods",
     "have a question",
@@ -135,8 +139,8 @@ class MarkdownCleaner(Stage):
     def _name_headings(self, lines: List[str]) -> List[str]:
         """Give a name to headings that arrived empty.
 
-        On this page every supplement heading extracts as a bare `### ` — the
-        name lives in the element trafilatura discards. Without a name, each
+        A heading can arrive with no text of its own — a glyph the extractor
+        could not map, or a name that lived in an image. Without a name, each
         subsection below it reads only "Efficacy" or "Implications for use", and
         the passage no longer says which supplement it is about. The first
         sentence of the section always opens with the name ("HMB is a metabolite

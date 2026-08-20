@@ -1,7 +1,7 @@
 """The pipeline: wires the stages together and exposes build / search / answer.
 
-    fetch -> clean -> chunk -> (questions) -> embed -> index
-                                    query -> (expand) -> retrieve -> answer
+    read PDF -> clean -> chunk -> (questions) -> embed -> index
+                        query -> (expand) -> retrieve -> (rerank) -> answer
 
 Stages compose with `|`, so `pipeline.chunk()` is literally
 `(fetcher | cleaner | chunker)(source)`.
@@ -26,10 +26,11 @@ from .config import Settings
 from .diagnostics import ChunkInspector, ChunkReport
 from .embedding import HashEmbedder, ServerEmbedder
 from .expansion import QueryExpander
-from .fetching import SourceFetcher
+from .fetching import PdfReader
 from .indexing import VectorIndex
 from .llm import LLMClient
 from .preprocessing import MarkdownCleaner
+from .reranking import Reranker
 from .retrieval import Retriever
 from .schema import BuildReport, Chain, Chunk, Identity, Retrieved, Stage
 
@@ -75,17 +76,18 @@ def cleaner_for(settings: Settings) -> Stage:
 
 
 def reader(settings: Settings) -> Chain:
-    """The free half of the pipeline: fetch | clean | chunk.
+    """The free half of the pipeline: read | clean | chunk.
 
     Built on its own so the UI can re-chunk on every slider move without opening
     a database or a connection to the model server.
     """
     return (
-        SourceFetcher(
-            url=settings.source_url,
+        PdfReader(
             cache_dir=settings.cache_dir,
             use_cache=settings.use_cache,
             min_chars=settings.fetch_min_chars,
+            heading_levels=settings.pdf_heading_levels,
+            drop_repeated_lines=settings.pdf_drop_repeated_lines,
         )
         | cleaner_for(settings)
         | MarkdownChunker(
@@ -109,10 +111,27 @@ class RAGPipeline:
                 requests_per_minute=settings.requests_per_minute,
                 timeout=settings.request_timeout,
                 max_retries=settings.max_retries,
+                extra_body=settings.extra_body(),
                 log=log,
             )
             if settings.use_server
             else None
+        )
+        # A second client only when embeddings live somewhere else — otherwise
+        # this is the generation client, so the rate limiter stays shared and
+        # one endpoint is still paced as one endpoint.
+        embed_base_url, embed_key = settings.embed_endpoint()
+        self.embed_client: Optional[LLMClient] = (
+            self.client
+            if not self.client or embed_base_url == settings.base_url
+            else LLMClient(
+                base_url=embed_base_url,
+                api_key=embed_key,
+                requests_per_minute=settings.requests_per_minute,
+                timeout=settings.request_timeout,
+                max_retries=settings.max_retries,
+                log=log,
+            )
         )
 
         self.reader = reader(settings)
@@ -123,7 +142,7 @@ class RAGPipeline:
 
         self.embedder = (
             ServerEmbedder(
-                self.client,
+                self.embed_client,
                 model_name=settings.embed_model,
                 batch_size=settings.embed_batch_size,
                 document_prefix=settings.document_prefix,
@@ -141,7 +160,12 @@ class RAGPipeline:
         # The expander exists whenever a server does; `num_expansions` is what
         # switches it off, so `apply()` can toggle it without a rebuild.
         self.expander = QueryExpander(self.client, log=log) if self.client else None
-        self.retriever = Retriever(self.index, expander=self.expander)
+        # Same shape as the expander: it exists whenever a server does, and
+        # `rerank_candidates` is what switches it off, so `apply()` can toggle it.
+        self.reranker = Reranker(self.client, log=log) if self.client else None
+        self.retriever = Retriever(
+            self.index, expander=self.expander, reranker=self.reranker
+        )
         self.generator = (
             QuestionGenerator(self.client, log=log)
             if self.client and settings.questions_per_chunk > 0
@@ -177,6 +201,7 @@ class RAGPipeline:
         self.retriever.overfetch = settings.retrieval_overfetch
         self.retriever.match_boost = settings.match_boost
         self.retriever.match_boost_cap = settings.match_boost_cap
+        self.retriever.rerank_candidates = settings.rerank_candidates
 
         if self.client is not None:
             self.client.tune(
@@ -199,6 +224,12 @@ class RAGPipeline:
             self.expander.temperature = settings.query_expansion_temperature
             self.expander.max_tokens = settings.query_expansion_max_tokens
             self.expander.reasoning_effort = settings.reasoning_effort
+        if self.reranker is not None:
+            self.reranker.model_name = settings.llm_model
+            self.reranker.temperature = settings.rerank_temperature
+            self.reranker.max_tokens = settings.rerank_max_tokens
+            self.reranker.snippet_chars = settings.rerank_snippet_chars
+            self.reranker.reasoning_effort = settings.reasoning_effort
         if self.answerer is not None:
             self.answerer.model_name = settings.llm_model
             self.answerer.temperature = settings.answer_temperature
@@ -215,6 +246,11 @@ class RAGPipeline:
     def can_expand(self) -> bool:
         """Whether searches will be expanded: needs a server and a non-zero count."""
         return self.expander is not None and self.settings.query_expansions > 0
+
+    @property
+    def can_rerank(self) -> bool:
+        """Whether searches will be reranked: needs a server and a candidate pool."""
+        return self.reranker is not None and self.settings.rerank_candidates > 0
 
     @property
     def can_answer(self) -> bool:

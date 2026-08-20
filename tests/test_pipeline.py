@@ -639,6 +639,88 @@ def test_bypassing_a_stage_gets_its_own_collection():
     assert default.collection_name.endswith("_q3_m80_s1")
 
 
+def test_extra_body_is_merged_into_chat_requests_without_overriding_the_caller():
+    """Gateway routing rides along with every request, but never wins a clash.
+
+    OpenRouter serves one model id from providers at different quantizations,
+    and which one answers changes how much the model reasons — enough to empty
+    a reply that fits at one provider and truncates at another.
+    """
+    seen = {}
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        seen.update(json.loads(request.content))
+        return httpx.Response(
+            200, json={"choices": [{"message": {"content": "ok"}}]}
+        )
+
+    routing = {"provider": {"quantizations": ["fp4"], "allow_fallbacks": False}}
+    client = LLMClient(
+        transport=httpx.MockTransport(handler), extra_body=routing,
+        log=lambda *_: None,
+    )
+    client.complete(model="m", prompt="hi", reasoning_effort="low")
+    assert seen["provider"] == routing["provider"]
+    # The per-call value survives; the merge only fills what is missing.
+    assert seen["reasoning"] == {"effort": "low"}
+
+    # And it is off unless asked for.
+    plain = LLMClient(transport=httpx.MockTransport(handler), log=lambda *_: None)
+    seen.clear()
+    plain.complete(model="m", prompt="hi")
+    assert "provider" not in seen
+
+
+def test_extra_body_is_json_and_says_so_when_it_is_not():
+    assert Settings().extra_body() == {}
+    good = Settings(llm_extra_body='{"provider": {"quantizations": ["fp4"]}}')
+    assert good.extra_body()["provider"]["quantizations"] == ["fp4"]
+    for broken in ('{"provider":', '"a string"', "[1, 2]"):
+        try:
+            Settings(llm_extra_body=broken).extra_body()
+        except ValueError:
+            continue
+        raise AssertionError(f"accepted invalid extra body: {broken}")
+
+
+def test_embeddings_can_be_served_from_a_different_host_than_generation():
+    """Generation on a gateway, embeddings on the machine that has the model.
+
+    The index's vectors came from one embedding model, so moving generation to
+    a hosted endpoint must leave the embedder where it is — and OpenRouter,
+    the case this exists for, serves no /embeddings to move it to.
+    """
+    settings = Settings()
+    assert settings.embed_endpoint() == (settings.base_url, settings.api_key)
+
+    split = settings.with_(
+        base_url="https://openrouter.ai/api/v1", api_key="generation-key",
+        embed_base_url="http://127.0.0.1:1234/v1",
+    )
+    # Blank `embed_api_key` inherits, because the usual local server wants none.
+    assert split.embed_endpoint() == ("http://127.0.0.1:1234/v1", "generation-key")
+    assert split.with_(embed_api_key="own").embed_endpoint()[1] == "own"
+
+    # Same vectors, same model: the collection must not fork over a hostname,
+    # or pointing at a second host would orphan an index already on disk.
+    assert split.collection_name == settings.collection_name
+    assert split.index_variant == settings.index_variant
+    # It does reach a different server, though, so it is a different pipeline.
+    assert split.index_key != settings.index_key
+
+
+def test_a_split_embedding_endpoint_gets_its_own_client():
+    settings = Settings(embed_base_url="http://embeddings.local/v1")
+    pipeline = RAGPipeline(settings, log=lambda *_: None)
+    assert pipeline.embed_client is not pipeline.client
+    assert pipeline.embed_client.base_url.startswith("http://embeddings.local")
+    assert pipeline.embedder.client is pipeline.embed_client
+
+    # Unsplit, there is one client and therefore one shared rate limiter.
+    shared = RAGPipeline(Settings(), log=lambda *_: None)
+    assert shared.embed_client is shared.client
+
+
 def test_settings_round_trip_through_json():
     settings = Settings(
         chunk_size=750, enable_cleaning=False, drop_sections="references, notes",
@@ -669,6 +751,276 @@ def test_the_ui_exposes_every_setting():
     }
     missing = {field.name for field in fields(Settings)} - exposed
     assert not missing, f"no sidebar control for: {sorted(missing)}"
+
+
+# --------------------------------------------------------------------------- #
+# PDF reading and page provenance
+# --------------------------------------------------------------------------- #
+PAGED = """<!--page:3-->
+# Creatine
+
+Creatine helps generate ATP and thereby supplies the muscles with energy for
+short-term events, which is why it suits sprinting rather than distance running.
+
+<!--page:4-->
+It is of little value for endurance sports, and the weight gain it causes might
+impede performance in them.
+
+## Safety
+
+<!--page:5-->
+Creatine is considered safe for short-term use by healthy adults.
+"""
+
+
+def test_page_markers_survive_cleaning():
+    """The chunker can only attribute pages if the cleaner leaves markers alone."""
+    from rag.fetching import read_pages
+
+    cleaned = MarkdownCleaner()(PAGED)
+    assert read_pages(cleaned) == (3, 4, 5), read_pages(cleaned)
+
+
+def test_chunks_carry_their_page_and_never_keep_the_marker():
+    from rag.fetching import read_pages
+
+    chunks = MarkdownChunker(chunk_size=300, chunk_overlap=0, min_chars=20)(
+        MarkdownCleaner()(PAGED)
+    )
+    assert chunks, "expected chunks"
+    assert all(chunk.pages for chunk in chunks), "every chunk must know its page"
+    # The marker is provenance, not content: it must not reach the index.
+    assert not any(read_pages(chunk.text) for chunk in chunks)
+    assert min(min(c.pages) for c in chunks) == 3
+    assert max(max(c.pages) for c in chunks) == 5
+
+
+def test_text_continuing_past_a_page_break_cites_both_pages():
+    """A chunk that straddles a break belongs to both pages, not just the later one."""
+    chunks = MarkdownChunker(chunk_size=4_000, chunk_overlap=0, min_chars=20)(
+        MarkdownCleaner()(PAGED)
+    )
+    spanning = [chunk for chunk in chunks if len(chunk.pages) > 1]
+    assert spanning, "one chunk should cover the run-on paragraph across pages 3-4"
+    assert spanning[0].pages[:2] == (3, 4), spanning[0].pages
+
+
+def test_page_label_reads_as_a_citation():
+    from rag.schema import page_label
+
+    assert page_label(()) == ""
+    assert page_label((7,)) == "p. 7"
+    assert page_label((7, 8, 9)) == "pp. 7-9"
+    # A gap is never smoothed into a range that includes a page not in the chunk.
+    assert page_label((7, 9)) == "pp. 7, 9"
+
+
+def test_pages_round_trip_through_chroma_metadata():
+    """Chroma stores scalars, so the tuple has to survive being flattened."""
+    from rag.indexing import pages_from_metadata, pages_to_metadata
+
+    assert pages_to_metadata((7, 8)) == "7,8"
+    assert pages_from_metadata("7,8") == (7, 8)
+    assert pages_from_metadata("") == ()
+    assert pages_from_metadata(None) == (), "rows indexed before pages existed"
+
+
+def test_a_source_that_is_not_a_pdf_is_refused_before_the_cache():
+    """A cache entry left by another source must not be served as PDF output."""
+    from rag.fetching import PdfReader
+
+    with tempfile.TemporaryDirectory() as tmp:
+        cache = Path(tmp) / "cache"
+        cache.mkdir()
+        # A cache file whose name matches what the HTML source would have written.
+        (cache / "page.md").write_text("stale markdown, no page markers", encoding="utf-8")
+        try:
+            PdfReader(cache_dir=cache)("page.html")
+        except ValueError as error:
+            assert "not a PDF" in str(error), error
+        else:
+            raise AssertionError("a non-PDF source must be refused, cached or not")
+
+
+def test_the_answerer_shows_each_source_page_to_the_model():
+    """The page in a citation comes off the index, not out of the model."""
+    from rag.answering import Answerer
+    from rag.schema import Retrieved
+
+    hit = Retrieved(
+        chunk_id="c1", text="Creatine suits sprinting.", similarity=0.9,
+        match_type="chunk", section="Creatine > Efficacy", pages=(12, 13),
+    )
+    formatted = Answerer(client=None)._format([hit])
+    assert "(Creatine > Efficacy, pp. 12-13)" in formatted, formatted
+    assert "p. " in Answerer.PROMPT, "the prompt must ask for the page"
+
+
+def test_citations_get_the_page_from_the_index_not_from_the_model():
+    """A small model writes a bare [3], or a page it liked. Neither is trusted."""
+    from rag.answering import cite_pages
+    from rag.schema import Retrieved
+
+    def hit(pages):
+        return Retrieved(
+            chunk_id="c", text="", similarity=0.5, match_type="chunk", pages=pages
+        )
+
+    chunks = [hit((19,)), hit((4,)), hit((20, 21))]
+    assert cite_pages("Loading [1]. Table [2]. Safety [3].", chunks) == (
+        "Loading [1, p. 19]. Table [2, p. 4]. Safety [3, pp. 20-21]."
+    )
+    # A page the model invented is replaced by the real one.
+    assert cite_pages("Claim [1, p. 99].", chunks) == "Claim [1, p. 19]."
+    # A source that does not exist is left alone rather than quietly renumbered.
+    assert cite_pages("Claim [7].", chunks) == "Claim [7]."
+    # Models reach for fullwidth brackets — gpt-oss-20b used them in half the
+    # answers of one evaluation run. Missing those would let an unverified page
+    # through looking exactly like a checked one.
+    assert cite_pages("Claim \u30104, p.\u202f9\u3011.", chunks + [hit((7,))]) == (
+        "Claim [4, p. 7]."
+    )
+    assert cite_pages("Claim \u30102\u3011.", chunks) == "Claim [2, p. 4]."
+    # A chunk with no page recorded must not grow an empty label.
+    assert cite_pages("Claim [1].", [hit(())]) == "Claim [1]."
+
+
+def test_a_different_pdf_gets_its_own_collection():
+    """Two documents must never share one index."""
+    assert (
+        Settings(source="a.pdf").collection_name
+        != Settings(source="b.pdf").collection_name
+    )
+
+
+# --------------------------------------------------------------------------- #
+# Reranking
+# --------------------------------------------------------------------------- #
+def _hits(n):
+    from rag.schema import Retrieved
+    return [
+        Retrieved(chunk_id=f"c{i}", text=f"passage {i}", similarity=0.9 - i / 100,
+                  match_type="chunk", section=f"s{i}")
+        for i in range(n)
+    ]
+
+
+class ScriptedClient:
+    """An LLMClient stand-in that returns whatever the test scripted."""
+
+    def __init__(self, reply=None, error=None):
+        self.reply, self.error, self.calls = reply, error, 0
+
+    def complete(self, **kwargs):
+        self.calls += 1
+        if self.error:
+            raise self.error
+        return self.reply
+
+
+def test_reranker_reorders_to_the_models_ranking():
+    from rag.reranking import Reranker
+
+    client = ScriptedClient(reply="3, 1, 2")
+    ranked = Reranker(client, log=lambda _: None)("q", _hits(3))
+    assert [h.chunk_id for h in ranked] == ["c2", "c0", "c1"], ranked
+    assert client.calls == 1, "listwise: one call for the whole candidate list"
+    # The dense position is kept so the UI can show what moved.
+    assert [h.dense_rank for h in ranked] == [3, 1, 2]
+
+
+def test_reranker_never_drops_a_candidate():
+    """It reorders; truncation to top_k is the retriever's job, not the model's."""
+    from rag.reranking import Reranker
+
+    ranked = Reranker(ScriptedClient(reply="4"), log=lambda _: None)("q", _hits(5))
+    assert len(ranked) == 5, "a chunk the model ignored must still be returned"
+    assert ranked[0].chunk_id == "c3", "the chosen one leads"
+    # The rest keep their dense order behind it.
+    assert [h.chunk_id for h in ranked[1:]] == ["c0", "c1", "c2", "c4"]
+
+
+def test_a_useless_ranking_degrades_to_dense_order():
+    from rag.reranking import Reranker
+
+    original = [h.chunk_id for h in _hits(4)]
+    for reply in ("no idea", "", "99, 0", "passage seven please"):
+        ranked = Reranker(ScriptedClient(reply=reply), log=lambda _: None)("q", _hits(4))
+        assert [h.chunk_id for h in ranked] == original, reply
+
+    # A reply that is only partly usable is used only partly: the one number in
+    # range is promoted, the rest keep their dense order. Nothing is discarded
+    # because the model wrote something odd around it.
+    ranked = Reranker(ScriptedClient(reply="99, 0, 3"), log=lambda _: None)("q", _hits(4))
+    assert [h.chunk_id for h in ranked] == ["c2", "c0", "c1", "c3"], ranked
+    # A server that is down costs the ordering, never the results.
+    ranked = Reranker(ScriptedClient(error=RuntimeError("down")),
+                      log=lambda _: None)("q", _hits(4))
+    assert [h.chunk_id for h in ranked] == original
+
+
+def test_a_transient_empty_reply_is_retried_before_giving_up():
+    """The server intermittently returns nothing; one retry beats losing the rank."""
+    from rag.reranking import Reranker
+
+    class Flaky(ScriptedClient):
+        def complete(self, **kwargs):
+            self.calls += 1
+            if self.calls == 1:
+                raise RuntimeError("Empty reply (finish_reason='stop')")
+            return "2"
+
+    client = Flaky()
+    ranked = Reranker(client, log=lambda _: None)("q", _hits(3))
+    assert client.calls == 2, "the first failure should be retried"
+    assert ranked[0].chunk_id == "c1", "the retry's ranking is used"
+
+    # Twice is the limit — a server that is properly down must not be hammered.
+    down = ScriptedClient(error=RuntimeError("down"))
+    Reranker(down, log=lambda _: None)("q", _hits(3))
+    assert down.calls == 2, down.calls
+
+
+def test_ranking_parser_ignores_repeats_and_out_of_range():
+    from rag.reranking import parse_ranking
+
+    assert parse_ranking("2, 1, 2, 3", 3) == [1, 0, 2], "a repeat is not a new pick"
+    assert parse_ranking("[3] then [1]", 3) == [2, 0], "numbers in any wrapping"
+    assert parse_ranking("7, 2", 3) == [1], "an invented number names no passage"
+    assert parse_ranking("", 3) == []
+
+
+def test_rerank_happens_before_the_cut_to_top_k():
+    """Ranking only what dense already preferred would defeat the point."""
+    from rag.reranking import Reranker
+
+    with tempfile.TemporaryDirectory() as tmp:
+        index = VectorIndex(HashEmbedder(), db_path=tmp, collection_name="rerank")
+        index.add([Chunk(index=i, text=f"creatine passage number {i} about energy",
+                         section=f"s{i}") for i in range(8)])
+        seen = {}
+
+        class Capturing(ScriptedClient):
+            def complete(self, **kwargs):
+                seen["prompt"] = kwargs["prompt"]
+                return super().complete(**kwargs)
+
+        client = Capturing(reply="6")
+        retriever = Retriever(index, top_k=2,
+                              reranker=Reranker(client, log=lambda _: None),
+                              rerank_candidates=6)
+        results = retriever("creatine energy")
+        assert len(results) == 2, "still cut to top_k after ranking"
+        assert seen["prompt"].count("] (") >= 3, "the model saw more than top_k"
+        assert [h.rank for h in results] == [1, 2]
+
+
+def test_reranking_is_query_time_and_needs_no_rebuild():
+    settings = Settings()
+    assert settings.collection_name == settings.with_(rerank_candidates=5).collection_name
+    assert settings.reader_key == settings.with_(rerank_candidates=5).reader_key
+    # The switch collapses into the count, the same way the other stages do.
+    assert Settings(enable_rerank=False).rerank_candidates == 0
 
 
 if __name__ == "__main__":

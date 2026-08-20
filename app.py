@@ -107,16 +107,24 @@ def source_controls(defaults: Settings) -> Dict[str, Any]:
     with st.sidebar.expander("📥 Source & fetching"):
         values = {
             "source": st.text_input(
-                "Source (HTML file or URL)", value=defaults.source, key=cfg("source")
+                "Source PDF", value=defaults.source, key=cfg("source"),
+                help="Path to the PDF to index. Page numbers in citations are "
+                     "this document's own pages.",
             ),
             "use_cache": switch(
                 "Reuse the extracted markdown", "use_cache", defaults.use_cache,
-                "Off re-runs extraction (and, for a URL, the download) every build.",
+                "Off re-runs PDF extraction every build.",
             ),
-            "source_url": st.text_input(
-                "Base URL for relative links", value=defaults.source_url,
-                key=cfg("source_url"),
-                help="Lets links inside a saved page resolve to absolute URLs.",
+            "pdf_heading_levels": st.number_input(
+                "Heading levels to recover", 0, 6,
+                defaults.pdf_heading_levels, 1, key=cfg("pdf_heading_levels"),
+                help="A PDF has no headings — this many distinct font sizes "
+                     "above the body size become levels 1..N.",
+            ),
+            "pdf_drop_repeated_lines": switch(
+                "Drop running heads and footers", "pdf_drop_repeated_lines",
+                defaults.pdf_drop_repeated_lines,
+                "Short lines that repeat in the top or bottom margin of most pages.",
             ),
             "cache_dir": st.text_input(
                 "Cache directory", value=str(defaults.cache_dir), key=cfg("cache_dir")
@@ -350,6 +358,46 @@ def expansion_controls(defaults: Settings) -> Dict[str, Any]:
         }
 
 
+def rerank_controls(defaults: Settings) -> Dict[str, Any]:
+    with st.sidebar.expander(
+        stage_title("🎯", "Reranking", "enable_rerank", defaults.enable_rerank)
+    ):
+        enabled = switch(
+            "Let the model reorder results", "enable_rerank",
+            defaults.enable_rerank,
+            "Pulls a longer candidate list, has the model rank it against the "
+            "question, then keeps top-k. The embedder scores question and "
+            "passage separately; the reranker reads them together. One "
+            "generation call per search.",
+        )
+        return {
+            "enable_rerank": enabled,
+            "rerank_candidates": st.slider(
+                "Candidates to rank", 0, 50, defaults.rerank_candidates, 5,
+                key=cfg("rerank_candidates"), disabled=not enabled,
+                help="Fetched before the cut to top-k. On this corpus 41% of the "
+                     "useful passages sit between ranks 6 and 20, which is what "
+                     "a deeper pool recovers.",
+            ),
+            "rerank_temperature": st.slider(
+                "Temperature", 0.0, 1.0, float(defaults.rerank_temperature), 0.05,
+                key=cfg("rerank_temperature"), disabled=not enabled,
+                help="0 by default: an ordering should not move between runs.",
+            ),
+            "rerank_snippet_chars": st.number_input(
+                "Chars per candidate", 100, 2_000,
+                defaults.rerank_snippet_chars, 50,
+                key=cfg("rerank_snippet_chars"), disabled=not enabled,
+                help="How much of each chunk the ranker sees. Keeps the prompt "
+                     "tight when the candidate list is long.",
+            ),
+            "rerank_max_tokens": st.number_input(
+                "Max tokens per call", 32, 8_192, defaults.rerank_max_tokens, 32,
+                key=cfg("rerank_max_tokens"), disabled=not enabled,
+            ),
+        }
+
+
 def retrieval_controls(defaults: Settings) -> Dict[str, Any]:
     with st.sidebar.expander("🔎 Retrieval", expanded=True):
         dedupe = st.checkbox(
@@ -418,6 +466,18 @@ def server_controls(defaults: Settings) -> Dict[str, Any]:
                 key=cfg("api_key"),
                 help="LM Studio needs none. Defaults to LLM_API_KEY from .env.",
             ) or None,
+            "embed_base_url": st.text_input(
+                "Embeddings base URL", value=defaults.embed_base_url,
+                key=cfg("embed_base_url"),
+                help="Blank uses the base URL above. Set it when generation is "
+                     "hosted and embeddings are not — OpenRouter, for one, "
+                     "serves no /embeddings.",
+            ),
+            "embed_api_key": st.text_input(
+                "Embeddings API key", value=defaults.embed_api_key or "",
+                type="password", key=cfg("embed_api_key"),
+                help="Blank reuses the key above. Defaults to EMBED_API_KEY.",
+            ) or None,
             "requests_per_minute": st.number_input(
                 "Rate limit (requests/min)", 0, 10_000, defaults.requests_per_minute, 10,
                 key=cfg("requests_per_minute"), help="0 disables pacing.",
@@ -437,8 +497,17 @@ def server_controls(defaults: Settings) -> Dict[str, Any]:
                 index=REASONING_EFFORTS.index(defaults.reasoning_effort),
                 format_func=lambda value: value or "leave unset",
                 key=cfg("reasoning_effort"),
-                help="Passed through for servers that honour it. Neither model "
-                     "shipped here does — they reason regardless.",
+                help="Passed through for servers that honour it. The local "
+                     "build reasons regardless; a hosted one may not.",
+            ),
+            "llm_extra_body": st.text_area(
+                "Extra request body (JSON)", value=defaults.llm_extra_body,
+                key=cfg("llm_extra_body"), height=68,
+                placeholder='{"provider": {"quantizations": ["fp4"]}}',
+                help="Merged into every chat request, for fields outside the "
+                     "OpenAI shape — a gateway's routing preferences, for "
+                     "instance. Which provider answers changes how much the "
+                     "model reasons, so pin it when runs must be comparable.",
             ),
         }
 
@@ -477,6 +546,14 @@ def evaluation_controls(defaults: Settings) -> Dict[str, Any]:
                 key=cfg("eval_embed_model"), placeholder=defaults.embed_model,
                 help="Blank uses the pipeline's embedding model. Answer "
                      "relevancy is the metric that needs it.",
+            ),
+            "eval_embed_base_url": st.text_input(
+                "Judge embeddings endpoint", value=defaults.eval_embed_base_url,
+                key=cfg("eval_embed_base_url"),
+                placeholder=defaults.embed_endpoint()[0],
+                help="Blank uses the pipeline's embedding endpoint — not the "
+                     "judge endpoint below, which may be a gateway that serves "
+                     "no embeddings at all.",
             ),
             "eval_base_url": st.text_input(
                 "Judge endpoint", value=defaults.eval_base_url,
@@ -533,7 +610,7 @@ def sidebar() -> Settings:
     for controls in (
         source_controls, cleaning_controls, chunking_controls, question_controls,
         embedding_controls, storage_controls, expansion_controls,
-        retrieval_controls, answering_controls, server_controls,
+        retrieval_controls, rerank_controls, answering_controls, server_controls,
         diagnostics_controls, evaluation_controls,
     ):
         values.update(controls(defaults))
@@ -678,9 +755,16 @@ def render_hit(question: str, position: int, hit: Retrieved) -> None:
         f" · 🔀 {hit.matches} phrasings agreed, rank +{hit.boost:.2f}"
         if hit.matches > 1 else ""
     )
+    where = f" · 📄 {hit.pages_label}" if hit.pages_label else ""
+    if hit.rerank_move > 0:
+        moved = f" · 🎯 up {hit.rerank_move} from #{hit.dense_rank}"
+    elif hit.rerank_move < 0:
+        moved = f" · 🎯 down {-hit.rerank_move} from #{hit.dense_rank}"
+    else:
+        moved = ""
     title = (
-        f"**{position}. {hit.section or 'document'}** — similarity "
-        f"{hit.similarity:.3f} · {badge} · {len(hit.text)} chars{agreement}"
+        f"**{position}. {hit.section or 'document'}**{where} — similarity "
+        f"{hit.similarity:.3f} · {badge} · {len(hit.text)} chars{agreement}{moved}"
     )
     with st.expander(title, expanded=position <= 3):
         st.progress(max(0.0, min(hit.similarity, 1.0)))
@@ -703,10 +787,12 @@ def render_hit(question: str, position: int, hit: Retrieved) -> None:
             "question": question,
             "chunk_id": hit.chunk_id,
             "section": hit.section,
+            "pages": hit.pages_label,
             "similarity": round(hit.similarity, 4),
             "score": round(hit.score, 4),
             "matches": hit.matches,
             "match_type": hit.match_type,
+            "dense_rank": hit.dense_rank,
             "rank": position,
         }
         st.caption(f"chunk `{hit.chunk_id}` · index {hit.chunk_index}")
@@ -767,7 +853,8 @@ def chunks_tab(pipeline: RAGPipeline, settings: Settings) -> None:
         data="".join(
             f"\n{'=' * 70}\n[{c.index}] {c.size} chars "
             f"{' '.join(report.flags.get(c.index, [])) or 'ok'}\n"
-            f"section: {c.section or '-'}\n{'=' * 70}\n{c.text}\n"
+            f"section: {c.section or '-'}  |  {c.pages_label or '-'}\n"
+            f"{'=' * 70}\n{c.text}\n"
             for c in chunks
         ),
         file_name=f"chunks_c{settings.chunk_size}_o{settings.chunk_overlap}.md",
@@ -775,8 +862,8 @@ def chunks_tab(pipeline: RAGPipeline, settings: Settings) -> None:
 
     for chunk in shown[:200]:
         flags = " ".join(report.flags.get(chunk.index, [])) or "ok"
-        with st.expander(f"**[{chunk.index}]** {chunk.section or 'document'} — "
-                         f"{chunk.size} chars · {flags}"):
+        with st.expander(f"**[{chunk.index}]** {chunk.section or 'document'} · "
+                         f"{chunk.pages_label} — {chunk.size} chars · {flags}"):
             st.code(chunk.text, language=None, wrap_lines=True)
     if len(shown) > 200:
         st.caption("Showing the first 200 matches — narrow the filter to see more.")

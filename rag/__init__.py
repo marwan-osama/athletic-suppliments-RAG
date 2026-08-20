@@ -2,7 +2,7 @@
 
 One stage per module:
 
-    fetching       SourceFetcher      HTML (file or URL) -> markdown
+    fetching       PdfReader          PDF -> markdown, with page markers
     preprocessing  MarkdownCleaner    markdown -> markdown without link/nav noise
     chunking       MarkdownChunker    markdown -> [Chunk], heading-aware
     augmentation   QuestionGenerator  [Chunk] -> hypothetical questions
@@ -11,6 +11,7 @@ One stage per module:
     embedding      ServerEmbedder     text -> vectors
     indexing       VectorIndex        chunks + questions -> ChromaDB
     retrieval      Retriever          query -> [Retrieved]
+    reranking      Reranker           query + hits -> hits, best first
     answering      Answerer           query + chunks -> answer
     diagnostics    ChunkInspector     [Chunk] -> quality report
 
@@ -25,11 +26,12 @@ from .config import Settings
 from .diagnostics import ChunkInspector, ChunkReport
 from .embedding import HashEmbedder, ServerEmbedder
 from .expansion import QueryExpander
-from .fetching import SourceFetcher
+from .fetching import PdfReader, read_pages, strip_pages
 from .indexing import VectorIndex
 from .llm import LLMClient, LLMError
 from .pipeline import RAGPipeline
 from .preprocessing import MarkdownCleaner
+from .reranking import Reranker
 from .retrieval import Retriever
 from .schema import BuildReport, Chain, Chunk, Identity, Retrieved, Stage
 
@@ -46,14 +48,17 @@ __all__ = [
     "LLMError",
     "MarkdownChunker",
     "MarkdownCleaner",
+    "PdfReader",
     "QueryExpander",
     "QuestionGenerator",
     "RAGPipeline",
+    "Reranker",
     "Retrieved",
     "Retriever",
     "ServerEmbedder",
     "Settings",
-    "SourceFetcher",
     "Stage",
     "VectorIndex",
+    "read_pages",
+    "strip_pages",
 ]
